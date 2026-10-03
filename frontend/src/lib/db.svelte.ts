@@ -91,6 +91,26 @@ export const ROLES = ['protagonist', 'antagonist', 'supporting', 'minor'];
 export const NOTE_CATEGORIES = ['History', 'Magic', 'Culture', 'Religion', 'Politics', 'Creatures', 'Technology', 'Language', 'Other'];
 export const PLACE_TYPES = ['city', 'town', 'village', 'fortress', 'ruin', 'landmark', 'region', 'water', 'other'];
 
-export function wordCount(text: string) {
-  return (text.match(/\S+/g) ?? []).length;
+const looksLikeHtml = (s: string) => s.trimStart().startsWith('<');
+
+/** Chapter text is HTML now. Older chapters are plain text, so accept both. */
+export function toHtml(body: string): string {
+  if (!body || looksLikeHtml(body)) return body || '';
+  const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return body
+    .split(/\r?\n/)
+    .filter((l) => l.trim())
+    .map((l) => `<p>${esc(l.trim())}</p>`)
+    .join('');
+}
+
+/** Plain text of a chapter, for counting words. */
+export function plainText(body: string): string {
+  if (!looksLikeHtml(body)) return body ?? '';
+  const spaced = body.replace(/<\/(p|h[1-6]|li|blockquote)>|<br\s*\/?>|<hr\s*\/?>/gi, ' ');
+  return new DOMParser().parseFromString(spaced, 'text/html').body.textContent ?? '';
+}
+
+export function wordCount(body: string) {
+  return (plainText(body).match(/\S+/g) ?? []).length;
 }

@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { db, wordCount } from '../lib/db.svelte';
+  import { db, wordCount, toHtml } from '../lib/db.svelte';
+  import RichEditor from '../lib/RichEditor.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import ProgressBar from '../lib/ProgressBar.svelte';
 
@@ -79,7 +80,9 @@
   <section class="pane">
     {#if chap}
       <input class="editor" style="font-size:1.4rem;min-height:0;margin-bottom:.8rem" bind:value={chap.title} oninput={save} />
-      <textarea class="editor" placeholder="Start writing…" bind:value={chap.body} oninput={save}></textarea>
+      {#key chap.id}
+        <RichEditor value={toHtml(chap.body ?? '')} onchange={(html) => { chap.body = html; save(); }} />
+      {/key}
       {@const words = wordCount(chap.body ?? '')}
       {@const goal = goalOf(chap)}
       <div style="margin-top:.6rem"><ProgressBar value={words} goal={goal} /></div>

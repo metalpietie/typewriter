@@ -21,9 +21,11 @@ type Exporter struct {
 
 // block is one piece of an export, kept neutral so Word and PDF share it.
 type block struct {
-	kind  string // title, subtitle, h1, h2, p, kv, pagebreak
+	kind  string // title, subtitle, h1, h2, sub, p, quote, li, rule, kv, pagebreak
 	label string // for kv
 	text  string
+	spans []span // styled text; when empty, text is used
+	flush bool   // no first-line indent (first paragraph of a chapter)
 }
 
 type rec = map[string]any
@@ -174,9 +176,14 @@ func (e *Exporter) manuscript(bookID int64) ([]block, string) {
 				h += ": " + t
 			}
 			out = append(out, block{kind: "h1", text: h})
-			for _, p := range paragraphs(str(c, "body")) {
-				out = append(out, block{kind: "p", text: p})
+			body := chapterBlocks(str(c, "body"))
+			for i := range body {
+				if body[i].kind == "p" {
+					body[i].flush = true
+					break
+				}
 			}
+			out = append(out, body...)
 		}
 		title = str(b, "title")
 	}
@@ -269,12 +276,41 @@ func (e *Exporter) bible() []block {
 
 var xmlEsc = strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;", `"`, "&quot;")
 
-func run(text string, bold bool) string {
-	b := ""
-	if bold {
-		b = "<w:rPr><w:b/></w:rPr>"
+func run(text string, bold bool) string { return runOf(span{text: text, bold: bold}) }
+
+// runOf writes one styled piece of text. A new line in the text becomes a line break.
+func runOf(sp span) string {
+	props := ""
+	if sp.bold {
+		props += "<w:b/>"
 	}
-	return `<w:r>` + b + `<w:t xml:space="preserve">` + xmlEsc.Replace(text) + `</w:t></w:r>`
+	if sp.italic {
+		props += "<w:i/>"
+	}
+	if sp.underline {
+		props += `<w:u w:val="single"/>`
+	}
+	if props != "" {
+		props = "<w:rPr>" + props + "</w:rPr>"
+	}
+	var out strings.Builder
+	for i, part := range strings.Split(sp.text, "\n") {
+		if i > 0 {
+			out.WriteString("<w:r><w:br/></w:r>")
+		}
+		if part != "" {
+			out.WriteString("<w:r>" + props + `<w:t xml:space="preserve">` + xmlEsc.Replace(part) + "</w:t></w:r>")
+		}
+	}
+	return out.String()
+}
+
+func runsOf(b block) string {
+	var out strings.Builder
+	for _, sp := range spansOf(b) {
+		out.WriteString(runOf(sp))
+	}
+	return out.String()
 }
 
 func buildDocx(blocks []block) ([]byte, error) {
@@ -293,8 +329,20 @@ func buildDocx(blocks []block) ([]byte, error) {
 			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Heading2"/></w:pPr>` + run(b.text, false) + `</w:p>`)
 		case "kv":
 			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Plain"/></w:pPr>` + run(b.label+": ", true) + run(b.text, false) + `</w:p>`)
+		case "sub":
+			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Heading2"/></w:pPr>` + runsOf(b) + `</w:p>`)
+		case "quote":
+			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Quote"/></w:pPr>` + runsOf(b) + `</w:p>`)
+		case "li":
+			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="ListItem"/></w:pPr>` + runsOf(b) + `</w:p>`)
+		case "rule":
+			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Plain"/><w:spacing w:before="240" w:after="240"/><w:jc w:val="center"/></w:pPr>` + run("*   *   *", false) + `</w:p>`)
 		default:
-			body.WriteString(`<w:p>` + run(b.text, false) + `</w:p>`)
+			props := ""
+			if b.flush {
+				props = `<w:pPr><w:ind w:firstLine="0"/></w:pPr>`
+			}
+			body.WriteString(`<w:p>` + props + runsOf(b) + `</w:p>`)
 		}
 	}
 	doc := `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -308,6 +356,8 @@ func buildDocx(blocks []block) ([]byte, error) {
 <w:pPrDefault><w:pPr><w:spacing w:after="120" w:line="360" w:lineRule="auto"/><w:ind w:firstLine="360"/></w:pPr></w:pPrDefault></w:docDefaults>
 <w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style>
 <w:style w:type="paragraph" w:styleId="Plain"><w:name w:val="Plain"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:after="80" w:line="276" w:lineRule="auto"/><w:ind w:firstLine="0"/></w:pPr></w:style>
+<w:style w:type="paragraph" w:styleId="Quote"><w:name w:val="Quote"/><w:basedOn w:val="Normal"/><w:pPr><w:ind w:left="720" w:right="720" w:firstLine="0"/></w:pPr><w:rPr><w:i/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="ListItem"><w:name w:val="List Item"/><w:basedOn w:val="Plain"/><w:pPr><w:ind w:left="720" w:hanging="360" w:firstLine="0"/></w:pPr></w:style>
 <w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:before="3000" w:after="360"/><w:ind w:firstLine="0"/><w:jc w:val="center"/></w:pPr><w:rPr><w:b/><w:sz w:val="64"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="Subtitle"><w:name w:val="Subtitle"/><w:basedOn w:val="Normal"/><w:pPr><w:ind w:firstLine="0"/><w:jc w:val="center"/></w:pPr><w:rPr><w:i/><w:sz w:val="26"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:pPr><w:keepNext/><w:spacing w:before="480" w:after="360"/><w:ind w:firstLine="0"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:sz w:val="40"/></w:rPr></w:style>
@@ -389,10 +439,32 @@ func buildPDF(blocks []block) ([]byte, error) {
 			pdf.SetFont("Times", "", 11)
 			pdf.MultiCell(0, 6, tr(b.text), "", "L", false)
 			pdf.Ln(1)
-		default:
+		case "sub":
+			pdf.Ln(3)
+			pdf.SetFont("Times", "B", 14)
+			pdf.MultiCell(0, 8, tr(spansText(spansOf(b))), "", "L", false)
+			pdf.Ln(1)
+		case "rule":
+			pdf.Ln(3)
 			pdf.SetFont("Times", "", 12)
-			pdf.MultiCell(0, 7, tr(b.text), "", "L", false)
-			pdf.Ln(1.5)
+			pdf.CellFormat(0, 7, "*   *   *", "", 1, "C", false, 0, "")
+			pdf.Ln(3)
+		case "quote", "li":
+			indent := 10.0
+			if b.kind == "li" {
+				indent = 8
+			}
+			pdf.SetLeftMargin(25.4 + indent)
+			pdf.SetX(25.4 + indent)
+			writeSpans(pdf, tr, b, b.kind == "quote", 0)
+			pdf.SetLeftMargin(25.4)
+			pdf.SetX(25.4)
+		default:
+			indent := firstLineIndent // same indent as the Word export
+			if b.flush {
+				indent = 0
+			}
+			writeSpans(pdf, tr, b, false, indent)
 		}
 		fresh = false
 	}
@@ -402,3 +474,30 @@ func buildPDF(blocks []block) ([]byte, error) {
 	}
 	return buf.Bytes(), nil
 }
+
+// writeSpans writes one paragraph of styled text and moves to the next line.
+func writeSpans(pdf *fpdf.Fpdf, tr func(string) string, b block, italic bool, firstLine float64) {
+	pdf.SetX(pdf.GetX() + firstLine)
+	for _, sp := range spansOf(b) {
+		style := ""
+		if sp.bold {
+			style += "B"
+		}
+		if sp.italic || italic {
+			style += "I"
+		}
+		if sp.underline {
+			style += "U"
+		}
+		pdf.SetFont("Times", style, 12)
+		pdf.Write(lineHeight, tr(sp.text))
+	}
+	pdf.Ln(lineHeight + paraGap)
+}
+
+// These match the Word export: 0.25 inch first-line indent, 1.5 line spacing, 6 pt after a paragraph.
+const (
+	firstLineIndent = 6.35 // mm
+	lineHeight      = 7.3  // mm
+	paraGap         = 2.1  // mm
+)

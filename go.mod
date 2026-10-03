@@ -5,6 +5,7 @@ go 1.26.0
 require (
 	github.com/go-pdf/fpdf v0.9.0
 	github.com/wailsapp/wails/v3 v3.0.0-beta.27
+	golang.org/x/net v0.59.0
 	modernc.org/sqlite v1.60.1
 )
 

@@ -47,11 +47,11 @@ Use the menu on the left to switch screens. Press **Ctrl+K** anywhere to search.
 ### Write
 
 1. Press **+ Book**, then give the book a title and a place in the series.
-2. Press **+ Chapter**. Write in the big text box. The word count updates as you type.
+2. Press **+ Chapter**. Write in the editor. It looks like the page you will export. The toolbar has bold, italic, underline, three heading sizes, lists, quotes, a scene break (`* * *`), and undo/redo. The usual shortcuts work: Ctrl+B, Ctrl+I, Ctrl+U. The word count updates as you type.
 3. In the right panel, set each chapter's status, point-of-view character, main place, story time, and who is in it.
 4. Use the ↑ and ↓ buttons to reorder chapters.
 
-Press Enter between paragraphs. Export uses those line breaks.
+Chapters you wrote before the editor existed open as plain paragraphs. They convert when you edit them.
 
 ### Characters
 
@@ -105,7 +105,7 @@ Press **Ctrl+K**. Type a few letters. Typos are fine: "aldrik" finds "Aldric". I
 ### Export
 
 1. Open **Export**.
-2. Choose **Manuscript** (a title page, then each chapter on a new page) or **Story bible** (characters, relationships, places, lore, timeline).
+2. Choose **Manuscript** (a title page, then each chapter on a new page, with your bold, italic, underline, headings, lists and quotes) or **Story bible** (characters, relationships, places, lore, timeline).
 3. For a manuscript, pick one book or the whole series.
 4. Choose **Word (.docx)** or **PDF**, press **Export…**, and pick where to save.
 
