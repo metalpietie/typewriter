@@ -35,7 +35,9 @@
   const title = (c: Conflict) =>
     c.kind === 'character'
       ? `${c.name} is in different places at the same time`
-      : `“${c.name}” has two owners or places at the same time`;
+      : c.kind === 'travel'
+        ? `${c.name} cannot travel that far in the time given`
+        : `“${c.name}” has two owners or places at the same time`;
 
   function go(r: Presence) {
     if (r.source === 'scene') openScene(r.id);
@@ -101,6 +103,7 @@
         <li>Only things with <b>exactly the same number</b> are compared. If one number covers a whole year, use decimals for the days: 312.1, 312.2.</li>
         <li>A place inside another place is fine. A person in the market and in the city that holds the market is not a problem.</li>
         <li>Two map spots very close together count as the same spot.</li>
+        <li>If a map has a scale, the check also finds trips that are too long for the story time between two stops, even at your fastest way to travel.</li>
         <li>If it is not a real problem (the scenes are really days apart), press <b>Not a problem</b>. If you change the scenes later and the problem comes back in a new shape, it shows up again.</li>
       </ul>
     </div>
@@ -120,7 +123,7 @@
         <strong>{title(c)}</strong>
         <button class="small" title="Hide this one" onclick={() => dismiss(c)}>Not a problem</button>
       </div>
-      <div class="muted">At {timeText(c)}</div>
+      <div class="muted">{c.note ?? `At ${timeText(c)}`}</div>
       {@render rows(c)}
     </div>
   {:else}
@@ -139,7 +142,7 @@
       {#each dismissed as c (c.key)}
         <div class="card hole done">
           <div class="head"><strong>{title(c)}</strong><button class="small" onclick={() => bring(c)}>Bring back</button></div>
-          <div class="muted">At {timeText(c)}</div>
+          <div class="muted">{c.note ?? `At ${timeText(c)}`}</div>
           {@render rows(c)}
         </div>
       {/each}

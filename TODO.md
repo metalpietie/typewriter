@@ -15,8 +15,6 @@ Nothing open here.
 
 ## Maps and paths
 
-- [ ] Travel time: distance and days between places, using a scale you set
-- [ ] "Who is where on day X" slider that plays several paths at once
 - [ ] Region shapes: draw a border around a kingdom and name it
 - [ ] Draw on top of an uploaded map image
 - [ ] Map drawing tool: curved text along a path, texture fills, and a grid overlay
@@ -31,6 +29,8 @@ Nothing open here.
 
 ## Done
 
+- [x] Travel time: distance and days between places, using a scale you set (also a plot hole check)
+- [x] "Who is where on day X" slider that plays several paths at once
 - [x] Name generator for people and places
 - [x] More export types: EPUB, Markdown, and a print-ready PDF with page size choices
 - [x] Calendar system: your own months, days, and year names for the timeline

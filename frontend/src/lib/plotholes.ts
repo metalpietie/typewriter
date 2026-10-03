@@ -1,5 +1,7 @@
 import { db, type Item } from './db.svelte';
 import { sceneLabel } from './scenes';
+import { tracks, type Stop } from './tracks';
+import { distance, fmtDays, fmtDist, scaleOf, storyDays } from './travel';
 
 /** One place where someone (or something) is at one moment of story time. */
 export type Presence = {
@@ -13,12 +15,13 @@ type Where = { loc: number | null; map: number | null; x: number | null; y: numb
 
 export type Conflict = {
   key: string;
-  kind: 'character' | 'item';
+  kind: 'character' | 'item' | 'travel';
   subject: number;
   name: string;
   time: number;
   when: string;
   rows: Presence[];
+  note?: string; // travel problems: the numbers behind it
 };
 
 export type Stats = {
@@ -71,6 +74,36 @@ function addTo(map: Map<string, Slot>, subject: string, time: number, when: stri
 /** The rows of a slot that clash with at least one other row. */
 function clashing(rows: Presence[], differs: (a: Presence, b: Presence) => boolean): Presence[] {
   return rows.filter((a) => rows.some((b) => b !== a && differs(a, b)));
+}
+
+/** Can one character get from one spot to the next in the story time between them? */
+function travelConflicts(): Conflict[] {
+  const out: Conflict[] = [];
+  for (const [char, stops] of tracks()) {
+    for (let i = 0; i + 1 < stops.length; i++) {
+      const a = stops[i], b = stops[i + 1];
+      if (sameTime(a.time, b.time) || a.map !== b.map) continue;
+      const map = db.get('map', a.map);
+      const sc = scaleOf(map);
+      if (!map || !sc || !sc.modes.length) continue;
+      const dist = distance(map, a, b);
+      const best = sc.modes.reduce((m, x) => (x.perDay > m.perDay ? x : m));
+      const needs = dist / best.perDay;
+      const has = storyDays(a.time, b.time);
+      if (dist <= 0 || needs <= has + 1e-9) continue;
+      const row = (s: Stop): Presence => ({
+        source: s.source, id: s.id, text: s.text,
+        place: { loc: s.loc, map: s.map, x: s.x, y: s.y, label: s.loc ? db.name('location', s.loc) : s.label || 'a spot on “' + db.name('map', s.map) + '”' },
+      });
+      out.push({
+        key: `t${char}|${a.time}|${b.time}|${a.source[0]}${a.id},${b.source[0]}${b.id}`,
+        kind: 'travel', subject: char, name: db.name('character', char), time: b.time, when: '',
+        rows: [row(a), row(b)],
+        note: `The two spots are ${fmtDist(dist, sc.unit)} apart. The fastest way you set (${best.name}, ${best.perDay} ${sc.unit} a day) needs ${fmtDays(needs)}. The story gives ${fmtDays(has)}.`,
+      });
+    }
+  }
+  return out;
 }
 
 export function findConflicts(): { conflicts: Conflict[]; stats: Stats } {
@@ -139,6 +172,7 @@ export function findConflicts(): { conflicts: Conflict[]; stats: Stats } {
     done('item', id, db.name('item', id), slot, clashing(slot.rows, (a, b) =>
       (holder(a) !== null && holder(b) !== null && holder(a) !== holder(b)) || !compatible(a.place, b.place)));
   }
+  out.push(...travelConflicts());
   return { conflicts: out.sort((a, b) => a.time - b.time), stats };
 }
 

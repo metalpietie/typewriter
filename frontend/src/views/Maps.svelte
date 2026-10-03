@@ -5,9 +5,12 @@
   import DateField from '../lib/DateField.svelte';
   import { scenesOf } from '../lib/scenes';
   import MapEditor from '../lib/mapdraw/MapEditor.svelte';
+  import { calendar, timeText } from '../lib/calendar';
+  import { DEFAULT_MODES, distance, fmtDays, fmtDist, scaleOf, storyDays } from '../lib/travel';
+  import { rangeOn, statusAt, tracks, whereAt } from '../lib/tracks';
 
   let mapId = $state<number | null>(null);
-  let mode = $state<'pan' | 'pin' | 'path'>('pan');
+  let mode = $state<'pan' | 'pin' | 'path' | 'measure'>('pan');
   let pathChar = $state<number | null>(null);
   let hiddenChars = $state<number[]>([]);
   let selPin = $state<number | null>(null);
@@ -48,6 +51,73 @@
   const chapters = $derived(
     [...db.lists.chapter].sort((a, b) => (a.book - b.book) || (a.order - b.order)),
   );
+
+  // ---- travel time ----
+  const scale = $derived(scaleOf(map));
+  let modeIdx = $state(0);
+  const mode0 = $derived(scale?.modes[Math.min(modeIdx, (scale?.modes.length ?? 1) - 1)]);
+  type Spot = { x: number; y: number; label: string };
+  let ruler = $state<{ a?: Spot; b?: Spot }>({});
+  const rulerDist = $derived(map && scale && ruler.a && ruler.b ? distance(map, ruler.a, ruler.b) : null);
+
+  function legText(a: any, b: any): string {
+    if (!map || !scale) return '';
+    const d = distance(map, a, b);
+    let t = fmtDist(d, scale.unit);
+    if (mode0) t += ' · ' + fmtDays(d / mode0.perDay) + ' ' + mode0.name.toLowerCase();
+    if (a.time != null && b.time != null && a.time !== '' && b.time !== '') t += ' · story gives ' + fmtDays(storyDays(+a.time, +b.time));
+    return t;
+  }
+  const pathTotal = $derived.by(() => {
+    if (!map || !scale || myPoints.length < 2) return null;
+    let d = 0;
+    for (let i = 0; i + 1 < myPoints.length; i++) d += distance(map, myPoints[i] as any, myPoints[i + 1] as any);
+    return d;
+  });
+  // the default ways to travel become real rows, so the writer can see and change them
+  $effect(() => {
+    if (map && scale && !map.modes) { map.modes = DEFAULT_MODES.map((m) => ({ ...m })); saveMap(); }
+  });
+  function addMode() { if (map) { map.modes = [...(map.modes ?? []), { name: 'New way', perDay: 30 }]; saveMap(); } }
+  function dropMode(i: number) { if (map) { map.modes = map.modes.filter((_: unknown, k: number) => k !== i); saveMap(); } }
+
+  // ---- who is where: a slider over story time ----
+  const allTracks = $derived(tracks());
+  const shownChars = $derived(db.lists.character.filter((c) => !hiddenChars.includes(c.id)));
+  const range = $derived(mapId ? rangeOn(allTracks, mapId, shownChars.map((c) => c.id)) : null);
+  let T = $state<number | null>(null);
+  let playing = $state(false);
+  let playSpeed = $state(1);
+  let showLast = $state(true);
+  const Tc = $derived(range ? Math.min(range.max, Math.max(range.min, T ?? range.min)) : 0);
+  $effect(() => { if (!range) { playing = false; T = null; } });
+  $effect(() => {
+    if (!playing || !range) return;
+    const r = range;
+    if ((T ?? r.min) >= r.max) T = r.min;
+    const step = (r.max - r.min) / (600 / playSpeed); // about 30 seconds from end to end at speed 1
+    const id = setInterval(() => {
+      T = Math.min(r.max, (T ?? r.min) + step);
+      if (T >= r.max) playing = false;
+    }, 50);
+    return () => clearInterval(id);
+  });
+  const markers = $derived(
+    range && mapId
+      ? shownChars.flatMap((c) => {
+          const stops = allTracks.get(c.id) ?? [];
+          const w = whereAt(stops, Tc, mapId!);
+          if (!w || (w.state === 'last' && !showLast)) return [];
+          const trail = stops.filter((s) => s.map === mapId && s.time <= Tc + 1e-9).map((s) => ({ x: s.x, y: s.y }));
+          if (w.state === 'moving') trail.push({ x: w.x, y: w.y });
+          return [{ c, w, trail }];
+        })
+      : [],
+  );
+  const whoList = $derived(
+    range ? shownChars.flatMap((c) => { const st = statusAt(allTracks.get(c.id) ?? [], Tc); return st ? [{ c, ...st }] : []; }) : [],
+  );
+  const timeLabel = (t: number) => (calendar() ? timeText(t) : String(Math.round(t * 1000) / 1000));
 
   function fit() {
     const k = Math.min(width / W, height / H) * 0.95;
@@ -127,6 +197,16 @@
     if (d.moved) {
       if (d.kind === 'pin') { const l = db.get('location', d.id); if (l) await db.save('location', l); }
       if (d.kind === 'point') { const p = db.get('pathpoint', d.id); if (p) await db.save('pathpoint', p); }
+      return;
+    }
+    if (mode === 'measure') {
+      let spot: Spot | null = null;
+      if (d.kind === 'pin') { const l = db.get('location', d.id); if (l) spot = { x: l.x, y: l.y, label: l.name }; }
+      else if (d.kind === 'bg') {
+        const p = toWorld(e);
+        if (p.x >= 0 && p.y >= 0 && p.x <= W && p.y <= H) spot = { x: p.x / W, y: p.y / H, label: '' };
+      }
+      if (spot) ruler = !ruler.a || ruler.b ? { a: spot } : { a: ruler.a, b: spot };
       return;
     }
     if (d.kind === 'pin') {
@@ -224,6 +304,28 @@
       <label>Notes</label><textarea bind:value={map.notes} oninput={saveMap}></textarea>
       <div style="margin-top:.5rem"><ConfirmButton label="Delete map" onconfirm={delMap} /></div>
 
+      <h3 style="margin-top:1.2rem">Scale and travel</h3>
+      <label for="scaledist">The whole map is this wide</label>
+      <div class="row">
+        <input id="scaledist" type="number" min="0" step="any" bind:value={map.scaleDist} oninput={saveMap} placeholder="e.g. 500" />
+        <input list="units" bind:value={map.scaleUnit} oninput={saveMap} placeholder="km" style="flex:0 0 5.5rem" aria-label="Unit" />
+      </div>
+      <datalist id="units"><option value="km"></option><option value="miles"></option><option value="leagues"></option></datalist>
+      {#if scale}
+        <label>Ways to travel (how far in one day)</label>
+        {#each map.modes ?? [] as m, i (i)}
+          <div class="row" style="margin-bottom:.2rem">
+            <input bind:value={m.name} oninput={saveMap} aria-label="Name" />
+            <input type="number" min="0" step="any" bind:value={m.perDay} oninput={saveMap} style="flex:0 0 4.5rem" aria-label="Distance per day" />
+            <button class="small danger" title="Remove" onclick={() => dropMode(i)}>✕</button>
+          </div>
+        {/each}
+        <button class="small" onclick={addMode}>+ Way to travel</button>
+        <p class="muted" style="font-size:.8rem;margin:.4rem 0 0">Use the 📏 Measure tool to read a distance. Distances are straight lines.</p>
+      {:else}
+        <p class="muted" style="font-size:.8rem;margin:.4rem 0 0">Type how wide the map is, to measure distances and travel time.</p>
+      {/if}
+
       <h3 style="margin-top:1.2rem">Character paths</h3>
       <p class="muted" style="font-size:.8rem;margin:0 0 .4rem">“Draw” picks a person and switches to path mode. Click the map to add steps. Click a place pin to snap to it.</p>
       {#each db.lists.character as c (c.id)}
@@ -245,7 +347,16 @@
         <button class:active={mode === 'path'} disabled={!pathChar} onclick={() => (mode = 'path')}>
           〰 Path{pathChar ? ': ' + db.name('character', pathChar) : ''}
         </button>
+        <button class:active={mode === 'measure'} onclick={() => { mode = 'measure'; placing = null; ruler = {}; }}>📏 Measure</button>
         <button onclick={fit}>Fit</button>
+        {#if mode === 'measure'}
+          <span class="chip">
+            {#if !scale}Set the map width in the left side bar first.
+            {:else if !ruler.a}Click a point or a pin.
+            {:else if !ruler.b}Now click the second point.
+            {:else if rulerDist !== null}{fmtDist(rulerDist, scale.unit)}{#each scale.modes as m} · {m.name} {fmtDays(rulerDist / m.perDay)}{/each}{/if}
+          </span>
+        {/if}
         {#if placing}<span class="chip">Click the map to place “{db.name('location', placing)}”</span>{/if}
       </div>
       <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -291,8 +402,38 @@
               </g>
             {/each}
           {/each}
+          {#if ruler.a}
+            <circle cx={ruler.a.x * W} cy={ruler.a.y * H} r={6 / view.k} fill="#fff" stroke="#000" stroke-width={2 / view.k} />
+            {#if ruler.b}
+              <line x1={ruler.a.x * W} y1={ruler.a.y * H} x2={ruler.b.x * W} y2={ruler.b.y * H} stroke="#fff" stroke-width={3 / view.k} stroke-dasharray="{8 / view.k} {5 / view.k}" />
+              <circle cx={ruler.b.x * W} cy={ruler.b.y * H} r={6 / view.k} fill="#fff" stroke="#000" stroke-width={2 / view.k} />
+            {/if}
+          {/if}
+
+          {#each markers as { c, w, trail } (c.id)}
+            {#if trail.length > 1}
+              <polyline points={polyline(trail)} fill="none" stroke={c.color} stroke-width={6 / view.k} stroke-linecap="round" stroke-linejoin="round" opacity=".85" />
+            {/if}
+            <g transform="translate({w.x * W},{w.y * H}) scale({1 / view.k})" opacity={w.state === 'last' ? 0.5 : 1} pointer-events="none">
+              <circle r="12" fill={c.color} stroke="#fff" stroke-width="3" />
+              <text y="4.5" text-anchor="middle" font-size="12" font-weight="700" fill="#0b0f14">{(c.name || '?').charAt(0).toUpperCase()}</text>
+              <text y="28" text-anchor="middle" font-size="13" font-weight="600" fill="#fff" paint-order="stroke" stroke="#000" stroke-width="3.5">{c.name}</text>
+            </g>
+          {/each}
         </g>
       </svg>
+      {#if range}
+        <div class="timebar">
+          <button class="small" onclick={() => (playing = !playing)} title={playing ? 'Pause' : 'Play'}>{playing ? '⏸' : '▶'}</button>
+          <input type="range" min={range.min} max={range.max} step={(range.max - range.min) / 1000 || 1} value={Tc}
+            oninput={(e) => { playing = false; T = +e.currentTarget.value; }} aria-label="Story time" />
+          <strong class="when">{timeLabel(Tc)}</strong>
+          <select bind:value={playSpeed} title="Play speed" style="width:auto">
+            <option value={0.5}>Slow</option><option value={1}>Normal</option><option value={2}>Fast</option><option value={4}>Very fast</option>
+          </select>
+          <label class="last"><input type="checkbox" bind:checked={showLast} />Show last seen</label>
+        </div>
+      {/if}
     {:else}
       <div class="empty" style="padding:2rem">Add a map image, or a blank map, to begin.</div>
     {/if}
@@ -300,6 +441,16 @@
 
   <aside class="side right">
     {#if map}
+      {#if range}
+        <h3 style="margin:0 0 .4rem">Who is where · {timeLabel(Tc)}</h3>
+        {#each whoList as w (w.c.id)}
+          <button class="who" onclick={() => { if (w.map !== mapId) { mapId = w.map; selPin = selPoint = null; } }} title={w.map !== mapId ? 'Show this map' : ''}>
+            <span class="dot" style:background={w.c.color}></span>
+            <span><b>{w.c.name}</b> {w.text}{#if w.map !== mapId} <span class="muted">(on “{db.name('map', w.map)}”)</span>{/if}</span>
+          </button>
+        {/each}
+        <hr style="border:0;border-top:1px solid var(--line);margin:1rem 0" />
+      {/if}
       {#if pin}
         <div class="head"><h3 style="margin:0">Place</h3><span class="row fit" style="gap:.2rem">
           <button class="small" onclick={unpin}>Unpin</button><ConfirmButton onconfirm={delPin} /></span></div>
@@ -335,6 +486,10 @@
 
       {#if pathChar}
         <h3 style="margin-top:1.4rem">{db.name('character', pathChar)}’s path on this map</h3>
+        {#if scale && scale.modes.length}
+          <label>Travel by</label>
+          <select bind:value={modeIdx}>{#each scale.modes as m, i}<option value={i}>{m.name}</option>{/each}</select>
+        {/if}
         <div class="list">
           {#each myPoints as p, i (p.id)}
             <div class="row" style="gap:.2rem">
@@ -344,8 +499,10 @@
               <button class="small" onclick={() => movePoint(p, -1)}>↑</button>
               <button class="small" onclick={() => movePoint(p, 1)}>↓</button>
             </div>
+            {#if scale && i < myPoints.length - 1}<div class="muted leg">↓ {legText(p, myPoints[i + 1])}</div>{/if}
           {:else}<div class="muted">No steps yet.</div>{/each}
         </div>
+        {#if pathTotal !== null && scale}<p class="muted" style="margin:.4rem 0 0">Whole path: {fmtDist(pathTotal, scale.unit)}{#if mode0} · {fmtDays(pathTotal / mode0.perDay)} {mode0.name.toLowerCase()}{/if}</p>{/if}
       {/if}
 
       {#if unplaced.length}
@@ -359,3 +516,15 @@
   </aside>
 </div>
 {/if}
+
+<style>
+  .timebar { position: absolute; left: .6rem; right: .6rem; bottom: .6rem; display: flex; align-items: center; gap: .6rem; padding: .4rem .6rem; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; z-index: 2; }
+  .timebar input[type='range'] { flex: 1; min-width: 6rem; padding: 0; border: 0; background: none; }
+  .timebar .when { white-space: nowrap; min-width: 6rem; }
+  .timebar .last { display: flex; align-items: center; gap: .3rem; margin: 0; white-space: nowrap; }
+  .timebar .last input { width: auto; }
+  .who { display: flex; gap: .5rem; align-items: flex-start; width: 100%; text-align: left; background: none; border: 1px solid transparent; padding: .25rem .3rem; }
+  .who:hover { background: var(--panel-2); border-color: var(--line); }
+  .who .dot { margin-top: .3rem; }
+  .leg { font-size: .75rem; margin: 0 0 .2rem .6rem; }
+</style>

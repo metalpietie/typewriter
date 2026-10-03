@@ -200,6 +200,28 @@ You can add links right on the Family tree tab. A family link with no role appea
 5. In the right panel, reorder a character's steps with ↑ and ↓.
 6. Scroll to zoom. **Fit** shows the whole map.
 
+#### Travel time
+
+Open **Scale and travel** in the left panel and type how wide the whole map is, for example `500` `km` (miles, leagues, or any word you like). The app then knows the distance between any two spots.
+
+- **Ways to travel:** the app adds On foot (30 a day), Horse (60), and Cart (25). Change the names and numbers to fit your world and your unit. Add more with **+ Way to travel**.
+- **📏 Measure:** click two points, or two pins, to see the distance and the days for each way to travel.
+- **Paths:** the right panel shows the distance and days between each pair of steps, and for the whole path. Pick the way to travel above the list. When both steps have a timeline number, it also shows how many days the story gives.
+- **Check:** if a character must be at two spots on a map and the story time between them is too short, even for your fastest way to travel, the **Checks** tab shows a plot hole. See *Checks* below.
+
+Distances are straight lines, so real roads are longer. Leave a margin.
+
+#### Who is where
+
+When characters have steps, scenes, or events with a timeline number and a pinned place on the map, a **time bar** shows at the bottom of the map.
+
+- Drag the slider, or press **▶** to play. Everyone moves along their route at once. Each person is a coloured circle with a name, and a thick line shows the way they have come.
+- A person is not shown before their first stop. After their last stop they stay there, faded (**Show last seen**). Turn that off to hide them.
+- Between two stops on the same map, a person is on the straight line between them.
+- The right panel lists everyone at that moment: "is at", "is travelling from … to …", or "last seen at". People on another map show the map name. Click one to go to that map.
+- Use the tick boxes under **Character paths** to choose who shows.
+- With a calendar set, the time shows as a date.
+
 #### Drawing a map
 
 Press **✎ Draw a map**. Pick a size first (Small, Medium, or Large). The drawing tool opens full screen. Press **← Done** when you finish. Then place pins and draw character paths on it as on any other map. Press **✎ Edit drawing** to open it again.
@@ -273,6 +295,8 @@ The **Checks** tab has two lists. A red number next to the tab name shows how ma
 - timeline events (position, place, and who is involved),
 - map path steps (timeline position, and a place or a spot on the map),
 - item steps that name a scene (it also finds one item with two owners at once).
+
+**Travel** is a third kind of problem. It needs a map scale (see *Travel time* above). For each character, the check takes each pair of stops that follow each other in story time on the same map. It is a plot hole when the distance, at your fastest way to travel, needs more days than the story gives. It uses your calendar's year length, or 365 days, to turn the timeline numbers into days. It does not look at travel between different maps.
 
 How to read it:
 
