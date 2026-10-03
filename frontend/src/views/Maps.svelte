@@ -161,6 +161,18 @@
     const m = await db.save('map', { name: 'New drawn map', image: '', w, h, bg: '#a8cbd8', notes: '', drawn: true, style: 'classic' });
     mapId = m.id; selPin = selPoint = null; editing = true;
   }
+  // draw on top of an uploaded picture: the picture is kept as it was, under the drawing
+  async function drawOnImage() {
+    if (!map) return;
+    await db.save('map', { ...$state.snapshot(map), original: map.original || map.image, drawn: true });
+    selPin = selPoint = null; editing = true;
+  }
+  async function restoreOriginal() {
+    if (!map?.original) return;
+    const row = db.lists.mapdoc.find((d) => d.map === map.id);
+    await db.save('map', { ...$state.snapshot(map), image: map.original, original: null, drawn: false });
+    if (row) await db.remove('mapdoc', row.id, false);
+  }
   async function blank() {
     const m = await db.save('map', { name: 'New map', image: '', w: 1600, h: 1000, bg: '#2a3a2f', notes: '' });
     mapId = m.id;
@@ -366,6 +378,11 @@
       <label>Name</label><input bind:value={map.name} oninput={saveMap} />
       {#if map.drawn}
         <button class="primary" style="margin-top:.6rem;width:100%" onclick={() => (editing = true)}>✎ Edit drawing</button>
+        {#if map.original}
+          <div style="margin-top:.4rem"><ConfirmButton label="Remove drawing, keep picture" onconfirm={restoreOriginal} /></div>
+        {/if}
+      {:else if map.image}
+        <button class="primary" style="margin-top:.6rem;width:100%" onclick={drawOnImage}>✎ Draw on this picture</button>
       {/if}
       {#if !map.image && !map.drawn}
         <div class="row"><div><label>Width</label><input type="number" bind:value={map.w} oninput={saveMap} /></div>

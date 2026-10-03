@@ -21,7 +21,30 @@ export interface MapDoc {
   land: string;
   ink: string;
   layers: Layer[];
+  landTexture?: string;
+  waterTexture?: string;
+  grid?: Grid;
 }
+
+export interface Grid {
+  on: boolean;
+  kind: 'square' | 'hex';
+  size: number; // square side, or distance across a hex, in map pixels
+  color: string;
+  opacity: number;
+}
+
+export const defaultGrid = (w: number): Grid => ({ on: false, kind: 'square', size: Math.round(w / 24), color: '#2b2b2b', opacity: 0.35 });
+
+export const TEXTURES = [
+  { key: 'none', name: 'Plain' },
+  { key: 'stipple', name: 'Stipple (dots)' },
+  { key: 'hatch', name: 'Hatching' },
+  { key: 'cross', name: 'Cross hatching' },
+  { key: 'waves', name: 'Waves' },
+  { key: 'grass', name: 'Grass tufts' },
+  { key: 'forest', name: 'Forest' },
+];
 
 export const uid = () => Math.random().toString(36).slice(2, 9);
 
@@ -194,13 +217,101 @@ export class DabWalker {
 
 export const dabSpacing = (size: number) => Math.max(1, size * 0.14);
 
+// ---------- textures ----------
+
+const TILE = 96;
+const tiles = new Map<string, CanvasPattern>();
+
+function rng(seed: number) {
+  let n = seed >>> 0;
+  return () => (n = (Math.imul(n, 1664525) + 1013904223) >>> 0) / 4294967296;
+}
+
+/** A repeating pattern of small marks. The tile starts at map point 0,0, so neighbouring dabs line up. */
+export function texturePattern(key: string | undefined, mark: string): CanvasPattern | null {
+  if (!key || key === 'none') return null;
+  const id = key + '|' + mark;
+  let p = tiles.get(id);
+  if (p) return p;
+  const c = document.createElement('canvas');
+  c.width = c.height = TILE;
+  const x = c.getContext('2d')!;
+  x.strokeStyle = mark; x.fillStyle = mark; x.lineWidth = 1.4; x.lineCap = 'round'; x.lineJoin = 'round';
+  const r = rng(key.length * 7919 + key.charCodeAt(0));
+  switch (key) {
+    case 'stipple':
+      x.globalAlpha = 0.6;
+      for (let i = 0; i < 70; i++) { x.beginPath(); x.arc(3 + r() * (TILE - 6), 3 + r() * (TILE - 6), 0.8 + r() * 0.9, 0, Math.PI * 2); x.fill(); }
+      break;
+    case 'hatch': case 'cross':
+      x.globalAlpha = 0.45;
+      x.beginPath();
+      for (let i = -TILE; i <= TILE; i += 8) { x.moveTo(i, TILE); x.lineTo(i + TILE, 0); }
+      if (key === 'cross') for (let i = -TILE; i <= TILE; i += 8) { x.moveTo(i, 0); x.lineTo(i + TILE, TILE); }
+      x.stroke();
+      break;
+    case 'waves':
+      x.globalAlpha = 0.6;
+      for (let row = 0; row < TILE / 16; row++) {
+        for (let col = 0; col < TILE / 24; col++) {
+          const ox = 4 + col * 24 + (row % 2) * 12, oy = 8 + row * 16;
+          x.beginPath(); x.moveTo(ox, oy); x.quadraticCurveTo(ox + 3, oy - 3.5, ox + 6, oy); x.quadraticCurveTo(ox + 9, oy + 3.5, ox + 12, oy); x.stroke();
+        }
+      }
+      break;
+    case 'grass':
+      x.globalAlpha = 0.65;
+      for (let gy = 0; gy < 4; gy++) for (let gx = 0; gx < 4; gx++) {
+        const px = gx * 24 + 6 + r() * 12, py = gy * 24 + 9 + r() * 10;
+        x.beginPath(); x.moveTo(px - 3, py - 5); x.lineTo(px, py); x.lineTo(px + 3, py - 5); x.moveTo(px, py); x.lineTo(px, py - 6); x.stroke();
+      }
+      break;
+    case 'forest':
+      for (let gy = 0; gy < 4; gy++) for (let gx = 0; gx < 4; gx++) {
+        const px = gx * 24 + 8 + r() * 8, py = gy * 24 + 8 + r() * 8;
+        x.globalAlpha = 0.3; x.beginPath(); x.arc(px, py, 4.5, 0, Math.PI * 2); x.fill();
+        x.globalAlpha = 0.7; x.beginPath(); x.arc(px, py, 4.5, 0, Math.PI * 2); x.stroke();
+      }
+      break;
+    default: return null;
+  }
+  p = x.createPattern(c, 'repeat')!;
+  tiles.set(id, p);
+  return p;
+}
+
+let scratch: HTMLCanvasElement | null = null;
+
+/** One dab with texture marks on top. The marks only show where the dab has colour. */
+function texturedDab(ctx: CanvasRenderingContext2D, s: HTMLCanvasElement, cx: number, cy: number, it: any) {
+  const pat = texturePattern(it.texture, mix(it.color, '#000000', 0.4));
+  const ox = Math.round(cx - s.width / 2), oy = Math.round(cy - s.height / 2);
+  if (!pat) { ctx.drawImage(s, ox, oy); return; }
+  scratch ??= document.createElement('canvas');
+  if (scratch.width < s.width || scratch.height < s.height) { scratch.width = Math.max(scratch.width, s.width); scratch.height = Math.max(scratch.height, s.height); }
+  const sx = scratch.getContext('2d')!;
+  sx.globalCompositeOperation = 'source-over';
+  sx.clearRect(0, 0, s.width, s.height);
+  sx.drawImage(s, 0, 0);
+  sx.globalCompositeOperation = 'source-atop';
+  sx.save();
+  sx.translate(-ox, -oy);
+  sx.fillStyle = pat;
+  sx.fillRect(ox, oy, s.width, s.height);
+  sx.restore();
+  ctx.drawImage(scratch, 0, 0, s.width, s.height, ox, oy, s.width, s.height);
+}
+
 export function paintStroke(ctx: CanvasRenderingContext2D, it: any, walker: DabWalker, pts: Pt[]) {
   const erase = it.k === 'erase';
   const s = stamp(erase ? '#000000' : it.color, it.size, it.hardness);
+  const textured = !erase && it.texture && it.texture !== 'none';
   ctx.save();
   ctx.globalAlpha = erase ? 1 : it.opacity;
   ctx.globalCompositeOperation = erase ? 'destination-out' : 'source-over';
-  for (const p of pts) walker.walk(p, (x, y) => ctx.drawImage(s, x - s.width / 2, y - s.height / 2));
+  for (const p of pts) {
+    walker.walk(p, (x, y) => (textured ? texturedDab(ctx, s, x, y, it) : ctx.drawImage(s, x - s.width / 2, y - s.height / 2)));
+  }
   ctx.restore();
 }
 
@@ -314,7 +425,48 @@ export function labelBox(it: any): { w: number; h: number } {
   return { w: measureCtx.measureText(it.text || ' ').width + (it.spacing ?? 0) * (it.text?.length ?? 1), h: it.size };
 }
 
+/** Text that follows a curve. The letters are set one by one along the line. */
+function drawCurvedLabel(ctx: CanvasRenderingContext2D, it: any) {
+  let poly = smoothPoints(it.pts, false, 12);
+  if (poly.length < 2) return;
+  if (poly[poly.length - 1][0] < poly[0][0]) poly = poly.slice().reverse(); // never upside down
+  const lens = [0];
+  for (let i = 1; i < poly.length; i++) lens.push(lens[i - 1] + Math.hypot(poly[i][0] - poly[i - 1][0], poly[i][1] - poly[i - 1][1]));
+  const total = lens[lens.length - 1];
+  ctx.save();
+  ctx.font = labelFont(it);
+  (ctx as any).letterSpacing = '0px';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round';
+  const chars = [...(it.text || '')];
+  const widths = chars.map((c) => ctx.measureText(c).width + (it.spacing ?? 0));
+  let d = Math.max(0, (total - widths.reduce((a, b) => a + b, 0)) / 2);
+  let seg = 1;
+  chars.forEach((ch, i) => {
+    const mid = d + widths[i] / 2;
+    d += widths[i];
+    if (mid > total || ch === ' ') return;
+    while (seg < lens.length - 1 && lens[seg] < mid) seg++;
+    const a = poly[seg - 1], b = poly[seg];
+    const t = (mid - lens[seg - 1]) / ((lens[seg] - lens[seg - 1]) || 1);
+    ctx.save();
+    ctx.translate(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t);
+    ctx.rotate(Math.atan2(b[1] - a[1], b[0] - a[0]));
+    if (it.halo) {
+      ctx.lineWidth = Math.max(3, it.size * 0.28);
+      ctx.strokeStyle = 'rgba(255,255,255,.65)';
+      ctx.strokeText(ch, 0, 0);
+    }
+    ctx.fillStyle = it.color;
+    ctx.fillText(ch, 0, 0);
+    ctx.restore();
+  });
+  ctx.restore();
+}
+
 function drawLabel(ctx: CanvasRenderingContext2D, it: any) {
+  if (it.pts) { drawCurvedLabel(ctx, it); return; }
   ctx.save();
   ctx.translate(it.x, it.y);
   ctx.rotate(((it.rot ?? 0) * Math.PI) / 180);
@@ -380,6 +532,8 @@ function drawLand(ctx: CanvasRenderingContext2D, it: any, doc: MapDoc) {
   ctx.lineJoin = 'round';
   strokePoly(ctx, poly, true);
   ctx.fillStyle = doc.land; ctx.fill();
+  const pat = texturePattern(doc.landTexture, mix(doc.land, doc.ink, 0.45));
+  if (pat) { ctx.save(); ctx.clip(); ctx.fillStyle = pat; ctx.fillRect(0, 0, doc.w, doc.h); ctx.restore(); }
   ctx.lineWidth = 2.2; ctx.strokeStyle = doc.ink; ctx.stroke();
   ctx.restore();
 }
@@ -410,14 +564,67 @@ export function renderLayer(ctx: CanvasRenderingContext2D, layer: Layer, doc: Ma
   }
 }
 
+/** The bottom of the map: water, its texture, and the original picture when drawing on an image. */
+export function paintBase(ctx: CanvasRenderingContext2D, doc: MapDoc, base?: HTMLImageElement | null) {
+  ctx.fillStyle = doc.water;
+  ctx.fillRect(0, 0, doc.w, doc.h);
+  const pat = texturePattern(doc.waterTexture, mix(doc.water, doc.ink, 0.3));
+  if (pat) { ctx.fillStyle = pat; ctx.fillRect(0, 0, doc.w, doc.h); }
+  if (base) ctx.drawImage(base, 0, 0, doc.w, doc.h);
+}
+
+let gridCache: { key: string; c: HTMLCanvasElement } | null = null;
+
+/** Square or hex grid on top of the map. `cached` keeps a picture of it, so moving around the map stays fast. */
+export function drawGrid(ctx: CanvasRenderingContext2D, doc: MapDoc, cached = false) {
+  const g = doc.grid;
+  if (!g?.on || g.size < 8) return;
+  const paint = (x: CanvasRenderingContext2D) => {
+    x.save();
+    x.strokeStyle = g.color; x.globalAlpha = g.opacity; x.lineWidth = Math.max(1, doc.w / 1600); x.lineJoin = 'round';
+    x.beginPath();
+    if (g.kind === 'square') {
+      for (let px = 0; px <= doc.w; px += g.size) { x.moveTo(px, 0); x.lineTo(px, doc.h); }
+      for (let py = 0; py <= doc.h; py += g.size) { x.moveTo(0, py); x.lineTo(doc.w, py); }
+    } else {
+      const r = g.size / Math.sqrt(3); // pointy-top hexes; size is the distance across the flat sides
+      for (let row = 0; r + row * 1.5 * r - r <= doc.h; row++) {
+        const cy = r + row * 1.5 * r;
+        for (let col = -1; col * g.size <= doc.w; col++) {
+          const cx = g.size / 2 + col * g.size + (row % 2 ? g.size / 2 : 0);
+          for (let k = 0; k < 6; k++) {
+            const a = Math.PI / 6 + (k * Math.PI) / 3;
+            const hx = cx + r * Math.cos(a), hy = cy + r * Math.sin(a);
+            if (k) x.lineTo(hx, hy); else x.moveTo(hx, hy);
+          }
+          x.closePath();
+        }
+      }
+    }
+    x.stroke();
+    x.restore();
+  };
+  if (!cached) { paint(ctx); return; }
+  const key = [doc.w, doc.h, g.kind, g.size, g.color, g.opacity].join('|');
+  if (gridCache?.key !== key) {
+    const c = document.createElement('canvas');
+    c.width = doc.w; c.height = doc.h;
+    paint(c.getContext('2d')!);
+    gridCache = { key, c };
+  }
+  ctx.drawImage(gridCache.c, 0, 0);
+}
+
 /** Draws the whole map to one canvas, for saving or exporting. */
-export function renderDoc(doc: MapDoc, scale = 1): HTMLCanvasElement {
+export function renderDoc(doc: MapDoc, scale = 1, base?: HTMLImageElement | null): HTMLCanvasElement {
   const out = document.createElement('canvas');
   out.width = Math.round(doc.w * scale);
   out.height = Math.round(doc.h * scale);
   const octx = out.getContext('2d')!;
-  octx.fillStyle = doc.water;
-  octx.fillRect(0, 0, out.width, out.height);
+  octx.save();
+  octx.scale(scale, scale);
+  paintBase(octx, doc, base);
+  octx.restore();
   for (const layer of doc.layers) {
     if (!layer.visible || !layer.items.length) continue;
     const c = document.createElement('canvas');
@@ -427,11 +634,15 @@ export function renderDoc(doc: MapDoc, scale = 1): HTMLCanvasElement {
     renderLayer(ctx, layer, doc);
     octx.drawImage(c, 0, 0);
   }
+  octx.save();
+  octx.scale(scale, scale);
+  drawGrid(octx, doc);
+  octx.restore();
   return out;
 }
 
-export function docToDataUrl(doc: MapDoc, mime = 'image/webp', scale = 1) {
-  return renderDoc(doc, scale).toDataURL(mime, 0.92);
+export function docToDataUrl(doc: MapDoc, mime = 'image/webp', scale = 1, base?: HTMLImageElement | null) {
+  return renderDoc(doc, scale, base).toDataURL(mime, 0.92);
 }
 
 // ---------- picking and moving ----------
@@ -440,6 +651,7 @@ export function hitItem(layer: Layer, it: any, p: Pt, tol: number): boolean {
   switch (layer.type) {
     case 'icons': return Math.hypot(p[0] - it.x, p[1] - it.y) <= it.size * 0.55;
     case 'labels': {
+      if (it.pts) return polyDist(p, smoothPoints(it.pts, false), false) <= tol + it.size * 0.6;
       const { w, h } = labelBox(it);
       const a = -((it.rot ?? 0) * Math.PI) / 180;
       const dx = p[0] - it.x, dy = p[1] - it.y;

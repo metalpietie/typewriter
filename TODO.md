@@ -15,8 +15,8 @@ Nothing open here.
 
 ## Maps and paths
 
-- [ ] Draw on top of an uploaded map image
-- [ ] Map drawing tool: curved text along a path, texture fills, and a grid overlay
+Nothing open here.
+
 
 ## Checks and tools
 
@@ -51,4 +51,6 @@ Nothing open here.
 - [x] Version history: go back to an older copy of a scene
 - [x] Scenes: split a chapter into scenes, each with its own place, point of view, cast, time, and notes
 - [x] Backup and restore with one button
+- [x] Draw on top of an uploaded map picture (the picture is kept under the drawing)
+- [x] Map drawing tool: curved text along a path, texture fills (brush, land, water), and a square or hex grid
 - [x] Map drawing tool (land, terrain brushes, rivers and roads, stamps, labels, layers, PNG export)

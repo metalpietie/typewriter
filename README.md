@@ -238,21 +238,24 @@ When characters have steps, scenes, or events with a timeline number and a pinne
 
 Press **✎ Draw a map**. Pick a size first (Small, Medium, or Large). The drawing tool opens full screen. Press **← Done** when you finish. Then place pins and draw character paths on it as on any other map. Press **✎ Edit drawing** to open it again.
 
+**Draw on a picture you loaded:** pick a map that has a picture, then press **✎ Draw on this picture**. The picture stays at the bottom, and the layers sit on top. Use lines, labels, stamps, terrain paint, and the grid to mark it up. Tick *Show the original picture* on the right to hide it while you work. **Remove drawing, keep picture** brings back the picture alone and deletes the drawing. A picture over 3200 pixels wide or tall is made a little smaller.
+
 Tools on the left. The keyboard shortcut is in brackets:
 
 - **Select (V):** click something to select it. Drag to move it. Drag the small squares to reshape a line or a coast. Press Delete to remove it. Ctrl+D copies it.
 - **Pan (H):** drag to move the view. Scroll to zoom. Hold Space to pan with any tool.
 - **Land (L):** draw around an island or continent. The shape closes by itself, gets a smooth coast, and a light shallow-water edge. Choose *Freehand*, or *Click points* (click each corner, then double-click or press Enter).
-- **Terrain brush (B):** paint grass, forest, hills, mountains, desert, snow, swamp, beach, or water. You can set size, softness, strength, and a custom color. Press [ and ] to change the size.
+- **Terrain brush (B):** paint grass, forest, hills, mountains, desert, snow, swamp, beach, or water. You can set size, softness, strength, texture, and a custom color. Press [ and ] to change the size. A texture (stipple, hatching, cross hatching, waves, grass tufts, or forest) adds small marks inside the paint, and the marks line up from stroke to stroke.
 - **Eraser (E):** rubs out terrain paint on the active layer.
 - **Lines (R):** rivers (thin at the source, wide at the mouth), roads, trails, and borders.
 - **Stamps (S):** mountains, hills, pines, oaks, castles, cities, villages, ports, towers, and caves. Turn on *Scatter* and drag to drop many, such as a forest.
-- **Text label (T):** click the map, then type the text on the right. Choose font, size, rotation, letter spacing, and color.
+- **Text label (T):** click the map, then type the text on the right. Choose font, size, rotation, letter spacing, and color. Choose **Along a curve**, then draw a line: the text follows it, which suits rivers, coasts, and mountain ranges. Drag the squares to reshape the curve.
 
 On the right:
 
 - **Layers:** each map has Land, Terrain, Lines, Icons, and Labels layers. Hide, lock, rename, reorder, or delete them. Add more with **+ Layer**. A tool draws on the active layer of its type.
-- **Map style:** water, land, and ink colors, with three presets.
+- **Map style:** water, land, and ink colors, with three presets. You can also give the land and the water a texture.
+- **Grid:** a square or hexagon grid on top of the map, for travel and battle maps. Set the size, strength, and color. If the map has a scale (see *Travel time*), the panel says how far one square or hexagon is. The grid shows in the exported PNG and in the map picture.
 - **Undo and redo:** the buttons at the top, or Ctrl+Z and Ctrl+Y. Undo keeps 60 steps while the editor is open.
 - **Export PNG:** save the map as a picture at 1× or 2× size.
 

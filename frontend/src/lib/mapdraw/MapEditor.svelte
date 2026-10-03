@@ -5,9 +5,9 @@
   import SaveIndicator from '../SaveIndicator.svelte';
   import ConfirmButton from '../ConfirmButton.svelte';
   import {
-    type MapDoc, type Layer, type LayerType, type Pt,
+    type MapDoc, type Layer, type LayerType, type Pt, type Grid,
     newDoc, uid, renderLayer, renderDoc, docToDataUrl, paintStroke, DabWalker, dabSpacing,
-    smoothPoints, simplify, hitItem, moveItem, labelBox, iconThumb,
+    smoothPoints, simplify, hitItem, moveItem, labelBox, iconThumb, paintBase, drawGrid, defaultGrid, TEXTURES,
     TERRAINS, STYLES, LINE_TYPES, ICONS, FONTS, LAYER_NAMES,
   } from './draw';
 
@@ -30,9 +30,20 @@
   // ----- the drawing itself. It is plain data, so a counter tells the screen when it changed. -----
   const existing = db.lists.mapdoc.find((d) => d.map === map.id);
   let docId = existing?.id ?? 0;
+  // when you draw on top of a picture, the drawing is the size of the picture (very big pictures are scaled down a little)
+  function startSize(): [number, number] {
+    let w = map.w || 2400, h = map.h || 1500;
+    if (map.original) {
+      const k = Math.min(1, 3200 / Math.max(w, h));
+      w = Math.round(w * k); h = Math.round(h * k);
+    }
+    return [w, h];
+  }
   let doc: MapDoc = existing?.doc
     ? ($state.snapshot(existing.doc) as MapDoc)
-    : newDoc(map.w || 2400, map.h || 1500, map.style || 'classic');
+    : newDoc(...startSize(), map.style || 'classic');
+  let baseImg: HTMLImageElement | null = null; // the original picture, when there is one
+  let showBase = $state(true);
   let rev = $state(0);
   const bump = () => rev++;
 
@@ -61,6 +72,8 @@
   let labelSize = $state(Math.round(50 * unit));
   let labelColor = $state('#3b2f25');
   let halo = $state(true);
+  let texture = $state('none');
+  let labelCurved = $state(false);
 
   const layersView = $derived.by(() => {
     rev;
@@ -73,7 +86,10 @@
     const it = sel ? doc.layers.find((l) => l.id === sel!.layer)?.items[sel.idx] : null;
     return it ? { ...it } : null;
   });
-  const style = $derived.by(() => { rev; return { water: doc.water, land: doc.land, ink: doc.ink }; });
+  const style = $derived.by(() => {
+    rev;
+    return { water: doc.water, land: doc.land, ink: doc.ink, landTexture: doc.landTexture ?? 'none', waterTexture: doc.waterTexture ?? 'none', grid: { ...(doc.grid ?? defaultGrid(doc.w)) } };
+  });
 
   const iconThumbs: Record<string, string> = $state({});
   const ghosts = new Map<string, HTMLImageElement>();
@@ -86,7 +102,7 @@
   }
 
   // ----- history -----
-  const snap = () => JSON.stringify({ water: doc.water, land: doc.land, ink: doc.ink, layers: doc.layers });
+  const snap = () => JSON.stringify({ water: doc.water, land: doc.land, ink: doc.ink, landTexture: doc.landTexture, waterTexture: doc.waterTexture, grid: doc.grid, layers: doc.layers });
   let history: string[] = [snap()];
   let hi = $state(0);
   let commitTimer: ReturnType<typeof setTimeout>;
@@ -109,6 +125,7 @@
   function restore(i: number) {
     const s = JSON.parse(history[i]);
     doc.water = s.water; doc.land = s.land; doc.ink = s.ink; doc.layers = s.layers;
+    doc.landTexture = s.landTexture; doc.waterTexture = s.waterTexture; doc.grid = s.grid;
     caches.clear();
     sel = null;
     if (!doc.layers.some((l) => l.id === activeId)) activeId = doc.layers[0]?.id ?? '';
@@ -133,10 +150,11 @@
   async function saveImage() {
     clearTimeout(imageTimer);
     if (!imageDirty) return;
+    if (map.original && !baseImg) return; // the picture has not loaded yet: saving now would lose it
     imageDirty = false;
     const cur = db.get('map', map.id);
     if (!cur) return;
-    const image = docToDataUrl(doc);
+    const image = docToDataUrl(doc, 'image/webp', 1, baseImg);
     await db.save('map', { ...$state.snapshot(cur), image, w: doc.w, h: doc.h, bg: doc.water, drawn: true });
   }
 
@@ -207,9 +225,11 @@
     ctx.fillStyle = doc.water;
     ctx.fillRect(0, 0, doc.w, doc.h);
     ctx.shadowColor = 'transparent';
+    paintBase(ctx, doc, showBase ? baseImg : null);
     for (const layer of doc.layers) {
       if (layer.visible && (layer.items.length || caches.has(layer.id))) ctx.drawImage(layerCanvas(layer), 0, 0);
     }
+    drawGrid(ctx, doc, true);
     drawPreview(ctx);
     drawSelection(ctx);
     ctx.restore();
@@ -231,7 +251,7 @@
       if (tool === 'land') {
         if (shown.length > 2) { trace(ctx, smoothPoints(shown, true), true); ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fill(); }
         ctx.strokeStyle = doc.ink;
-      } else ctx.strokeStyle = LINE_TYPES[lineType].color;
+      } else ctx.strokeStyle = tool === 'label' ? '#2cd5e8' : LINE_TYPES[lineType].color;
       ctx.lineWidth = 2.5 / k;
       trace(ctx, smoothPoints(shown, tool === 'land' && shown.length > 2));
       ctx.stroke();
@@ -279,7 +299,7 @@
     ctx.setLineDash([6 / k, 4 / k]);
     if (layer.type === 'icons') {
       ctx.strokeRect(item.x - item.size / 2, item.y - item.size / 2, item.size, item.size);
-    } else if (layer.type === 'labels') {
+    } else if (layer.type === 'labels' && !item.pts) {
       const { w, h } = labelBox(item);
       ctx.translate(item.x, item.y);
       ctx.rotate(((item.rot ?? 0) * Math.PI) / 180);
@@ -393,7 +413,11 @@
         else clickAdd(p);
         break;
       case 'stamp': startStamp(p); break;
-      case 'label': placeLabel(p); break;
+      case 'label':
+        if (!labelCurved) placeLabel(p);
+        else if (pathMode === 'free') { freePts = [p]; drag = { t: 'path' }; }
+        else clickAdd(p);
+        break;
     }
     requestDraw();
   }
@@ -464,7 +488,7 @@
     const cached = layerCanvas(layer); // draw what is already there first
     const item = tool === 'erase'
       ? { k: 'erase', size: brushSize, hardness, pts: [p] }
-      : { k: 'paint', color, size: brushSize, hardness, opacity, pts: [p] };
+      : { k: 'paint', color, size: brushSize, hardness, opacity, texture, pts: [p] };
     layer.items.push(item);
     const ctx = cached.getContext('2d')!;
     const walker = new DabWalker(dabSpacing(brushSize));
@@ -472,7 +496,23 @@
     drag = { t: 'stroke', layer, item, walker, ctx };
   }
 
+  async function finishCurvedLabel(pts: Pt[]) {
+    const clean = simplify(pts, Math.max(1.5, 2 / view.k));
+    if (clean.length < 2) return;
+    const layer = layerFor('labels');
+    if (!layer) return;
+    layer.items.push({ k: 'label', text: 'New label', pts: clean, size: labelSize, font: FONTS[fontIdx].css, color: labelColor, halo, spacing: 4 });
+    sel = { layer: layer.id, idx: layer.items.length - 1 };
+    chooseTool('select');
+    dirty(layer.id);
+    commit();
+    await tick();
+    labelInput?.focus();
+    labelInput?.select();
+  }
+
   function finishPath(pts: Pt[]) {
+    if (tool === 'label') { finishCurvedLabel(pts); return; }
     const isLand = tool === 'land';
     const clean = simplify(pts, Math.max(1.5, 2 / view.k));
     if (clean.length < (isLand ? 3 : 2)) return;
@@ -582,6 +622,25 @@
     commitSoon();
     bump();
   }
+  function setTexture(field: 'landTexture' | 'waterTexture', value: string) {
+    doc[field] = value;
+    dirtyAll();
+    commitSoon();
+    bump();
+  }
+  function setGrid(patch: Partial<Grid>) {
+    doc.grid = { ...(doc.grid ?? defaultGrid(doc.w)), ...patch };
+    requestDraw();
+    commitSoon();
+    bump();
+  }
+  const gridCell = $derived.by(() => {
+    rev;
+    const g = doc.grid;
+    if (!g?.on || !map.scaleDist) return '';
+    const v = Math.round(((map.scaleDist * g.size) / doc.w) * 10) / 10;
+    return `Each ${g.kind === 'hex' ? 'hex is' : 'square is'} about ${v} ${map.scaleUnit || ''} across (from the map scale).`;
+  });
   function setStyle(field: 'water' | 'land' | 'ink', value: string) {
     doc[field] = value;
     dirtyAll();
@@ -620,6 +679,11 @@
     window.addEventListener('keydown', key, true);
     window.addEventListener('keyup', keyUp, true);
     for (const n of ICONS) iconThumbs[n] = iconThumb(n, '#4a3a2a');
+    if (map.original) {
+      const img = new Image();
+      img.onload = () => { baseImg = img; requestDraw(); };
+      img.src = map.original;
+    }
     if (!docId) docId = (await db.save('mapdoc', { map: map.id, doc })).id;
     fit();
   });
@@ -636,7 +700,7 @@
 
   async function exportPng() {
     try {
-      const url = renderDoc(doc, exportScale).toDataURL('image/png');
+      const url = renderDoc(doc, exportScale, baseImg).toDataURL('image/png');
       const path = await Exporter.SaveImage(map.name || 'map', url);
       exportMsg = path ? `Saved: ${path}` : '';
     } catch (e: any) {
@@ -692,6 +756,10 @@
           <label>Custom color</label>
           <input type="color" bind:value={color} oninput={() => (terrain = '')} />
         {/if}
+        {#if tool === 'brush'}
+          <label for="tex">Texture</label>
+          <select id="tex" bind:value={texture}>{#each TEXTURES as t}<option value={t.key}>{t.name}</option>{/each}</select>
+        {/if}
         <label>Size · {brushSize}  <span class="muted">( [ and ] )</span></label>
         <input type="range" min="4" max="400" bind:value={brushSize} />
         <label>Softness · {Math.round((1 - hardness) * 100)}%</label>
@@ -722,7 +790,16 @@
         <label class="check"><input type="checkbox" bind:checked={scatter} /> Scatter: drag to drop many</label>
       {:else if tool === 'label'}
         <h3>Text label</h3>
-        <p class="muted">Click the map to place a label. Then type its text on the right.</p>
+        <div class="seg">
+          <button class:active={!labelCurved} onclick={() => (labelCurved = false)}>Straight</button>
+          <button class:active={labelCurved} onclick={() => (labelCurved = true)}>Along a curve</button>
+        </div>
+        {#if labelCurved}
+          <p class="muted">Draw the curve the text should follow, for example along a river or a coast. Then type its text on the right.</p>
+          {@render modeToggle()}
+        {:else}
+          <p class="muted">Click the map to place a label. Then type its text on the right.</p>
+        {/if}
         <label>Font</label>
         <select bind:value={fontIdx}>{#each FONTS as f, i}<option value={i}>{f.name}</option>{/each}</select>
         <label>Size · {labelSize}</label>
@@ -787,8 +864,12 @@
         </select>
         <label>Size · {selView.size}</label>
         <input type="range" min="10" max="240" value={selView.size} oninput={(e) => setProp('size', +e.currentTarget.value)} />
-        <label>Rotation · {selView.rot}°</label>
-        <input type="range" min="-90" max="90" value={selView.rot} oninput={(e) => setProp('rot', +e.currentTarget.value)} />
+        {#if selView.pts}
+          <p class="muted">The text follows its curve. Drag the squares to reshape the curve.</p>
+        {:else}
+          <label>Rotation · {selView.rot}°</label>
+          <input type="range" min="-90" max="90" value={selView.rot} oninput={(e) => setProp('rot', +e.currentTarget.value)} />
+        {/if}
         <label>Letter spacing · {selView.spacing}</label>
         <input type="range" min="0" max="30" value={selView.spacing} oninput={(e) => setProp('spacing', +e.currentTarget.value)} />
         <label>Color</label>
@@ -827,6 +908,33 @@
       <div><label>Land</label><input type="color" value={style.land} oninput={(e) => setStyle('land', e.currentTarget.value)} /></div>
       <div><label>Ink</label><input type="color" value={style.ink} oninput={(e) => setStyle('ink', e.currentTarget.value)} /></div>
     </div>
+    <label for="landtex">Land texture</label>
+    <select id="landtex" value={style.landTexture} onchange={(e) => setTexture('landTexture', e.currentTarget.value)}>
+      {#each TEXTURES as t}<option value={t.key}>{t.name}</option>{/each}
+    </select>
+    <label for="watertex">Water texture</label>
+    <select id="watertex" value={style.waterTexture} onchange={(e) => setTexture('waterTexture', e.currentTarget.value)}>
+      {#each TEXTURES as t}<option value={t.key}>{t.name}</option>{/each}
+    </select>
+    {#if map.original}
+      <label class="check" style="margin-top:.6rem"><input type="checkbox" bind:checked={showBase} onchange={requestDraw} /> Show the original picture (this screen only)</label>
+    {/if}
+
+    <h3 style="margin-top:1.2rem">Grid</h3>
+    <label class="check"><input type="checkbox" checked={style.grid.on} onchange={(e) => setGrid({ on: e.currentTarget.checked })} /> Show a grid</label>
+    {#if style.grid.on}
+      <div class="seg" style="margin-top:.4rem">
+        <button class:active={style.grid.kind === 'square'} onclick={() => setGrid({ kind: 'square' })}>Square</button>
+        <button class:active={style.grid.kind === 'hex'} onclick={() => setGrid({ kind: 'hex' })}>Hexagon</button>
+      </div>
+      <label>Size · {style.grid.size}</label>
+      <input type="range" min="20" max={Math.max(60, Math.round(doc.w / 3))} value={style.grid.size} oninput={(e) => setGrid({ size: +e.currentTarget.value })} />
+      <label>Line strength · {Math.round(style.grid.opacity * 100)}%</label>
+      <input type="range" min="0.05" max="1" step="0.05" value={style.grid.opacity} oninput={(e) => setGrid({ opacity: +e.currentTarget.value })} />
+      <label>Colour</label>
+      <input type="color" value={style.grid.color} oninput={(e) => setGrid({ color: e.currentTarget.value })} />
+      {#if gridCell}<p class="muted" style="font-size:.78rem;margin:.4rem 0 0">{gridCell}</p>{/if}
+    {/if}
     <p class="muted" style="font-size:.78rem;margin-top:.8rem">
       {doc.w} × {doc.h}. Changes save by themselves. Pins and character paths go on this map in the Maps screen.
     </p>
