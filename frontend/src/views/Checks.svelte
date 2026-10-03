@@ -2,9 +2,27 @@
   import { db } from '../lib/db.svelte';
   import { openItem, openScene } from '../lib/nav.svelte';
   import { findConflicts, type Conflict, type Presence } from '../lib/plotholes';
+  import { findGaps, GROUPS, type Gap } from '../lib/consistency';
 
   let showDismissed = $state(false);
   let help = $state(false);
+  let tab = $state<'holes' | 'gaps'>('holes');
+  let showHiddenGaps = $state(false);
+
+  const gaps = $derived(findGaps());
+  const hidden = $derived(new Set(db.lists.plotignore.map((i) => i.key as string)));
+  const openGapList = $derived(gaps.filter((g) => !hidden.has(g.key)));
+  const hiddenGapList = $derived(gaps.filter((g) => hidden.has(g.key)));
+  const gapGroups = $derived(GROUPS.map((g) => ({ name: g, rows: openGapList.filter((x) => x.group === g) })).filter((g) => g.rows.length));
+  function fix(g: Gap) {
+    if (g.open.kind === 'scene') openScene(g.open.id);
+    else openItem(g.open.kind, g.open.id);
+  }
+  const hideGap = (g: Gap) => db.save('plotignore', { key: g.key });
+  const showGap = (g: Gap) => {
+    const row = db.lists.plotignore.find((i) => i.key === g.key);
+    if (row) db.remove('plotignore', row.id, false);
+  };
 
   const result = $derived(findConflicts());
   const ignored = $derived(new Set(db.lists.plotignore.map((i) => i.key as string)));
@@ -34,6 +52,42 @@
 </script>
 
 <section class="pane">
+  <div class="tabs">
+    <button class:active={tab === 'holes'} onclick={() => (tab = 'holes')}>Plot holes{open.length ? ' · ' + open.length : ''}</button>
+    <button class:active={tab === 'gaps'} onclick={() => (tab = 'gaps')}>Unfinished{openGapList.length ? ' · ' + openGapList.length : ''}</button>
+  </div>
+
+  {#if tab === 'gaps'}
+    <p class="muted">Things that look unfinished. Open one to fix it. Press <b>Skip</b> if it is fine as it is (for example a character with no age on purpose).</p>
+    {#each gapGroups as g (g.name)}
+      <div class="card">
+        <h3>{g.name} · {g.rows.length}</h3>
+        {#each g.rows as r (r.key)}
+          <div class="gap">
+            <button class="row-link" onclick={() => fix(r)} title="Open it"><span class="t"><b>{r.name}</b> {r.problem}</span></button>
+            <button class="small" onclick={() => hideGap(r)}>Skip</button>
+          </div>
+        {/each}
+      </div>
+    {:else}
+      <div class="empty">{gaps.length ? 'Everything is done or skipped.' : 'Nothing to check yet. Add characters, places and scenes first.'}</div>
+    {/each}
+    {#if hiddenGapList.length}
+      <button class="small" style="margin-top:1rem" onclick={() => (showHiddenGaps = !showHiddenGaps)}>
+        {showHiddenGaps ? 'Hide' : 'Show'} {hiddenGapList.length} skipped
+      </button>
+      {#if showHiddenGaps}
+        <div class="card">
+          {#each hiddenGapList as r (r.key)}
+            <div class="gap done">
+              <span class="t"><b>{r.name}</b> {r.problem}</span>
+              <button class="small" onclick={() => showGap(r)}>Bring back</button>
+            </div>
+          {/each}
+        </div>
+      {/if}
+    {/if}
+  {:else}
   <div class="head">
     <h2>Plot holes{open.length ? ` · ${open.length}` : ''}</h2>
     <button class="small" onclick={() => (help = !help)}>{help ? 'Hide' : 'How this works'}</button>
@@ -91,6 +145,7 @@
       {/each}
     {/if}
   {/if}
+{/if}
 </section>
 
 {#snippet rows(c: Conflict)}
@@ -109,5 +164,9 @@
   .row-link { display: flex; align-items: center; gap: .5rem; width: 100%; text-align: left; background: none; border: 1px solid transparent; padding: .3rem .4rem; }
   .row-link:hover { background: var(--panel-2); border-color: var(--line); }
   .row-link .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .gap { display: flex; align-items: center; gap: .5rem; }
+  .gap .row-link { flex: 1; width: auto; }
+  .gap.done { opacity: .65; padding: .3rem .4rem; }
+  .gap.done .t { flex: 1; }
   .row-link .chip { margin: 0; }
 </style>

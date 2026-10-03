@@ -223,7 +223,11 @@ The timeline sorts by a **number**, such as a year. "Year 312" is only a label. 
 
 ### Checks
 
-The **Checks** tab finds plot holes. A red number next to the tab name shows how many are open.
+The **Checks** tab has two lists. A red number next to the tab name shows how many plot holes are open.
+
+**Unfinished** lists things that look incomplete: characters with no age, description, backstory, relationships or scene; places on no map or with no description; scenes with no point of view, place, timeline number, summary or text; factions with no members or headquarters; items with no description or journey; events with no number or place; empty lore notes. Click a row to open it. Press **Skip** if it is fine as it is. Skipped rows go to a list where you can bring them back.
+
+**Plot holes** is the second list.
 
 **Plot holes** looks for one person in two places at the same moment of story time. It compares:
 

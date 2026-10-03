@@ -2,7 +2,7 @@
 
 Ideas for Typewriter. Nothing here is built yet. Move an item up when you want it next.
 
-Suggested order: **consistency list**, then the rest.
+Suggested order: **statistics**, then the rest.
 
 ## Writing
 
@@ -24,7 +24,6 @@ Suggested order: **consistency list**, then the rest.
 
 ## Checks and tools
 
-- [ ] Consistency list: missing ages, empty profiles, places on no map
 - [ ] Statistics: words per day, per chapter, and per character
 - [ ] Dashboard start screen with goals, recent work, and to-dos
 
@@ -36,6 +35,7 @@ Suggested order: **consistency list**, then the rest.
 
 ## Done
 
+- [x] Consistency list: missing ages, empty profiles, places on no map
 - [x] Plot hole check: a character in two places at the same time (also items)
 - [x] Automatic backups: a copy each day, keeping the last 7
 - [x] Factions and organizations: members, ranks, allies, enemies
