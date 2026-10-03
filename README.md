@@ -91,6 +91,25 @@ Press **History** to see old copies of the open scene. Click one to read it. **G
 - **Save a copy now** makes a copy that you name. The app never removes these by itself.
 - Deleting a scene deletes its copies. If you press **Undo** on the delete message, they come back.
 
+#### Comments
+
+Select some text in a scene and press **💬** in the toolbar. The text is marked, and a note card opens in the **Comments** panel at the top of the right side. Type your note.
+
+- Click the quote on a card to jump to its text. Click the marked text to find its card.
+- **Resolve** hides the mark on the text and moves the card to the "resolved" list. **Reopen** brings it back.
+- **Delete** removes the card and the mark.
+- If you delete the commented text, the card stays and says "(text deleted)".
+- The scene list shows 💬 and the number of open comments.
+- Comments never print in Word or PDF.
+
+#### Name check
+
+If a scene names a character who is not in its cast (and is not its point of view), the Scene panel shows a warning and the scene list shows ⚠.
+
+- It looks for the full name, the first name, and each name in "Also called". Whole words only, so "Aldric" does not match "Aldrich".
+- **Add to cast** puts the character in the scene.
+- **Not here** means they are only mentioned. The warning stays away for that scene.
+
 ### Characters
 
 Press **+ New** to add a character. Fill in the role, looks, traits, backstory, goals, and notes. Add your own fields, such as "Eye colour". Pick a colour. The same colour is used on the graph and the maps.

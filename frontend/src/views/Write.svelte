@@ -6,6 +6,8 @@
   import { nav } from '../lib/nav.svelte';
   import { STATUSES, scenesOf, sceneWords, chapterWords, chapterCast, addScene } from '../lib/scenes';
   import { maybeAutoVersion } from '../lib/versions';
+  import { missingCast } from '../lib/mentions';
+  import Comments from '../lib/Comments.svelte';
   import RichEditor from '../lib/RichEditor.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import ProgressBar from '../lib/ProgressBar.svelte';
@@ -19,6 +21,8 @@
 
   let showFind = $state(false);
   let showHistory = $state(false);
+  let rich = $state<any>(); // the open editor, to point at a comment
+  let activeComment = $state<number | null>(null);
   let rev = $state(0); // bump to reload the editor after the text was changed from outside it
 
   /** Focus mode hides everything but the text, and fills the screen. */
@@ -36,6 +40,25 @@
     else if (e.key === 'Escape' && nav.focus && !showFind && !showHistory && !nav.searchOpen) setFocus(false);
   }
 
+  async function newComment(quote: string): Promise<number | null> {
+    if (!scene) return null;
+    const c = await db.save('comment', { scene: scene.id, quote: quote.slice(0, 200), text: '', resolved: false, at: new Date().toISOString() });
+    activeComment = c.id;
+    return c.id;
+  }
+  async function removeComment(id: number) {
+    rich?.removeComment(id);
+    await db.remove('comment', id, false);
+  }
+  // comments that are resolved lose their highlight in the text
+  const resolvedCss = $derived.by(() => {
+    const sel = db.lists.comment.filter((c) => c.resolved && c.scene === sceneId).map((c) => `.ProseMirror span[data-comment="${c.id}"]`);
+    return sel.length ? sel.join(',') + '{background:none !important;border-bottom-color:transparent !important}' : '';
+  });
+  const openComments = (id: number) => db.lists.comment.filter((c) => c.scene === id && !c.resolved).length;
+  function addToCast(id: number) { if (scene) { scene.characters = [...(scene.characters ?? []), id]; saveScene(); } }
+  function ignoreMention(id: number) { if (scene) { scene.ignoreMentions = [...(scene.ignoreMentions ?? []), id]; saveScene(); } }
+
   function jumpToScene(id: number) {
     const s = db.get('scene', id);
     const c = db.get('chapter', s?.chapter);
@@ -48,6 +71,7 @@
   const chap = $derived(db.get('chapter', chapId));
   const scenes = $derived(scenesOf(chapId));
   const scene = $derived(db.get('scene', sceneId));
+  const miss = $derived(scene ? missingCast(scene) : []);
   const goalOf = (c: any) => Number(c.goal) || Number(book?.chapterGoal) || 0;
   const pctText = (n: number, goal: number) => (goal > 0 ? ` (${Math.round((n / goal) * 100)}%)` : '');
   const total = $derived(chapters.reduce((n, c) => n + chapterWords(c), 0));
@@ -215,6 +239,7 @@
 </script>
 
 <svelte:window onkeydown={onKey} />
+<svelte:head>{@html `<style>${resolvedCss}</style>`}</svelte:head>
 
 <div class="split wide" class:focus={nav.focus}>
   <aside class="side">
@@ -255,6 +280,8 @@
                   onclick={() => { if (!suppressClick) sceneId = s.id; }}>
                   <span class="status {s.status}" title={s.status}></span>
                   <span class="t">{i + 1}. {s.title || 'Untitled'}</span>
+                  {#if missingCast(s).length}<span class="badge" title="Names a character who is not in the cast">⚠</span>{/if}
+                  {#if openComments(s.id)}<span class="badge" title="Open comments">💬{openComments(s.id)}</span>{/if}
                   <small>{sceneWords(s)}</small>
                 </button>
               {/each}
@@ -282,7 +309,7 @@
         <input class="scenetitle" bind:value={scene.title} oninput={saveScene} placeholder="Scene title (only you see this)" />
       {/if}
       {#key scene.id + ':' + rev}
-        <RichEditor bare={nav.focus} value={toHtml(scene.body ?? '')}
+        <RichEditor bind:this={rich} bare={nav.focus} oncomment={newComment} onfocuscomment={(id) => { if (id) activeComment = id; }} value={toHtml(scene.body ?? '')}
           onchange={(html) => { const before = scene.body ?? ''; scene.body = html; saveScene(); maybeAutoVersion(scene.id, before); }} />
       {/key}
       {@const words = sceneWords(scene)}
@@ -306,7 +333,8 @@
 
   <aside class="side right">
     {#if scene}
-      <div class="head"><h3 style="margin:0">Scene</h3>
+      <Comments sceneId={scene.id} body={scene.body ?? ''} active={activeComment} onshow={(id) => { activeComment = id; rich?.showComment(id); }} onremove={removeComment} />
+      <div class="head" style="margin-top:1.4rem"><h3 style="margin:0">Scene</h3>
         <span class="row fit" style="gap:.2rem">
           <button class="small" title="Move up" onclick={() => swapOrder('scene', scenes, scene, -1)}>↑</button>
           <button class="small" title="Move down" onclick={() => swapOrder('scene', scenes, scene, 1)}>↓</button>
@@ -334,6 +362,20 @@
           <span class="dot" style:background={c.color} style="margin-top:.2rem"></span>{c.name}
         </label></div>
       {/each}
+      {#if miss.length}
+        <div class="warn">
+          <strong>Named in the text, not in the cast</strong>
+          {#each miss as c (c.id)}
+            <div class="mrow">
+              <span><span class="dot" style:background={c.color}></span> {c.name}</span>
+              <span class="row fit" style="gap:.2rem">
+                <button class="small" onclick={() => addToCast(c.id)}>Add to cast</button>
+                <button class="small" title="Only mentioned. Do not warn again for this scene." onclick={() => ignoreMention(c.id)}>Not here</button>
+              </span>
+            </div>
+          {/each}
+        </div>
+      {/if}
       <label>Notes and plan</label>
       <textarea bind:value={scene.summary} oninput={saveScene} placeholder="What happens? What must the reader learn?"></textarea>
       <label>Word goal for this scene</label>
@@ -421,6 +463,9 @@
     .ghost, .ghost span, .drop-before::before, .drop-after::before, .drop-into, .landed, .dragging { animation: none; transition: none; }
   }
   .scenetitle { margin-bottom: .6rem; font-size: .95rem; color: var(--muted); }
+  .badge { font-size: .7rem; color: var(--muted); }
+  .warn { border: 1px solid var(--accent-2); border-radius: 6px; padding: .5rem; margin-top: .6rem; font-size: .85rem; background: color-mix(in srgb, var(--accent-2) 10%, transparent); }
+  .mrow { display: flex; align-items: center; justify-content: space-between; gap: .4rem; margin-top: .3rem; }
   .tools { display: flex; gap: .4rem; margin-bottom: .6rem; }
   .tools kbd { font-size: .7rem; color: var(--muted); margin-left: .3rem; }
 </style>

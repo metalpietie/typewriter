@@ -7,8 +7,6 @@ Suggested order: **@ links and backlinks**, then the rest.
 ## Writing
 
 - [ ] Daily writing goal, with a streak and a history graph
-- [ ] Character mention check: warn when a character appears in the text but not in the chapter's cast
-- [ ] Margin comments that you can resolve
 
 ## World building
 
@@ -45,6 +43,8 @@ Suggested order: **@ links and backlinks**, then the rest.
 
 ## Done
 
+- [x] Character mention check: warn when a character is named in a scene but not in its cast
+- [x] Margin comments that you can resolve
 - [x] Full-screen focus mode (no menus, only the text)
 - [x] Find and replace across all chapters
 - [x] Version history: go back to an older copy of a scene

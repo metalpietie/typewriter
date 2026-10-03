@@ -1,8 +1,8 @@
 import { Store } from '../../bindings/typewriter';
 import type { Doc } from '../../bindings/typewriter/models.js';
 
-export type Kind = 'book' | 'chapter' | 'character' | 'relationship' | 'location' | 'map' | 'pathpoint' | 'note' | 'event' | 'mapdoc' | 'scene';
-export const KINDS: Kind[] = ['book', 'chapter', 'character', 'relationship', 'location', 'map', 'pathpoint', 'note', 'event', 'mapdoc', 'scene'];
+export type Kind = 'book' | 'chapter' | 'character' | 'relationship' | 'location' | 'map' | 'pathpoint' | 'note' | 'event' | 'mapdoc' | 'scene' | 'comment';
+export const KINDS: Kind[] = ['book', 'chapter', 'character', 'relationship', 'location', 'map', 'pathpoint', 'note', 'event', 'mapdoc', 'scene', 'comment'];
 
 // An item is its saved fields plus id, kind and updatedAt.
 export type Item = { id: number; kind: Kind; updatedAt: string; [field: string]: any };
@@ -15,7 +15,7 @@ function parse(d: Doc): Item {
 
 class Db {
   lists = $state<Record<Kind, Item[]>>({
-    book: [], chapter: [], character: [], relationship: [], location: [], map: [], pathpoint: [], note: [], event: [], mapdoc: [], scene: [],
+    book: [], chapter: [], character: [], relationship: [], location: [], map: [], pathpoint: [], note: [], event: [], mapdoc: [], scene: [], comment: [],
   });
   ready = $state(false);
   dataPath = $state('');
@@ -100,11 +100,11 @@ class Db {
   undoable = $state<{ label: string; docs: Doc[] } | null>(null);
   private undoTimer: ReturnType<typeof setTimeout> | undefined;
 
-  async remove(kind: Kind, id: number) {
+  async remove(kind: Kind, id: number, undo = true) {
     const it = this.get(kind, id);
     const docs = (await Store.Delete(kind, id)) ?? [];
     await this.load(); // deleting can remove linked items too
-    if (!docs.length) return;
+    if (!docs.length || !undo) return;
     const name = it?.name ?? it?.title ?? (kind === 'pathpoint' ? 'path step' : kind);
     const extra = docs.filter((d) => d.kind !== kind || d.id !== id).length;
     this.undoable = { label: `Deleted ${kind === 'pathpoint' ? '' : kind + ' '}“${name}”${extra ? ` and ${extra} linked item${extra === 1 ? '' : 's'}` : ''}`, docs };

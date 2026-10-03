@@ -1,21 +1,73 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Editor } from '@tiptap/core';
+  import { Editor, Mark, mergeAttributes } from '@tiptap/core';
   import StarterKit from '@tiptap/starter-kit';
   import Placeholder from '@tiptap/extension-placeholder';
   import SaveIndicator from './SaveIndicator.svelte';
 
-  let { value, onchange, placeholder = 'Start writing…', bare = false }: {
+  let { value, onchange, placeholder = 'Start writing…', bare = false, oncomment, onfocuscomment }: {
     value: string;
     onchange: (html: string) => void;
     placeholder?: string;
     bare?: boolean; // hide the toolbar (focus mode)
+    /** Called with the selected text. Returns the id of the new comment, or null to cancel. */
+    oncomment?: (quote: string) => Promise<number | null>;
+    /** Called when the cursor moves into or out of commented text. */
+    onfocuscomment?: (id: number | null) => void;
   } = $props();
 
   let host: HTMLElement;
   let editor: Editor | undefined;
   // Bumped on every editor change so the toolbar buttons redraw their active state.
   let tick = $state(0);
+
+  // A comment is a mark on the text. It saves as <span data-comment="id">; the note itself is its own item.
+  const Comment = Mark.create({
+    name: 'comment',
+    inclusive: false,
+    excludes: '', // comments may overlap
+    addAttributes() {
+      return { id: { default: null, parseHTML: (el) => Number(el.getAttribute('data-comment')), renderHTML: (a) => ({ 'data-comment': String(a.id) }) } };
+    },
+    parseHTML() { return [{ tag: 'span[data-comment]' }]; },
+    renderHTML({ HTMLAttributes }) { return ['span', mergeAttributes({ class: 'cmt' }, HTMLAttributes), 0]; },
+  });
+
+  /** Where the text of one comment sits in the document. */
+  function rangeOf(id: number): { from: number; to: number } | null {
+    let from = -1, to = -1;
+    editor?.state.doc.descendants((node, pos) => {
+      if (node.isText && node.marks.some((m) => m.type.name === 'comment' && m.attrs.id === id)) {
+        if (from < 0) from = pos;
+        to = pos + node.nodeSize;
+      }
+    });
+    return from < 0 ? null : { from, to };
+  }
+
+  /** Select the text a comment belongs to, and scroll to it. */
+  export function showComment(id: number) {
+    const r = rangeOf(id);
+    if (r && editor) editor.chain().focus().setTextSelection(r).scrollIntoView().run();
+  }
+
+  /** Take a comment off the text. */
+  export function removeComment(id: number) {
+    const r = rangeOf(id);
+    if (!r || !editor) return;
+    const { state, view } = editor;
+    view.dispatch(state.tr.removeMark(r.from, r.to, state.schema.marks.comment.create({ id })));
+  }
+
+  const noSelection = () => { tick; return !editor || editor.state.selection.empty; };
+
+  async function addComment() {
+    if (!editor || !oncomment) return;
+    const { from, to } = editor.state.selection;
+    if (from === to) return;
+    const id = await oncomment(editor.state.doc.textBetween(from, to, ' '));
+    if (id) editor.chain().focus().setTextSelection({ from, to }).setMark('comment', { id }).setTextSelection(to).run();
+  }
 
   onMount(() => {
     editor = new Editor({
@@ -24,9 +76,10 @@
       extensions: [
         StarterKit.configure({ strike: false, code: false, codeBlock: false, heading: { levels: [1, 2, 3] } }),
         Placeholder.configure({ placeholder }),
+        Comment,
       ],
       onUpdate: ({ editor }) => { tick++; onchange(editor.isEmpty ? '' : editor.getHTML()); },
-      onSelectionUpdate: () => tick++,
+      onSelectionUpdate: ({ editor }) => { tick++; onfocuscomment?.(editor.getAttributes('comment').id ?? null); },
     });
     return () => editor?.destroy();
   });
@@ -49,6 +102,9 @@
     <button class:active={is('orderedList')} title="Numbered list" onclick={() => run().toggleOrderedList().run()}>1. List</button>
     <button class:active={is('blockquote')} title="Quote" onclick={() => run().toggleBlockquote().run()}>❝</button>
     <button title="Scene break" onclick={() => run().setHorizontalRule().run()}>―</button>
+    {#if oncomment}
+      <button title="Comment on the selected text" disabled={noSelection()} onclick={addComment}>💬</button>
+    {/if}
     <span class="sep"></span>
     <button title="Undo (Ctrl+Z)" onclick={() => run().undo().run()}>↶</button>
     <button title="Redo (Ctrl+Y)" onclick={() => run().redo().run()}>↷</button>
@@ -84,6 +140,7 @@
   .rich-page :global(.ProseMirror ul), .rich-page :global(.ProseMirror ol) { padding-left: 1.6rem; margin: 0 0 .9em; }
   .rich-page :global(.ProseMirror hr) { border: 0; text-align: center; margin: 1.5em 0; }
   .rich-page :global(.ProseMirror hr::after) { content: '* * *'; color: var(--muted); letter-spacing: .5em; }
+  .rich-page :global(.ProseMirror .cmt) { background: color-mix(in srgb, var(--accent-2) 28%, transparent); border-bottom: 2px solid var(--accent-2); cursor: pointer; }
   .rich-page :global(.ProseMirror p.is-editor-empty:first-child::before) {
     content: attr(data-placeholder); color: var(--muted); float: left; height: 0; pointer-events: none;
   }
