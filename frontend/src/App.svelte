@@ -13,6 +13,8 @@
   import Factions from './views/Factions.svelte';
   import Items from './views/Items.svelte';
   import FamilyTree from './views/FamilyTree.svelte';
+  import Checks from './views/Checks.svelte';
+  import { findConflicts, openConflicts } from './lib/plotholes';
   import Maps from './views/Maps.svelte';
   import Timeline from './views/Timeline.svelte';
   import Export from './views/Export.svelte';
@@ -27,8 +29,12 @@
     ['family', 'Family tree'],
     ['maps', 'Maps & Paths'],
     ['timeline', 'Timeline'],
+    ['checks', 'Checks'],
     ['export', 'Export & Backup'],
   ] as const;
+
+  // the number of open plot holes shows next to the Checks tab
+  const holes = $derived(db.ready ? openConflicts(findConflicts().conflicts).length : 0);
 
   let error = $state('');
   let theme = $state<Theme>(currentTheme());
@@ -46,7 +52,7 @@
     <div class="brand"><img src="/logo.svg" alt="" />Typewriter</div>
     <button class="search-btn" onclick={() => (nav.searchOpen = true)}>Search <kbd>Ctrl+K</kbd></button>
     {#each tabs as [id, label]}
-      <button class:on={nav.tab === id} onclick={() => (nav.tab = id)}>{label}</button>
+      <button class:on={nav.tab === id} onclick={() => (nav.tab = id)}>{label}{#if id === 'checks' && holes}<span class="count">{holes}</span>{/if}</button>
     {/each}
     <div class="foot">
       <button onclick={toggleTheme}>{theme === 'dark' ? '☀ Light theme' : '☾ Dark theme'}</button>
@@ -66,6 +72,7 @@
     {:else if nav.tab === 'family'}<FamilyTree />
     {:else if nav.tab === 'maps'}<Maps />
     {:else if nav.tab === 'timeline'}<Timeline />
+    {:else if nav.tab === 'checks'}<Checks />
     {:else if nav.tab === 'export'}<Export />
     {/if}
   </main>

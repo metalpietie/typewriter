@@ -221,6 +221,26 @@ Places made here also show in the **World** screen. Use **Unpin** to take a plac
 
 The timeline sorts by a **number**, such as a year. "Year 312" is only a label. Fill in the number too. The field is called **Position** on events, and **Timeline position** on chapters and path steps. Items with no number stay off the timeline.
 
+### Checks
+
+The **Checks** tab finds plot holes. A red number next to the tab name shows how many are open.
+
+**Plot holes** looks for one person in two places at the same moment of story time. It compares:
+
+- scenes (timeline number, place, point of view, and cast),
+- timeline events (position, place, and who is involved),
+- map path steps (timeline position, and a place or a spot on the map),
+- item steps that name a scene (it also finds one item with two owners at once).
+
+How to read it:
+
+- Only things with **exactly the same number** are compared. If one number covers a whole year, use decimals for the days: 312.1, 312.2.
+- A place inside another place is fine. Being in the market and in the city that holds it is not a problem.
+- Two map spots very close together count as the same spot.
+- Click a row to open that scene, event, path step, or item.
+- If it is not a real problem, press **Not a problem**. It moves to a list you can open and bring back. If you change the scenes later and the clash changes shape, it shows up again.
+- The page says how many scenes it could not check, because they have no number or no place.
+
 ### Search
 
 Press **Ctrl+K**. Type a few letters. Typos are fine: "aldrik" finds "Aldric". It searches characters, places, and lore. Use the arrow keys and **Enter** to open a result. **Esc** closes it.

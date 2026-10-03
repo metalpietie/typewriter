@@ -1,6 +1,7 @@
 <script lang="ts">
   import { db, PLACE_TYPES } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
+  import { nav } from '../lib/nav.svelte';
   import { scenesOf } from '../lib/scenes';
   import MapEditor from '../lib/mapdraw/MapEditor.svelte';
 
@@ -10,6 +11,14 @@
   let hiddenChars = $state<number[]>([]);
   let selPin = $state<number | null>(null);
   let selPoint = $state<number | null>(null);
+  // Open a path step when the Checks tab sends you here.
+  $effect(() => {
+    const p = nav.pending;
+    if (p?.kind !== 'pathpoint') return;
+    nav.pending = null;
+    const step = db.get('pathpoint', p.id);
+    if (step) { mapId = step.map; selPoint = step.id; selPin = null; }
+  });
   let placing = $state<number | null>(null); // existing place waiting for a click on the map
   let width = $state(800);
   let height = $state(600);

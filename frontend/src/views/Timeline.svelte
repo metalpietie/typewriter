@@ -2,9 +2,18 @@
   import { db } from '../lib/db.svelte';
   import { scenesOf, chapterCast, chapterHasPov } from '../lib/scenes';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
+  import { nav } from '../lib/nav.svelte';
 
   let mode = $state<'time' | 'lanes'>('time');
   let selId = $state<number | null>(null);
+  // Open an event when the Checks tab sends you here.
+  $effect(() => {
+    const p = nav.pending;
+    if (p?.kind !== 'event') return;
+    nav.pending = null;
+    mode = 'time';
+    selId = p.id;
+  });
   let show = $state({ event: true, chapter: true, step: true });
   let charFilter = $state<number | null>(null);
 
