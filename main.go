@@ -35,7 +35,7 @@ func main() {
 		Title:            "Typewriter",
 		Width:            1280,
 		Height:           800,
-		BackgroundColour: application.NewRGB(24, 22, 28),
+		BackgroundColour: application.NewRGB(17, 22, 29),
 		URL:              "/",
 	})
 

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { db } from './lib/db.svelte';
+  import { currentTheme, setTheme, type Theme } from './lib/theme';
   import Write from './views/Write.svelte';
   import Characters from './views/Characters.svelte';
   import Relationships from './views/Relationships.svelte';
@@ -21,6 +22,8 @@
 
   let tab = $state<(typeof tabs)[number][0]>('write');
   let error = $state('');
+  let theme = $state<Theme>(currentTheme());
+  function toggleTheme() { theme = theme === 'dark' ? 'light' : 'dark'; setTheme(theme); }
 
   onMount(() => { db.load().catch((e) => (error = String(e))); });
 </script>
@@ -31,7 +34,9 @@
     {#each tabs as [id, label]}
       <button class:on={tab === id} onclick={() => (tab = id)}>{label}</button>
     {/each}
-    <div class="foot">Data file:<br />{db.dataPath}</div>
+    <div class="foot">
+      <button onclick={toggleTheme}>{theme === 'dark' ? '☀ Light theme' : '☾ Dark theme'}</button>
+      Data file:<br />{db.dataPath}</div>
   </nav>
   <main class="main">
     {#if error}

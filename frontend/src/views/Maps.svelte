@@ -181,7 +181,7 @@
       {#each db.lists.map as m}<option value={m.id}>{m.name}</option>{/each}
     </select>
     <div class="row" style="margin-top:.5rem">
-      <label class="fit" style="margin:0"><span class="small primary" style="display:inline-block;padding:.35rem .75rem;border-radius:6px;background:var(--accent);color:#04141c;font-weight:600;cursor:pointer">+ Image</span>
+      <label class="fit" style="margin:0"><span class="small primary" style="display:inline-block;padding:.35rem .75rem;border-radius:6px;background:var(--accent);color:var(--on-accent);font-weight:600;cursor:pointer">+ Image</span>
         <input type="file" accept="image/*" onchange={upload} style="display:none" /></label>
       <button onclick={blank}>+ Blank</button>
     </div>

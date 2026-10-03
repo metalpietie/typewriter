@@ -2,6 +2,7 @@
   --bg: #11161d; --panel: #171e28; --panel-2: #1f2835; --line: #2e3a4a;
   --text: #e6eef5; --muted: #8b9bb0; --accent: #2cd5e8; --accent-2: #3b82f6;
   --danger: #d9625b; --ok: #6bbf8a;
+  --stage: #0b0f14; --on-accent: #04141c;
   font-family: "Segoe UI", system-ui, sans-serif;
   color-scheme: dark;
 }
@@ -26,7 +27,7 @@ button {
   padding: .35rem .75rem; cursor: pointer;
 }
 button:hover { border-color: var(--accent); }
-button.primary { background: var(--accent); color: #04141c; border-color: var(--accent); font-weight: 600; }
+button.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
 button.danger { color: var(--danger); }
 button.danger.armed { background: var(--danger); color: #fff; }
 button.small { padding: .15rem .45rem; font-size: .8rem; }
@@ -60,9 +61,18 @@ button:disabled { opacity: .4; cursor: default; }
 .muted { color: var(--muted); }
 .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: .6rem; gap: .5rem; }
 .tabs { display: flex; gap: .3rem; margin-bottom: 1rem; }
-.stage { user-select: none; -webkit-user-select: none; position: relative; min-width: 0; min-height: 0; background: #0b0f14; overflow: hidden; }
+.stage { user-select: none; -webkit-user-select: none; position: relative; min-width: 0; min-height: 0; background: var(--stage); overflow: hidden; }
 .stage svg { touch-action: none; width: 100%; height: 100%; display: block; }
 .toolbar { position: absolute; top: .6rem; left: .6rem; display: flex; gap: .3rem; z-index: 2; flex-wrap: wrap; }
 .editor { font-family: Georgia, "Times New Roman", serif; font-size: 1.05rem; line-height: 1.75; min-height: 60vh; }
 .nav .brand { display: flex; align-items: center; gap: .5rem; }
 .nav .brand img { width: 28px; height: 28px; }
+
+:root[data-theme="light"] {
+  --bg: #f3f6fa; --panel: #ffffff; --panel-2: #e8eef5; --line: #cfd9e5;
+  --text: #17212e; --muted: #5c6c80; --accent: #0a8fb0; --accent-2: #2f6fe0;
+  --danger: #c9453e; --ok: #1f9a5a;
+  --stage: #e4ebf3; --on-accent: #ffffff;
+  color-scheme: light;
+}
+.nav .foot button { width: 100%; margin-bottom: .6rem; }

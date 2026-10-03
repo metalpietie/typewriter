@@ -233,14 +233,14 @@
             <path d={e.d} fill="none" stroke={REL_TYPES[e.r.type]} stroke-width={e.r.id === selRel ? 4 : 2}
               marker-end={e.r.directed ? 'url(#arrow)' : undefined} />
             <text x={e.lx} y={e.ly} text-anchor="middle" font-size="11" fill={REL_TYPES[e.r.type]}
-              paint-order="stroke" stroke="#0b0f14" stroke-width="3">{e.r.label || e.r.type}</text>
+              paint-order="stroke" stroke="var(--stage)" stroke-width="3">{e.r.label || e.r.type}</text>
           </g>
         {/each}
         {#each db.lists.character as c (c.id)}
           {#if pos[c.id]}
             <g data-node={c.id} transform="translate({pos[c.id].x},{pos[c.id].y})" opacity={connected(c.id) ? 1 : 0.2} style="cursor:grab">
               <rect x={-nodeW(c) / 2} y={-NODE_H / 2} width={nodeW(c)} height={NODE_H} rx="12" fill={c.color}
-                stroke={c.id === focus ? '#fff' : '#0b0f14'} stroke-width={c.id === focus ? 3 : 2} />
+                stroke={c.id === focus ? 'var(--text)' : 'var(--stage)'} stroke-width={c.id === focus ? 3 : 2} />
               <text y="4.5" text-anchor="middle" font-size="13" font-weight="600" fill="#0b0f14" pointer-events="none">{c.name}</text>
             </g>
           {/if}
