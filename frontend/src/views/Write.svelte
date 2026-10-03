@@ -89,7 +89,6 @@
       <p class="muted">
         {words.toLocaleString()}{goal ? ' / ' + goal.toLocaleString() : ''} words{pctText(words, goal)}
         {#if goal && words >= goal} · goal reached{:else if goal} · {(goal - words).toLocaleString()} to go{/if}
-        · saved {chap.updatedAt}
       </p>
     {:else}
       <div class="empty">{book ? 'Pick a chapter, or add one.' : 'Add a book to begin.'}</div>

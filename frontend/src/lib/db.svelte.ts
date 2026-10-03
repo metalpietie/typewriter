@@ -19,7 +19,20 @@ class Db {
   });
   ready = $state(false);
   dataPath = $state('');
-  private timers = new Map<string, ReturnType<typeof setTimeout>>();
+  private timers = new Map<string, { timer: ReturnType<typeof setTimeout>; kind: Kind; item: Item }>();
+
+  // Save progress, shown by the save indicator.
+  waiting = $state(0); // edits waiting for the short pause to end
+  busy = $state(0); // saves running now
+  lastSaved = $state<Date | null>(null);
+  saveError = $state('');
+  private failed = new Map<string, { kind: Kind; item: Item }>();
+
+  /** What the save indicator should say. */
+  get saveState(): 'saved' | 'saving' | 'error' {
+    if (this.saveError) return 'error';
+    return this.waiting + this.busy > 0 ? 'saving' : 'saved';
+  }
 
   async load() {
     await Promise.all(KINDS.map(async (k) => {
@@ -36,18 +49,51 @@ class Db {
   /** Create or update an item right now. */
   async save(kind: Kind, item: Partial<Item>): Promise<Item> {
     const { id, kind: _k, updatedAt: _u, ...data } = item;
-    const saved = parse(await Store.Save({ id: id ?? 0, kind, data: JSON.stringify(data), updatedAt: '' }));
-    const list = this.lists[kind];
-    const at = list.findIndex((i) => i.id === saved.id);
-    if (at >= 0) Object.assign(list[at], saved); else list.push(saved);
-    return this.get(kind, saved.id)!;
+    this.busy++;
+    try {
+      const saved = parse(await Store.Save({ id: id ?? 0, kind, data: JSON.stringify(data), updatedAt: '' }));
+      const list = this.lists[kind];
+      const at = list.findIndex((i) => i.id === saved.id);
+      if (at >= 0) Object.assign(list[at], saved); else list.push(saved);
+      this.failed.delete(kind + saved.id);
+      if (this.failed.size === 0) this.saveError = '';
+      this.lastSaved = new Date();
+      return this.get(kind, saved.id)!;
+    } catch (e: any) {
+      this.saveError = e?.message ?? String(e);
+      if (id) this.failed.set(kind + id, { kind, item: item as Item });
+      throw e;
+    } finally {
+      this.busy--;
+    }
+  }
+
+  /** Try again to save everything that failed. */
+  async retry() {
+    for (const { kind, item } of [...this.failed.values()]) await this.save(kind, item).catch(() => {});
+  }
+
+  /** Save every waiting edit now, for example when the window closes. */
+  flush() {
+    for (const [key, w] of [...this.timers]) {
+      clearTimeout(w.timer);
+      this.timers.delete(key);
+      this.waiting--;
+      this.save(w.kind, w.item).catch(() => {});
+    }
   }
 
   /** Save after a short pause. Use this while the user types. */
   queue(kind: Kind, item: Item) {
     const key = kind + item.id;
-    clearTimeout(this.timers.get(key));
-    this.timers.set(key, setTimeout(() => { this.timers.delete(key); this.save(kind, item); }, 500));
+    const old = this.timers.get(key);
+    if (old) clearTimeout(old.timer); else this.waiting++;
+    const timer = setTimeout(() => {
+      this.timers.delete(key);
+      this.save(kind, item).catch(() => {}); // the error is shown by the save indicator
+      this.waiting--;
+    }, 500);
+    this.timers.set(key, { timer, kind, item });
   }
 
   /** What the last delete removed, kept for a short time so it can be undone. */

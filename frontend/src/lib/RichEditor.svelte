@@ -3,6 +3,7 @@
   import { Editor } from '@tiptap/core';
   import StarterKit from '@tiptap/starter-kit';
   import Placeholder from '@tiptap/extension-placeholder';
+  import SaveIndicator from './SaveIndicator.svelte';
 
   let { value, onchange, placeholder = 'Start writing…' }: {
     value: string;
@@ -50,6 +51,7 @@
     <span class="sep"></span>
     <button title="Undo (Ctrl+Z)" onclick={() => run().undo().run()}>↶</button>
     <button title="Redo (Ctrl+Y)" onclick={() => run().redo().run()}>↷</button>
+    <span class="rich-save"><SaveIndicator /></span>
   </div>
   <div class="rich-page" bind:this={host}></div>
 </div>
@@ -62,6 +64,7 @@
     padding: .4rem 0; border-bottom: 1px solid var(--line); margin-bottom: .8rem;
   }
   .rich-bar button { padding: .2rem .55rem; min-width: 2rem; }
+  .rich-save { margin-left: auto; }
   .sep { width: 1px; height: 1.4rem; background: var(--line); margin: 0 .3rem; }
   .rich-page { flex: 1; }
 
