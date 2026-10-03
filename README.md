@@ -221,6 +221,17 @@ Places made here also show in the **World** screen. Use **Unpin** to take a plac
 
 The timeline sorts by a **number**, such as a year. "Year 312" is only a label. Fill in the number too. The field is called **Position** on events, and **Timeline position** on chapters and path steps. Items with no number stay off the timeline.
 
+### Statistics and daily goal
+
+The **Statistics** tab shows your progress.
+
+- **Daily writing goal:** set the words you want to write each day. A bar shows today. The **streak** counts days in a row that reached the goal. Today does not break the streak until the day ends. With no goal, any writing counts.
+- **Words per day:** a bar chart for 14, 30 or 90 days. Green bars reached the goal.
+- **Words per chapter** and **words per character** (all scenes they are in, and scenes told through them).
+- **Scenes by stage:** idea, draft, revised, final.
+
+Words are counted while you type in the Write tab. Each day keeps one tally. Cut words are taken off that day, but a day never shows less than 0. Text you paste in counts as written. The Write tab shows today's count under the text and in focus mode.
+
 ### Checks
 
 The **Checks** tab has two lists. A red number next to the tab name shows how many plot holes are open.

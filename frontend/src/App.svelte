@@ -14,6 +14,7 @@
   import Items from './views/Items.svelte';
   import FamilyTree from './views/FamilyTree.svelte';
   import Checks from './views/Checks.svelte';
+  import Statistics from './views/Statistics.svelte';
   import { findConflicts, openConflicts } from './lib/plotholes';
   import Maps from './views/Maps.svelte';
   import Timeline from './views/Timeline.svelte';
@@ -30,6 +31,7 @@
     ['maps', 'Maps & Paths'],
     ['timeline', 'Timeline'],
     ['checks', 'Checks'],
+    ['stats', 'Statistics'],
     ['export', 'Export & Backup'],
   ] as const;
 
@@ -73,6 +75,7 @@
     {:else if nav.tab === 'maps'}<Maps />
     {:else if nav.tab === 'timeline'}<Timeline />
     {:else if nav.tab === 'checks'}<Checks />
+    {:else if nav.tab === 'stats'}<Statistics />
     {:else if nav.tab === 'export'}<Export />
     {/if}
   </main>

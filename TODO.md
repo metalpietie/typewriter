@@ -2,11 +2,12 @@
 
 Ideas for Typewriter. Nothing here is built yet. Move an item up when you want it next.
 
-Suggested order: **statistics**, then the rest.
+Suggested order: **dashboard**, then the rest.
 
 ## Writing
 
-- [ ] Daily writing goal, with a streak and a history graph
+Nothing open here.
+
 
 ## World building
 
@@ -24,7 +25,6 @@ Suggested order: **statistics**, then the rest.
 
 ## Checks and tools
 
-- [ ] Statistics: words per day, per chapter, and per character
 - [ ] Dashboard start screen with goals, recent work, and to-dos
 
 ## Data and files
@@ -35,6 +35,8 @@ Suggested order: **statistics**, then the rest.
 
 ## Done
 
+- [x] Daily writing goal, with a streak and a history graph
+- [x] Statistics: words per day, per chapter, and per character
 - [x] Consistency list: missing ages, empty profiles, places on no map
 - [x] Plot hole check: a character in two places at the same time (also items)
 - [x] Automatic backups: a copy each day, keeping the last 7

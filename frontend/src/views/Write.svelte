@@ -2,10 +2,11 @@
   import { onDestroy } from 'svelte';
   import { flip } from 'svelte/animate';
   import { Window } from '@wailsio/runtime';
-  import { db, toHtml } from '../lib/db.svelte';
+  import { db, toHtml, wordCount } from '../lib/db.svelte';
   import { nav, openItem } from '../lib/nav.svelte';
   import { STATUSES, scenesOf, sceneWords, chapterWords, chapterCast, addScene } from '../lib/scenes';
   import { maybeAutoVersion } from '../lib/versions';
+  import { addWords, dailyGoal, wordsToday } from '../lib/progress';
   import { missingCast } from '../lib/mentions';
   import Comments from '../lib/Comments.svelte';
   import RichEditor from '../lib/RichEditor.svelte';
@@ -342,15 +343,16 @@
       {/if}
       {#key scene.id + ':' + rev}
         <RichEditor bind:this={rich} bare={nav.focus} onopenref={(k, id) => { db.flush(); openItem(k, id); }} oncomment={newComment} onfocuscomment={(id) => { if (id) activeComment = id; }} value={toHtml(scene.body ?? '')}
-          onchange={(html) => { const before = scene.body ?? ''; scene.body = html; saveScene(); maybeAutoVersion(scene.id, before); }} />
+          onchange={(html) => { const before = scene.body ?? ''; scene.body = html; saveScene(); maybeAutoVersion(scene.id, before); addWords(wordCount(html) - wordCount(before)); }} />
       {/key}
       {@const words = sceneWords(scene)}
       {#if nav.focus}
-        <div class="focus-hud">{words.toLocaleString()} words <SaveIndicator /> <span>Esc to leave</span></div>
+        <div class="focus-hud">{words.toLocaleString()} words · today {wordsToday().toLocaleString()}{dailyGoal() ? ' / ' + dailyGoal().toLocaleString() : ''} <SaveIndicator /> <span>Esc to leave</span></div>
       {:else}
         {#if Number(scene.goal) > 0}<div style="margin-top:.6rem"><ProgressBar value={words} goal={Number(scene.goal)} /></div>{/if}
         <p class="muted">
           Scene: {words.toLocaleString()}{Number(scene.goal) ? ' / ' + Number(scene.goal).toLocaleString() : ''} words{pctText(words, Number(scene.goal))}
+          · Today: {wordsToday().toLocaleString()}{dailyGoal() ? ' / ' + dailyGoal().toLocaleString() : ''}
           · Chapter: {chapWords.toLocaleString()}{goalOf(chap) ? ' / ' + goalOf(chap).toLocaleString() : ''} words{pctText(chapWords, goalOf(chap))}
           {#if goalOf(chap) && chapWords >= goalOf(chap)} · chapter goal reached{/if}
         </p>
