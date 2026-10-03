@@ -23,7 +23,7 @@ func (s *Store) copyTo(path string) error {
 	if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
 		return err
 	}
-	_, err := s.db.Exec(`VACUUM INTO ?`, path)
+	_, err := s.d().Exec(`VACUUM INTO ?`, path)
 	return err
 }
 
@@ -63,23 +63,23 @@ func (s *Store) RestoreBackup() (RestoreResult, error) {
 // restoreFrom replaces all data with the contents of the backup file at path.
 func (s *Store) restoreFrom(path string) (RestoreResult, error) {
 	// Attach the backup and check it looks like ours before touching anything.
-	if _, err := s.db.Exec(`ATTACH DATABASE ? AS bk`, path); err != nil {
+	if _, err := s.d().Exec(`ATTACH DATABASE ? AS bk`, path); err != nil {
 		return RestoreResult{}, fmt.Errorf("could not open that file: %w", err)
 	}
-	defer s.db.Exec(`DETACH DATABASE bk`)
+	defer s.d().Exec(`DETACH DATABASE bk`)
 
 	var items int
-	if err := s.db.QueryRow(`SELECT count(*) FROM bk.docs`).Scan(&items); err != nil {
+	if err := s.d().QueryRow(`SELECT count(*) FROM bk.docs`).Scan(&items); err != nil {
 		return RestoreResult{}, fmt.Errorf("that file is not a Typewriter backup")
 	}
 	var bad int
-	if err := s.db.QueryRow(
+	if err := s.d().QueryRow(
 		`SELECT count(*) FROM bk.docs WHERE json_valid(data) = 0 OR kind NOT IN (` + kindList() + `)`).Scan(&bad); err != nil || bad > 0 {
 		return RestoreResult{}, fmt.Errorf("that backup holds data this version does not understand")
 	}
 
 	// Keep what you have now, in case you picked the wrong file.
-	dir := filepath.Join(filepath.Dir(s.path), "backups")
+	dir := s.backupDir()
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return RestoreResult{}, err
 	}
@@ -88,7 +88,7 @@ func (s *Store) restoreFrom(path string) (RestoreResult, error) {
 		return RestoreResult{}, fmt.Errorf("could not save a safety copy, so nothing was changed: %w", err)
 	}
 
-	tx, err := s.db.Begin()
+	tx, err := s.d().Begin()
 	if err != nil {
 		return RestoreResult{}, err
 	}

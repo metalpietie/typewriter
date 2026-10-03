@@ -12,5 +12,6 @@ export type {
     AutoBackup,
     Doc,
     ExportOptions,
+    ProjectItem,
     RestoreResult
 } from "./models.js";

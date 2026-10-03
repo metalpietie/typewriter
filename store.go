@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 
 	_ "modernc.org/sqlite"
 )
@@ -19,8 +20,11 @@ type Doc struct {
 
 // Store is the service the frontend calls. It keeps all book data in one SQLite file.
 type Store struct {
+	mu   sync.RWMutex
 	db   *sql.DB
 	path string
+	dir  string // the app data folder, holding every project
+	reg  registry
 }
 
 var kinds = map[string]bool{
@@ -40,16 +44,33 @@ var cascades = map[string][][2]string{
 	"scene":     {{"version", "scene"}, {"comment", "scene"}},
 }
 
+// OpenStore opens the data of the project you used last.
 func OpenStore() (*Store, error) {
 	dir, err := os.UserConfigDir()
 	if err != nil {
 		return nil, err
 	}
-	dir = filepath.Join(dir, "typewriter")
+	return OpenStoreIn(filepath.Join(dir, "typewriter"))
+}
+
+// OpenStoreIn does the same in a chosen folder (the tests use this).
+func OpenStoreIn(dir string) (*Store, error) {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return nil, err
 	}
-	path := filepath.Join(dir, "typewriter.db")
+	s := &Store{dir: dir}
+	s.reg = loadRegistry(dir)
+	p, _ := s.reg.find(s.reg.Current)
+	db, path, err := s.openProject(p)
+	if err != nil {
+		return nil, err
+	}
+	s.db, s.path = db, path
+	return s, nil
+}
+
+// openDB opens one data file and makes sure the table exists.
+func openDB(path string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite", path+"?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)")
 	if err != nil {
 		return nil, err
@@ -63,20 +84,32 @@ func OpenStore() (*Store, error) {
 	);
 	CREATE INDEX IF NOT EXISTS docs_kind ON docs(kind);`)
 	if err != nil {
+		db.Close()
 		return nil, err
 	}
-	return &Store{db: db, path: path}, nil
+	return db, nil
 }
 
-// DataPath returns where the database file lives, so you can back it up.
-func (s *Store) DataPath() string { return s.path }
+// d is the open database. It can change when you switch project, so always call this.
+func (s *Store) d() *sql.DB {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.db
+}
+
+// DataPath returns where the database file of the open project lives.
+func (s *Store) DataPath() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.path
+}
 
 // List returns every item of one kind.
 func (s *Store) List(kind string) ([]Doc, error) {
 	if !kinds[kind] {
 		return nil, fmt.Errorf("unknown kind %q", kind)
 	}
-	rows, err := s.db.Query(`SELECT id, kind, data, updated_at FROM docs WHERE kind = ? ORDER BY id`, kind)
+	rows, err := s.d().Query(`SELECT id, kind, data, updated_at FROM docs WHERE kind = ? ORDER BY id`, kind)
 	if err != nil {
 		return nil, err
 	}
@@ -98,17 +131,17 @@ func (s *Store) Save(d Doc) (Doc, error) {
 		return d, fmt.Errorf("unknown kind %q", d.Kind)
 	}
 	if d.ID == 0 {
-		res, err := s.db.Exec(`INSERT INTO docs(kind, data) VALUES(?, ?)`, d.Kind, d.Data)
+		res, err := s.d().Exec(`INSERT INTO docs(kind, data) VALUES(?, ?)`, d.Kind, d.Data)
 		if err != nil {
 			return d, err
 		}
 		d.ID, _ = res.LastInsertId()
-	} else if _, err := s.db.Exec(
+	} else if _, err := s.d().Exec(
 		`UPDATE docs SET data = ?, updated_at = datetime('now') WHERE id = ? AND kind = ?`,
 		d.Data, d.ID, d.Kind); err != nil {
 		return d, err
 	}
-	err := s.db.QueryRow(`SELECT updated_at FROM docs WHERE id = ?`, d.ID).Scan(&d.UpdatedAt)
+	err := s.d().QueryRow(`SELECT updated_at FROM docs WHERE id = ?`, d.ID).Scan(&d.UpdatedAt)
 	return d, err
 }
 
@@ -123,7 +156,7 @@ func (s *Store) ListBy(kind, field string, id int64) ([]Doc, error) {
 			return nil, fmt.Errorf("bad field %q", field)
 		}
 	}
-	rows, err := s.db.Query(
+	rows, err := s.d().Query(
 		`SELECT id, kind, data, updated_at FROM docs WHERE kind = ? AND json_extract(data, ?) = ? ORDER BY id DESC`,
 		kind, "$."+field, id)
 	if err != nil {
@@ -167,7 +200,7 @@ func (s *Store) Delete(kind string, id int64) ([]Doc, error) {
 	if !kinds[kind] {
 		return nil, fmt.Errorf("unknown kind %q", kind)
 	}
-	tx, err := s.db.Begin()
+	tx, err := s.d().Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +269,7 @@ func (s *Store) Delete(kind string, id int64) ([]Doc, error) {
 
 // Restore puts items back exactly as Delete returned them, with their old ids.
 func (s *Store) Restore(docs []Doc) error {
-	tx, err := s.db.Begin()
+	tx, err := s.d().Begin()
 	if err != nil {
 		return err
 	}

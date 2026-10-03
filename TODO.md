@@ -2,7 +2,7 @@
 
 Ideas for Typewriter. Nothing here is built yet. Move an item up when you want it next.
 
-Suggested order: **several projects**, then the rest. Skip the items marked **not now**.
+Only one item is open, and it is marked **not now**. Build it only if you need it.
 
 ## Writing
 
@@ -23,11 +23,11 @@ Nothing open here.
 
 ## Data and files
 
-- [ ] Several projects: one data file per series
 - [ ] Import a Word file as chapters (**not now**: only useful to move an old draft in once)
 
 ## Done
 
+- [x] Several projects: one data file per book or series, with a switcher in the menu
 - [x] Portrait for each character and a picture for each place (shrunk small before saving)
 - [x] Region shapes: draw a border around a kingdom, name it, and see which places lie inside
 - [x] Travel time: distance and days between places, using a scale you set (also a plot hole check)

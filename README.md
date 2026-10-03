@@ -36,7 +36,22 @@ Everything lives in one SQLite file:
 %APPDATA%\typewriter\typewriter.db
 ```
 
-The path also shows at the bottom of the left menu. **Use the Backup buttons (see "Export & Backup" below) to protect your work.** One file holds one book universe, and a series fits inside it.
+The path also shows at the bottom of the left menu. **Use the Backup buttons (see "Export & Backup" below) to protect your work.**
+
+### Projects
+
+A **project** is one book or one series. Each project has its own data file, so the characters, places, maps and text of one project never mix with another.
+
+- The button at the top of the left menu shows the open project. Click it to see the list.
+- **Open** switches to another project. The app reloads and shows that project.
+- **New project** makes an empty project and opens it.
+- **Rename** changes the name.
+- **Remove** (then **Sure?**) takes a project off the list. The file is not deleted. It moves to `%APPDATA%\typewriter\projects\removed`. To get it back, move the file to `%APPDATA%\typewriter\projects` and ask for help adding it to `projects.json`.
+- You cannot remove the project that is open.
+
+Your first project is the old file, `typewriter.db`. New projects are files in `%APPDATA%\typewriter\projects`. The list is in `%APPDATA%\typewriter\projects.json`. The app opens the project you used last.
+
+Backups work on the open project. Each project has its own automatic copies. The first project uses `%APPDATA%\typewriter\backups`. Another project uses `%APPDATA%\typewriter\backups-<id>`, where `<id>` is the project's file name without `.db`.
 
 The app saves as you type. There is no save button.
 
@@ -397,6 +412,7 @@ Deleting removes the things that depend on it:
 | --- | --- |
 | `main.go` | App start-up and window |
 | `store.go` | SQLite storage service |
+| `projects.go` | The list of projects, and switching the open data file |
 | `export.go` | Export: file dialog, Word, and the story bible and manuscript text |
 | `pdf.go`, `epub.go`, `markdown.go`, `pagesize.go` | The PDF, e-book and Markdown writers, and the page sizes |
 | `frontend/src/views/` | One Svelte file per screen |

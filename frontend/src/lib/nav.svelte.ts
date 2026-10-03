@@ -3,7 +3,7 @@ import type { Kind } from './db.svelte';
 export type Tab = 'home' | 'write' | 'characters' | 'relationships' | 'world' | 'factions' | 'items' | 'family' | 'checks' | 'stats' | 'maps' | 'timeline' | 'export';
 
 /** Shared screen state, so search can jump to an item on another tab. */
-export const nav = $state<{ tab: Tab; pending: { kind: Kind; id: number } | null; searchOpen: boolean; focus: boolean; scene: number | null; calendar: boolean; names: '' | 'person' | 'place' }>({
+export const nav = $state<{ tab: Tab; pending: { kind: Kind; id: number } | null; searchOpen: boolean; focus: boolean; scene: number | null; calendar: boolean; names: '' | 'person' | 'place'; projects: boolean }>({
   tab: 'home',
   pending: null,
   searchOpen: false,
@@ -11,6 +11,7 @@ export const nav = $state<{ tab: Tab; pending: { kind: Kind; id: number } | null
   scene: null, // a scene the Write tab should open
   calendar: false, // the calendar editor is open
   names: '', // the name generator is open, starting on people or places
+  projects: false, // the project list is open
 });
 
 export function openItem(kind: Kind, id: number) {

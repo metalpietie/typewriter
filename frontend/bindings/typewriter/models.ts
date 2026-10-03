@@ -49,6 +49,20 @@ export interface ExportOptions {
 }
 
 /**
+ * ProjectItem is one project as the screen shows it.
+ */
+export interface ProjectItem {
+    "id": string;
+    "name": string;
+
+    /**
+     * bytes on disk
+     */
+    "size": number;
+    "current": boolean;
+}
+
+/**
  * RestoreResult tells the screen what happened.
  */
 export interface RestoreResult {

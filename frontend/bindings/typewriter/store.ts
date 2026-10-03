@@ -30,7 +30,7 @@ export function Backup(): $CancellablePromise<string> {
 }
 
 /**
- * DataPath returns where the database file lives, so you can back it up.
+ * DataPath returns where the database file of the open project lives.
  */
 export function DataPath(): $CancellablePromise<string> {
     return $Call.ByID(2231644456);
@@ -60,10 +60,39 @@ export function ListBy(kind: string, field: string, id: number): $CancellablePro
 }
 
 /**
+ * NewProject makes an empty project and opens it.
+ */
+export function NewProject(name: string): $CancellablePromise<string> {
+    return $Call.ByID(3152270068, name);
+}
+
+/**
  * OpenBackupFolder shows the folder with the daily copies in the file manager.
  */
 export function OpenBackupFolder(): $CancellablePromise<void> {
     return $Call.ByID(3678566953);
+}
+
+/**
+ * Projects lists every project and says which one is open.
+ */
+export function Projects(): $CancellablePromise<$models.ProjectItem[] | null> {
+    return $Call.ByID(1251459141);
+}
+
+/**
+ * RemoveProject takes a project out of the list. The file is not deleted.
+ * It moves to the folder projects/removed, so you can still get it back by hand.
+ */
+export function RemoveProject(id: string): $CancellablePromise<string> {
+    return $Call.ByID(3888084792, id);
+}
+
+/**
+ * RenameProject changes the name shown in the list.
+ */
+export function RenameProject(id: string, name: string): $CancellablePromise<void> {
+    return $Call.ByID(1234505318, id, name);
 }
 
 /**
@@ -100,4 +129,11 @@ export function Save(d: $models.Doc): $CancellablePromise<$models.Doc> {
  */
 export function StartAutoBackup(): $CancellablePromise<void> {
     return $Call.ByID(2305477576);
+}
+
+/**
+ * SwitchProject opens another project.
+ */
+export function SwitchProject(id: string): $CancellablePromise<void> {
+    return $Call.ByID(1504799540, id);
 }

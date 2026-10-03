@@ -30,13 +30,21 @@ type AutoBackup struct {
 	Size int64  `json:"size"` // bytes
 }
 
-func (s *Store) backupDir() string { return filepath.Join(filepath.Dir(s.path), "backups") }
+// backupDir is per project. The first project keeps the old folder name.
+func (s *Store) backupDir() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if s.reg.Current == defaultProject {
+		return filepath.Join(s.dir, "backups")
+	}
+	return filepath.Join(s.dir, "backups-"+s.reg.Current)
+}
 
 // autoBackupAt keeps one copy per day: the data as it was when that day first used the app.
 // That way a mistake made today is still absent from today's copy.
 func (s *Store) autoBackupAt(now time.Time) error {
 	var items int
-	if err := s.db.QueryRow(`SELECT count(*) FROM docs`).Scan(&items); err != nil {
+	if err := s.d().QueryRow(`SELECT count(*) FROM docs`).Scan(&items); err != nil {
 		return err
 	}
 	if items == 0 {

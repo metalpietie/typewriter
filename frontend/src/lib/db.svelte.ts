@@ -19,6 +19,7 @@ class Db {
   });
   ready = $state(false);
   dataPath = $state('');
+  project = $state(''); // name of the open project
   private timers = new Map<string, { timer: ReturnType<typeof setTimeout>; kind: Kind; item: Item }>();
 
   // Save progress, shown by the save indicator.
@@ -39,6 +40,7 @@ class Db {
       this.lists[k] = ((await Store.List(k)) ?? []).map(parse);
     }));
     this.dataPath = await Store.DataPath();
+    this.project = ((await Store.Projects()) ?? []).find((p) => p.current)?.name ?? '';
     this.ready = true;
   }
 
