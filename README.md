@@ -36,7 +36,7 @@ Everything lives in one SQLite file:
 %APPDATA%\typewriter\typewriter.db
 ```
 
-The path also shows at the bottom of the left menu. **Copy this file to back up your work.** One file holds one book universe, and a series fits inside it.
+The path also shows at the bottom of the left menu. **Use the Backup buttons (see "Export & Backup" below) to protect your work.** One file holds one book universe, and a series fits inside it.
 
 The app saves as you type. There is no save button.
 
@@ -126,7 +126,7 @@ The timeline sorts by a **number**, such as a year. "Year 312" is only a label. 
 
 Press **Ctrl+K**. Type a few letters. Typos are fine: "aldrik" finds "Aldric". It searches characters, places, and lore. Use the arrow keys and **Enter** to open a result. **Esc** closes it.
 
-### Export
+### Export & Backup
 
 1. Open **Export**.
 2. Choose **Manuscript** (a title page, then each chapter on a new page, with your bold, italic, underline, headings, lists and quotes) or **Story bible** (characters, relationships, places, lore, timeline).
@@ -134,6 +134,13 @@ Press **Ctrl+K**. Type a few letters. Typos are fine: "aldrik" finds "Aldric". I
 4. Choose **Word (.docx)** or **PDF**, press **Export…**, and pick where to save.
 
 PDF uses standard fonts. Letters outside Western languages may show as `?`. Use Word for those.
+
+#### Backup and restore
+
+Under the export options, the **Backup** section has two buttons.
+
+- **Back up my data…** saves one `.db` file with everything: books, characters, maps, and drawings. Pick where to save it. The file name has today's date. Keep copies on a USB drive or in cloud storage.
+- **Restore from backup…** replaces everything in the app with a backup file. It asks you to confirm first. Before it changes anything, it saves your current data to a safety copy in `%APPDATA%	ypewriterackups`. A file that is not a Typewriter backup is refused and nothing changes.
 
 ## Deleting things
 

@@ -20,7 +20,7 @@
     ['world', 'World'],
     ['maps', 'Maps & Paths'],
     ['timeline', 'Timeline'],
-    ['export', 'Export'],
+    ['export', 'Export & Backup'],
   ] as const;
 
   let error = $state('');

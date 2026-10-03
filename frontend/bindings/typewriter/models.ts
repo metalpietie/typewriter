@@ -10,3 +10,23 @@ export interface Doc {
     "data": string;
     "updatedAt": string;
 }
+
+/**
+ * RestoreResult tells the screen what happened.
+ */
+export interface RestoreResult {
+    /**
+     * false when you cancelled
+     */
+    "restored": boolean;
+
+    /**
+     * how many items the backup held
+     */
+    "items": number;
+
+    /**
+     * where your old data was saved first
+     */
+    "safetyCopy": string;
+}

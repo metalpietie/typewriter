@@ -15,6 +15,14 @@ import { Call as $Call, CancellablePromise as $CancellablePromise } from "@wails
 import * as $models from "./models.js";
 
 /**
+ * Backup asks where to save, then writes a copy of all your data.
+ * It returns the saved path, or "" if you cancel.
+ */
+export function Backup(): $CancellablePromise<string> {
+    return $Call.ByID(197060861);
+}
+
+/**
  * DataPath returns where the database file lives, so you can back it up.
  */
 export function DataPath(): $CancellablePromise<string> {
@@ -41,6 +49,14 @@ export function List(kind: string): $CancellablePromise<$models.Doc[] | null> {
  */
 export function Restore(docs: $models.Doc[] | null): $CancellablePromise<void> {
     return $Call.ByID(3517283055, docs);
+}
+
+/**
+ * RestoreBackup asks for a backup file and replaces all current data with it.
+ * Your current data is saved to a safety copy first.
+ */
+export function RestoreBackup(): $CancellablePromise<$models.RestoreResult> {
+    return $Call.ByID(2786535189);
 }
 
 /**

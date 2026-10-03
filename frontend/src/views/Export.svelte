@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Exporter } from '../../bindings/typewriter';
   import { db } from '../lib/db.svelte';
+  import Backup from '../lib/Backup.svelte';
 
   let what = $state<'manuscript' | 'bible'>('manuscript');
   let bookId = $state<number>(0);
@@ -48,4 +49,6 @@
   <div style="margin-top:1.4rem"><button class="primary" disabled={busy} onclick={run}>{busy ? 'Exporting…' : 'Export…'}</button></div>
   {#if message}<p style:color={failed ? 'var(--danger)' : 'var(--ok)'}>{message}</p>{/if}
   {#if format === 'pdf'}<p class="muted">PDF uses standard fonts. Letters outside Western languages may show as “?”. Use Word for those.</p>{/if}
+
+  <Backup />
 </div>

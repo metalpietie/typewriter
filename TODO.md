@@ -2,7 +2,7 @@
 
 Ideas for Typewriter. Nothing here is built yet. Move an item up when you want it next.
 
-Suggested order: **backup and restore**, then **@ links and backlinks**, then the rest.
+Suggested order: **@ links and backlinks**, then the rest.
 
 ## Writing
 
@@ -42,11 +42,12 @@ Suggested order: **backup and restore**, then **@ links and backlinks**, then th
 
 ## Data and files
 
-- [ ] Backup and restore with one button
+- [ ] Automatic backups: a copy each day, keeping the last few
 - [ ] Several projects: one data file per series
 - [ ] More export types: EPUB, Markdown, and a print-ready PDF with page size choices
 - [ ] Import a Word file as chapters
 
 ## Done
 
+- [x] Backup and restore with one button
 - [x] Map drawing tool (land, terrain brushes, rivers and roads, stamps, labels, layers, PNG export)

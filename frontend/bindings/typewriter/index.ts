@@ -9,5 +9,6 @@ export {
 };
 
 export type {
-    Doc
+    Doc,
+    RestoreResult
 } from "./models.js";
