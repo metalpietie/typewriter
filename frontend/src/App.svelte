@@ -3,6 +3,7 @@
   import { db } from './lib/db.svelte';
   import { nav } from './lib/nav.svelte';
   import Search from './lib/Search.svelte';
+  import UndoToast from './lib/UndoToast.svelte';
   import { currentTheme, setTheme, type Theme } from './lib/theme';
   import Write from './views/Write.svelte';
   import Characters from './views/Characters.svelte';
@@ -31,6 +32,7 @@
 
 <svelte:window onkeydown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); nav.searchOpen = !nav.searchOpen; } }} />
 <Search />
+<UndoToast />
 
 <div class="app">
   <nav class="nav">

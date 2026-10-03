@@ -50,9 +50,29 @@ class Db {
     this.timers.set(key, setTimeout(() => { this.timers.delete(key); this.save(kind, item); }, 500));
   }
 
+  /** What the last delete removed, kept for a short time so it can be undone. */
+  undoable = $state<{ label: string; docs: Doc[] } | null>(null);
+  private undoTimer: ReturnType<typeof setTimeout> | undefined;
+
   async remove(kind: Kind, id: number) {
-    await Store.Delete(kind, id);
+    const it = this.get(kind, id);
+    const docs = (await Store.Delete(kind, id)) ?? [];
     await this.load(); // deleting can remove linked items too
+    if (!docs.length) return;
+    const name = it?.name ?? it?.title ?? (kind === 'pathpoint' ? 'path step' : kind);
+    const extra = docs.filter((d) => d.kind !== kind || d.id !== id).length;
+    this.undoable = { label: `Deleted ${kind === 'pathpoint' ? '' : kind + ' '}“${name}”${extra ? ` and ${extra} linked item${extra === 1 ? '' : 's'}` : ''}`, docs };
+    clearTimeout(this.undoTimer);
+    this.undoTimer = setTimeout(() => (this.undoable = null), 12000);
+  }
+
+  async undo() {
+    const u = this.undoable;
+    if (!u) return;
+    this.undoable = null;
+    clearTimeout(this.undoTimer);
+    await Store.Restore(u.docs);
+    await this.load();
   }
 
   /** Look up a display field of a linked item. */

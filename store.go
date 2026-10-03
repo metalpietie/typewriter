@@ -108,25 +108,96 @@ func (s *Store) Save(d Doc) (Doc, error) {
 	return d, err
 }
 
-// Delete removes an item and the items that point at it.
-func (s *Store) Delete(kind string, id int64) error {
-	if !kinds[kind] {
-		return fmt.Errorf("unknown kind %q", kind)
+// rowsWhere reads every item of a kind whose JSON field equals id.
+func rowsWhere(tx *sql.Tx, kind, field string, id int64) ([]Doc, error) {
+	rows, err := tx.Query(
+		`SELECT id, kind, data, updated_at FROM docs WHERE kind = ? AND json_extract(data, ?) = ?`,
+		kind, "$."+field, id)
+	if err != nil {
+		return nil, err
 	}
+	defer rows.Close()
+	var out []Doc
+	for rows.Next() {
+		var d Doc
+		if err := rows.Scan(&d.ID, &d.Kind, &d.Data, &d.UpdatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, d)
+	}
+	return out, rows.Err()
+}
+
+// Delete removes an item and the items that point at it.
+// It returns all of them as they were, so Restore can bring them back.
+func (s *Store) Delete(kind string, id int64) ([]Doc, error) {
+	if !kinds[kind] {
+		return nil, fmt.Errorf("unknown kind %q", kind)
+	}
+	tx, err := s.db.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	var removed []Doc
+	var self Doc
+	err = tx.QueryRow(`SELECT id, kind, data, updated_at FROM docs WHERE id = ? AND kind = ?`, id, kind).
+		Scan(&self.ID, &self.Kind, &self.Data, &self.UpdatedAt)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	removed = append(removed, self)
+
+	for _, c := range cascades[kind] {
+		found, err := rowsWhere(tx, c[0], c[1], id)
+		if err != nil {
+			return nil, err
+		}
+		removed = append(removed, found...)
+		if _, err := tx.Exec(
+			`DELETE FROM docs WHERE kind = ? AND json_extract(data, ?) = ?`,
+			c[0], "$."+c[1], id); err != nil {
+			return nil, err
+		}
+	}
+	if kind == "map" { // places stay, but come off the deleted map
+		found, err := rowsWhere(tx, "location", "map", id)
+		if err != nil {
+			return nil, err
+		}
+		removed = append(removed, found...)
+		if _, err := tx.Exec(
+			`UPDATE docs SET data = json_set(data, '$.map', json('null'), '$.x', json('null'), '$.y', json('null'))
+			 WHERE kind = 'location' AND json_extract(data, '$.map') = ?`, id); err != nil {
+			return nil, err
+		}
+	}
+	if _, err := tx.Exec(`DELETE FROM docs WHERE id = ? AND kind = ?`, id, kind); err != nil {
+		return nil, err
+	}
+	return removed, tx.Commit()
+}
+
+// Restore puts items back exactly as Delete returned them, with their old ids.
+func (s *Store) Restore(docs []Doc) error {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
-	for _, c := range cascades[kind] {
+	for _, d := range docs {
+		if !kinds[d.Kind] {
+			return fmt.Errorf("unknown kind %q", d.Kind)
+		}
 		if _, err := tx.Exec(
-			`DELETE FROM docs WHERE kind = ? AND json_extract(data, ?) = ?`,
-			c[0], "$."+c[1], id); err != nil {
+			`INSERT OR REPLACE INTO docs(id, kind, data, updated_at) VALUES(?, ?, ?, ?)`,
+			d.ID, d.Kind, d.Data, d.UpdatedAt); err != nil {
 			return err
 		}
-	}
-	if _, err := tx.Exec(`DELETE FROM docs WHERE id = ? AND kind = ?`, id, kind); err != nil {
-		return err
 	}
 	return tx.Commit()
 }

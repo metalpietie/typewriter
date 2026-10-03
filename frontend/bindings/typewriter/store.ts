@@ -23,8 +23,9 @@ export function DataPath(): $CancellablePromise<string> {
 
 /**
  * Delete removes an item and the items that point at it.
+ * It returns all of them as they were, so Restore can bring them back.
  */
-export function Delete(kind: string, id: number): $CancellablePromise<void> {
+export function Delete(kind: string, id: number): $CancellablePromise<$models.Doc[] | null> {
     return $Call.ByID(1328729556, kind, id);
 }
 
@@ -33,6 +34,13 @@ export function Delete(kind: string, id: number): $CancellablePromise<void> {
  */
 export function List(kind: string): $CancellablePromise<$models.Doc[] | null> {
     return $Call.ByID(1842339119, kind);
+}
+
+/**
+ * Restore puts items back exactly as Delete returned them, with their old ids.
+ */
+export function Restore(docs: $models.Doc[] | null): $CancellablePromise<void> {
+    return $Call.ByID(3517283055, docs);
 }
 
 /**

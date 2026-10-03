@@ -115,6 +115,8 @@ PDF uses standard fonts. Letters outside Western languages may show as `?`. Use 
 
 Delete buttons ask twice. The first click turns the button red and says "Sure?". Click again within three seconds to confirm.
 
+After a delete, a bar appears at the bottom for 12 seconds. Press **Undo** to bring everything back, including linked items. You can also press **Ctrl+Z** when you are not typing in a text box.
+
 Deleting removes the things that depend on it:
 
 | You delete | Also removed |

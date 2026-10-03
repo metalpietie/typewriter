@@ -69,9 +69,6 @@
   function saveMap() { if (map) db.queue('map', map); }
   async function delMap() {
     if (!mapId) return;
-    for (const l of db.lists.location.filter((l) => l.map === mapId)) {
-      await db.save('location', { ...l, map: null, x: null, y: null });
-    }
     await db.remove('map', mapId); mapId = null;
   }
 
