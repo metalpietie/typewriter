@@ -11,7 +11,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/go-pdf/fpdf"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -74,17 +73,22 @@ func nameOf(list []rec, id float64, field string) string {
 }
 
 // Export asks where to save, then writes the file.
-// what is "manuscript" or "bible". format is "docx" or "pdf".
+// what is "manuscript" or "bible". format is "docx", "pdf", "epub" or "md".
 // bookID 0 means every book. It returns the saved path, or "" if you cancel.
-func (e *Exporter) Export(what string, bookID int64, format string) (string, error) {
-	if format != "docx" && format != "pdf" {
+func (e *Exporter) Export(what string, bookID int64, format string, opts ExportOptions) (string, error) {
+	filters := map[string]string{
+		"docx": "Word document (*.docx)", "pdf": "PDF file (*.pdf)",
+		"epub": "E-book (*.epub)", "md": "Markdown file (*.md)",
+	}
+	filter, ok := filters[format]
+	if !ok {
 		return "", fmt.Errorf("unknown format %q", format)
 	}
 	var blocks []block
 	name := "Story bible"
 	switch what {
 	case "manuscript":
-		blocks, name = e.manuscript(bookID)
+		blocks, name = e.manuscript(bookID, opts.Author)
 		if len(blocks) == 0 {
 			return "", fmt.Errorf("nothing to export yet: add a book and chapters first")
 		}
@@ -94,10 +98,6 @@ func (e *Exporter) Export(what string, bookID int64, format string) (string, err
 		return "", fmt.Errorf("unknown export %q", what)
 	}
 
-	filter := "Word document (*.docx)"
-	if format == "pdf" {
-		filter = "PDF file (*.pdf)"
-	}
 	path, err := application.Get().Dialog.SaveFile().
 		SetFilename(safeName(name)+"."+format).
 		AddFilter(filter, "*."+format).
@@ -110,10 +110,15 @@ func (e *Exporter) Export(what string, bookID int64, format string) (string, err
 	}
 
 	var data []byte
-	if format == "docx" {
-		data, err = buildDocx(blocks)
-	} else {
-		data, err = buildPDF(blocks)
+	switch format {
+	case "docx":
+		data, err = buildDocx(blocks, opts)
+	case "pdf":
+		data, err = buildPDF(blocks, opts)
+	case "epub":
+		data, err = buildEPUB(blocks, name, opts.Author)
+	case "md":
+		data = buildMarkdown(blocks)
 	}
 	if err != nil {
 		return "", err
@@ -142,7 +147,7 @@ func paragraphs(s string) []string {
 	return out
 }
 
-func (e *Exporter) manuscript(bookID int64) ([]block, string) {
+func (e *Exporter) manuscript(bookID int64, author string) ([]block, string) {
 	books, chapters, scenes := e.load("book"), e.load("chapter"), e.load("scene")
 	byOrder(books, "order")
 	var out []block
@@ -167,6 +172,9 @@ func (e *Exporter) manuscript(bookID int64) ([]block, string) {
 			out = append(out, block{kind: "pagebreak"})
 		}
 		out = append(out, block{kind: "title", text: str(b, "title")})
+		if a := strings.TrimSpace(author); a != "" {
+			out = append(out, block{kind: "author", text: a})
+		}
 		if s := str(b, "synopsis"); s != "" {
 			out = append(out, block{kind: "subtitle", text: s})
 		}
@@ -400,7 +408,7 @@ func runOf(sp span) string {
 			out.WriteString("<w:r><w:br/></w:r>")
 		}
 		if part != "" {
-			out.WriteString("<w:r>" + props + `<w:t xml:space="preserve">` + xmlEsc.Replace(part) + "</w:t></w:r>")
+			out.WriteString("<w:r>" + props + `<w:t xml:space="preserve">` + xhtmlEsc(part) + "</w:t></w:r>")
 		}
 	}
 	return out.String()
@@ -414,12 +422,16 @@ func runsOf(b block) string {
 	return out.String()
 }
 
-func buildDocx(blocks []block) ([]byte, error) {
+func buildDocx(blocks []block, opts ExportOptions) ([]byte, error) {
+	sz := sizeOf(opts.PageSize)
+	m := twips(sz.margin())
 	var body strings.Builder
 	for _, b := range blocks {
 		switch b.kind {
 		case "pagebreak":
 			body.WriteString(`<w:p><w:r><w:br w:type="page"/></w:r></w:p>`)
+		case "author":
+			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Subtitle"/></w:pPr>` + run("by "+b.text, false) + `</w:p>`)
 		case "title":
 			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Title"/></w:pPr>` + run(b.text, false) + `</w:p>`)
 		case "subtitle":
@@ -449,7 +461,8 @@ func buildDocx(blocks []block) ([]byte, error) {
 	doc := `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>` +
 		body.String() +
-		`<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr></w:body></w:document>`
+		fmt.Sprintf(`<w:sectPr><w:pgSz w:w="%d" w:h="%d"/><w:pgMar w:top="%d" w:right="%d" w:bottom="%d" w:left="%d" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr></w:body></w:document>`,
+			twips(sz.w), twips(sz.h), m, m, m, m)
 
 	const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
@@ -491,117 +504,6 @@ func buildDocx(blocks []block) ([]byte, error) {
 	}
 	return buf.Bytes(), nil
 }
-
-// ---------- PDF ----------
-
-func buildPDF(blocks []block) ([]byte, error) {
-	pdf := fpdf.New("P", "mm", "Letter", "")
-	pdf.SetMargins(25.4, 25.4, 25.4)
-	pdf.SetAutoPageBreak(true, 25.4)
-	tr := pdf.UnicodeTranslatorFromDescriptor("") // core fonts only know Western characters
-	pdf.SetFooterFunc(func() {
-		pdf.SetY(-15)
-		pdf.SetFont("Times", "", 10)
-		pdf.CellFormat(0, 10, fmt.Sprint(pdf.PageNo()), "", 0, "C", false, 0, "")
-	})
-	pdf.AddPage()
-	fresh := true // true while the current page is still empty
-
-	for _, b := range blocks {
-		switch b.kind {
-		case "pagebreak":
-			if !fresh {
-				pdf.AddPage()
-				fresh = true
-			}
-			continue
-		case "title":
-			pdf.Ln(70)
-			pdf.SetFont("Times", "B", 32)
-			pdf.MultiCell(0, 14, tr(b.text), "", "C", false)
-			pdf.Ln(8)
-		case "subtitle":
-			pdf.SetFont("Times", "I", 13)
-			pdf.MultiCell(0, 7, tr(b.text), "", "C", false)
-		case "h1":
-			pdf.Ln(6)
-			pdf.SetFont("Times", "B", 20)
-			pdf.MultiCell(0, 10, tr(b.text), "", "L", false)
-			pdf.Ln(6)
-		case "h2":
-			pdf.Ln(4)
-			pdf.SetFont("Times", "B", 14)
-			pdf.MultiCell(0, 8, tr(b.text), "", "L", false)
-			pdf.Ln(1)
-		case "kv":
-			pdf.SetFont("Times", "B", 11)
-			label := tr(b.label + ": ")
-			pdf.CellFormat(pdf.GetStringWidth(label)+0.5, 6, label, "", 0, "L", false, 0, "")
-			pdf.SetFont("Times", "", 11)
-			pdf.MultiCell(0, 6, tr(b.text), "", "L", false)
-			pdf.Ln(1)
-		case "sub":
-			pdf.Ln(3)
-			pdf.SetFont("Times", "B", 14)
-			pdf.MultiCell(0, 8, tr(spansText(spansOf(b))), "", "L", false)
-			pdf.Ln(1)
-		case "rule":
-			pdf.Ln(3)
-			pdf.SetFont("Times", "", 12)
-			pdf.CellFormat(0, 7, "*   *   *", "", 1, "C", false, 0, "")
-			pdf.Ln(3)
-		case "quote", "li":
-			indent := 10.0
-			if b.kind == "li" {
-				indent = 8
-			}
-			pdf.SetLeftMargin(25.4 + indent)
-			pdf.SetX(25.4 + indent)
-			writeSpans(pdf, tr, b, b.kind == "quote", 0)
-			pdf.SetLeftMargin(25.4)
-			pdf.SetX(25.4)
-		default:
-			indent := firstLineIndent // same indent as the Word export
-			if b.flush {
-				indent = 0
-			}
-			writeSpans(pdf, tr, b, false, indent)
-		}
-		fresh = false
-	}
-	var buf bytes.Buffer
-	if err := pdf.Output(&buf); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
-}
-
-// writeSpans writes one paragraph of styled text and moves to the next line.
-func writeSpans(pdf *fpdf.Fpdf, tr func(string) string, b block, italic bool, firstLine float64) {
-	pdf.SetX(pdf.GetX() + firstLine)
-	for _, sp := range spansOf(b) {
-		style := ""
-		if sp.bold {
-			style += "B"
-		}
-		if sp.italic || italic {
-			style += "I"
-		}
-		if sp.underline {
-			style += "U"
-		}
-		pdf.SetFont("Times", style, 12)
-		pdf.Write(lineHeight, tr(sp.text))
-	}
-	pdf.Ln(lineHeight + paraGap)
-}
-
-// These match the Word export: 0.25 inch first-line indent, 1.5 line spacing, 6 pt after a paragraph.
-const (
-	firstLineIndent = 6.35 // mm
-	lineHeight      = 7.3  // mm
-	paraGap         = 2.1  // mm
-)
 
 // SaveImage asks where to save, then writes a PNG you drew. dataURL is a "data:image/png;base64,..." string.
 // It returns the saved path, or "" if you cancel.

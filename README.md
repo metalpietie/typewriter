@@ -280,9 +280,32 @@ Press **Ctrl+K**. Type a few letters. Typos are fine: "aldrik" finds "Aldric". I
 1. Open **Export**.
 2. Choose **Manuscript** (a title page, then each chapter on a new page, with your bold, italic, underline, headings, lists and quotes) or **Story bible** (characters, relationships, places, factions, items, lore, timeline).
 3. For a manuscript, pick one book or the whole series.
-4. Choose **Word (.docx)** or **PDF**, press **Export…**, and pick where to save.
+4. Type your **author name** if you want it on the title page. The app remembers it.
+5. Choose a file type, press **Export…**, and pick where to save.
 
-PDF uses standard fonts. Letters outside Western languages may show as `?`. Use Word for those.
+| File type | Use it for |
+| --- | --- |
+| **Word (.docx)** | Editing in Word, or sending to an editor. You can pick a page size. |
+| **PDF (.pdf)** | Reading or printing. You can pick a page size, and turn on **Print layout**. |
+| **E-book (.epub)** | E-readers and phone reading apps. |
+| **Markdown (.md)** | Plain text with simple marks, for other writing tools or for keeping in version control. |
+
+**Page sizes** (Word and PDF): Letter, A4, A5, US trade book (6 × 9 in), digest (5.5 × 8.5 in), and pocket book (5 × 8 in). The small book sizes use smaller margins and 11 pt type.
+
+**Print layout** (PDF only) makes a file that is ready for a print shop:
+
+- the inside margin (next to the binding) is 6 mm wider than the outside margin,
+- page numbers are in the outer bottom corners,
+- every chapter starts on a right-hand page, and the app adds an empty page when it needs one,
+- the title page and the empty pages have no number.
+
+Check the page count with your printer. Some printers want a multiple of 4 pages or more binding space, and the app does not add pages at the end.
+
+**E-book notes:** each chapter is one page file, and the e-book has a contents list. It does not have a cover image. Your bold, italic, underline, quotes, lists and scene breaks are kept. The language is set to English. Test it in an e-reader app before you publish. It has not been run through the official EPUB checker tool.
+
+**Markdown notes:** the book title is a `#` heading and each chapter is `##`. Bold and italic become `**` and `*`. Underline becomes `<u>`. A scene break is `* * *`.
+
+PDF uses standard fonts. Letters outside Western languages may show as `?`. Use Word or the e-book for those.
 
 #### Backup and restore
 
@@ -321,7 +344,8 @@ Deleting removes the things that depend on it:
 | --- | --- |
 | `main.go` | App start-up and window |
 | `store.go` | SQLite storage service |
-| `export.go` | Word and PDF export |
+| `export.go` | Export: file dialog, Word, and the story bible and manuscript text |
+| `pdf.go`, `epub.go`, `markdown.go`, `pagesize.go` | The PDF, e-book and Markdown writers, and the page sizes |
 | `frontend/src/views/` | One Svelte file per screen |
 | `frontend/src/lib/` | Shared code: data store, search, theme, calendar (`calendarmath.ts` holds the date maths) |
 | `frontend/src/lib/mapdraw/` | The map drawing tool: `draw.ts` (drawing and hit tests) and `MapEditor.svelte` |

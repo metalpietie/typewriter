@@ -2,7 +2,7 @@
 
 Ideas for Typewriter. Nothing here is built yet. Move an item up when you want it next.
 
-Suggested order: **more export types**, then the rest.
+Suggested order: **import a Word file**, then the rest.
 
 ## Writing
 
@@ -28,11 +28,11 @@ Nothing open here.
 ## Data and files
 
 - [ ] Several projects: one data file per series
-- [ ] More export types: EPUB, Markdown, and a print-ready PDF with page size choices
 - [ ] Import a Word file as chapters
 
 ## Done
 
+- [x] More export types: EPUB, Markdown, and a print-ready PDF with page size choices
 - [x] Calendar system: your own months, days, and year names for the timeline
 - [x] Dashboard start screen with goals, recent work, and to-dos
 - [x] Daily writing goal, with a streak and a history graph

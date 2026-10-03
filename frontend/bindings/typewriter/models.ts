@@ -29,6 +29,26 @@ export interface Doc {
 }
 
 /**
+ * ExportOptions are the choices on the Export screen.
+ */
+export interface ExportOptions {
+    /**
+     * printed under the title, and set in the e-book
+     */
+    "author": string;
+
+    /**
+     * a key from pageSizes (Word and PDF)
+     */
+    "pageSize": string;
+
+    /**
+     * PDF only: mirrored margins, chapters on right-hand pages
+     */
+    "print": boolean;
+}
+
+/**
  * RestoreResult tells the screen what happened.
  */
 export interface RestoreResult {

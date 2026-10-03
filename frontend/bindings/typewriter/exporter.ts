@@ -10,13 +10,17 @@
 // @ts-ignore: Unused imports
 import { Call as $Call, CancellablePromise as $CancellablePromise } from "@wailsio/runtime";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as $models from "./models.js";
+
 /**
  * Export asks where to save, then writes the file.
- * what is "manuscript" or "bible". format is "docx" or "pdf".
+ * what is "manuscript" or "bible". format is "docx", "pdf", "epub" or "md".
  * bookID 0 means every book. It returns the saved path, or "" if you cancel.
  */
-export function Export(what: string, bookID: number, format: string): $CancellablePromise<string> {
-    return $Call.ByID(3040724481, what, bookID, format);
+export function Export(what: string, bookID: number, format: string, opts: $models.ExportOptions): $CancellablePromise<string> {
+    return $Call.ByID(3040724481, what, bookID, format, opts);
 }
 
 /**

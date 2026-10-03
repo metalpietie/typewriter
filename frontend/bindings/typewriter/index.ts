@@ -11,5 +11,6 @@ export {
 export type {
     AutoBackup,
     Doc,
+    ExportOptions,
     RestoreResult
 } from "./models.js";
