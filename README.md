@@ -126,6 +126,8 @@ If a scene names a character who is not in its cast (and is not its point of vie
 
 Press **+ New** to add a character. Fill in the role, looks, traits, backstory, goals, and notes. Add your own fields, such as "Eye colour". Pick a colour. The same colour is used on the graph and the maps.
 
+Press **Add portrait** to give a character a picture. The app cuts the middle square out of your picture and shrinks it to 480 px, so the data file stays small. The portrait shows in the character list. Use **Remove** to take it away.
+
 The bottom of each character shows their relationships, their chapters, and how many map steps they have.
 
 ### Name generator
@@ -156,7 +158,7 @@ This screen draws a graph of how characters connect.
 Two lists live here:
 
 - **Lore notes:** history, magic, culture, religion, politics, and more. Filter by category and tags.
-- **Places:** cities, ruins, regions, and so on. A place can sit inside another place.
+- **Places:** cities, ruins, regions, and so on. A place can sit inside another place. Press **Add picture** to give a place a picture. It is shrunk to 480 px on the long side.
 
 ### Factions
 

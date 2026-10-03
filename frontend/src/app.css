@@ -67,6 +67,7 @@ button:disabled { opacity: .4; cursor: default; }
 .list .item { text-align: left; background: none; border: 1px solid transparent; display: flex; gap: .5rem; align-items: center; }
 .list .item.on { background: var(--panel-2); border-color: var(--line); }
 .list .item small { color: var(--muted); margin-left: auto; }
+.thumb { width: 1.5rem; height: 1.5rem; border-radius: 50%; object-fit: cover; border: 2px solid var(--line); flex: 0 0 auto; }
 .dot { width: .7rem; height: .7rem; border-radius: 50%; flex: 0 0 auto; }
 .empty { color: var(--muted); padding: 2rem 0; }
 .chip { display: inline-block; background: var(--panel-2); border: 1px solid var(--line); border-radius: 99px; padding: .1rem .6rem; font-size: .75rem; margin: 0 .3rem .3rem 0; }

@@ -2,6 +2,7 @@
   import { db, NOTE_CATEGORIES, PLACE_TYPES } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import Backlinks from '../lib/Backlinks.svelte';
+  import Picture from '../lib/Picture.svelte';
   import { nav } from '../lib/nav.svelte';
 
   let mode = $state<'note' | 'location'>('note');
@@ -86,6 +87,7 @@
         </div>
         <div><label>Tags</label><input bind:value={sel.tags} oninput={save} /></div>
       </div>
+      <Picture label="Picture" value={sel.image} onchange={(v) => { sel.image = v; save(); }} />
       <label>Description</label>
       <textarea style="min-height:40vh" bind:value={sel.description} oninput={save}></textarea>
       <p class="muted">

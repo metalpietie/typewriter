@@ -2,6 +2,7 @@
   import { db, ROLES, REL_TYPES, CHARACTER_COLORS as PALETTE } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import Backlinks from '../lib/Backlinks.svelte';
+  import Picture from '../lib/Picture.svelte';
   import { nav, openItem } from '../lib/nav.svelte';
   import { scenesOf, sceneLabel } from '../lib/scenes';
   import { itemsHeldBy, membershipsOf } from '../lib/items';
@@ -58,7 +59,7 @@
     <div class="list">
       {#each shown as c (c.id)}
         <button class="item" class:on={c.id === selId} onclick={() => (selId = c.id)}>
-          <span class="dot" style:background={c.color}></span>{c.name}<small>{c.role}</small>
+          {#if c.portrait}<img class="thumb" src={c.portrait} alt="" style:border-color={c.color} />{:else}<span class="dot" style:background={c.color}></span>{/if}{c.name}<small>{c.role}</small>
         </button>
       {:else}
         <div class="empty">No characters yet.</div>
@@ -72,6 +73,8 @@
         <h2>{sel.name}</h2>
         <ConfirmButton onconfirm={del} />
       </div>
+
+      <Picture square label="Portrait" value={sel.portrait} onchange={(v) => { sel.portrait = v; save(); }} />
 
       <div class="grid2">
         <div><label>Name</label><input bind:value={sel.name} oninput={save} /></div>

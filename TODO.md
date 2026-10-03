@@ -2,7 +2,7 @@
 
 Ideas for Typewriter. Nothing here is built yet. Move an item up when you want it next.
 
-Suggested order: **portraits**, then the rest. Skip the items marked **not now**.
+Suggested order: **several projects**, then the rest. Skip the items marked **not now**.
 
 ## Writing
 
@@ -11,7 +11,7 @@ Nothing open here.
 
 ## World building
 
-- [ ] Portrait for each character and a picture for each place
+Nothing open here.
 
 ## Maps and paths
 
@@ -28,6 +28,7 @@ Nothing open here.
 
 ## Done
 
+- [x] Portrait for each character and a picture for each place (shrunk small before saving)
 - [x] Region shapes: draw a border around a kingdom, name it, and see which places lie inside
 - [x] Travel time: distance and days between places, using a scale you set (also a plot hole check)
 - [x] "Who is where on day X" slider that plays several paths at once
