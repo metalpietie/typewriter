@@ -1,6 +1,7 @@
 <script lang="ts">
   import { db, wordCount } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
+  import ProgressBar from '../lib/ProgressBar.svelte';
 
   let bookId = $state<number | null>(null);
   let chapId = $state<number | null>(null);
@@ -8,6 +9,8 @@
   const book = $derived(db.get('book', bookId));
   const chapters = $derived(db.lists.chapter.filter((c) => c.book === bookId).sort((a, b) => a.order - b.order));
   const chap = $derived(db.get('chapter', chapId));
+  const goalOf = (c: any) => Number(c.goal) || Number(book?.chapterGoal) || 0;
+  const pctText = (n: number, goal: number) => (goal > 0 ? ` (${Math.round((n / goal) * 100)}%)` : '');
   const total = $derived(chapters.reduce((n, c) => n + wordCount(c.body ?? ''), 0));
 
   async function addBook() {
@@ -51,12 +54,21 @@
       <label>Book title</label><input bind:value={book.title} oninput={saveBook} />
       <label>Order in series</label><input type="number" bind:value={book.order} oninput={saveBook} />
       <label>Synopsis</label><textarea bind:value={book.synopsis} oninput={saveBook}></textarea>
+      <div class="row">
+        <div><label>Book goal (words)</label><input type="number" min="0" bind:value={book.goal} oninput={saveBook} /></div>
+        <div><label>Default per chapter</label><input type="number" min="0" bind:value={book.chapterGoal} oninput={saveBook} /></div>
+      </div>
+      {#if book.goal > 0}
+        <div style="margin-top:.6rem"><ProgressBar value={total} goal={book.goal} /></div>
+        <div class="muted" style="font-size:.8rem;margin-top:.2rem">{total.toLocaleString()} / {Number(book.goal).toLocaleString()} words{pctText(total, book.goal)}</div>
+      {/if}
       <div class="head" style="margin-top:1rem"><h3 style="margin:0">Chapters · {total.toLocaleString()} words</h3>
         <button class="small primary" onclick={addChapter}>+ Chapter</button></div>
       <div class="list">
         {#each chapters as c (c.id)}
           <button class="item" class:on={c.id === chapId} onclick={() => (chapId = c.id)}>
-            {c.order}. {c.title}<small>{wordCount(c.body ?? '')}</small>
+            {c.order}. {c.title}<small>{wordCount(c.body ?? '')}{goalOf(c) ? ' / ' + goalOf(c) : ''}</small>
+            {#if goalOf(c)}<span style="flex-basis:100%"><ProgressBar value={wordCount(c.body ?? '')} goal={goalOf(c)} thin /></span>{/if}
           </button>
         {:else}<div class="empty">No chapters yet.</div>{/each}
       </div>
@@ -68,7 +80,14 @@
     {#if chap}
       <input class="editor" style="font-size:1.4rem;min-height:0;margin-bottom:.8rem" bind:value={chap.title} oninput={save} />
       <textarea class="editor" placeholder="Start writing…" bind:value={chap.body} oninput={save}></textarea>
-      <p class="muted">{wordCount(chap.body ?? '').toLocaleString()} words · saved {chap.updatedAt}</p>
+      {@const words = wordCount(chap.body ?? '')}
+      {@const goal = goalOf(chap)}
+      <div style="margin-top:.6rem"><ProgressBar value={words} goal={goal} /></div>
+      <p class="muted">
+        {words.toLocaleString()}{goal ? ' / ' + goal.toLocaleString() : ''} words{pctText(words, goal)}
+        {#if goal && words >= goal} · goal reached{:else if goal} · {(goal - words).toLocaleString()} to go{/if}
+        · saved {chap.updatedAt}
+      </p>
     {:else}
       <div class="empty">{book ? 'Pick a chapter, or add one.' : 'Add a book to begin.'}</div>
     {/if}
@@ -87,6 +106,8 @@
       <select bind:value={chap.status} onchange={save}>
         {#each ['idea', 'draft', 'revised', 'final'] as s}<option>{s}</option>{/each}
       </select>
+      <label>Word goal for this chapter</label>
+      <input type="number" min="0" bind:value={chap.goal} oninput={save} placeholder={book?.chapterGoal ? 'Default: ' + book.chapterGoal : 'No goal'} />
       <label>Point of view</label>
       <select bind:value={chap.pov} onchange={save}>
         <option value={null}>— none —</option>
