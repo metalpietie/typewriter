@@ -1,10 +1,16 @@
 <script lang="ts">
   import { db, ROLES, REL_TYPES } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
+  import { nav } from '../lib/nav.svelte';
 
   const PALETTE = ['#2cd5e8', '#e0b25f', '#6bbf8a', '#5aa9d9', '#e0689f', '#8f6bd1', '#d98a5b', '#d9625b', '#b5c95b'];
 
   let selId = $state<number | null>(null);
+  // Jump here when a search result is picked.
+  $effect(() => {
+    const p = nav.pending;
+    if (p?.kind === 'character') { search = ''; selId = p.id; nav.pending = null; }
+  });
   let search = $state('');
 
   const sel = $derived(db.get('character', selId));

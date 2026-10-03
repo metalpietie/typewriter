@@ -1,9 +1,17 @@
 <script lang="ts">
   import { db, NOTE_CATEGORIES, PLACE_TYPES } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
+  import { nav } from '../lib/nav.svelte';
 
   let mode = $state<'note' | 'location'>('note');
   let selId = $state<number | null>(null);
+  // Jump here when a search result is picked.
+  $effect(() => {
+    const p = nav.pending;
+    if (p && (p.kind === 'note' || p.kind === 'location')) {
+      mode = p.kind; filter = 'All'; search = ''; selId = p.id; nav.pending = null;
+    }
+  });
   let filter = $state('All');
   let search = $state('');
 
