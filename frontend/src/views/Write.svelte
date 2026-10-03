@@ -3,7 +3,7 @@
   import { flip } from 'svelte/animate';
   import { Window } from '@wailsio/runtime';
   import { db, toHtml } from '../lib/db.svelte';
-  import { nav } from '../lib/nav.svelte';
+  import { nav, openItem } from '../lib/nav.svelte';
   import { STATUSES, scenesOf, sceneWords, chapterWords, chapterCast, addScene } from '../lib/scenes';
   import { maybeAutoVersion } from '../lib/versions';
   import { missingCast } from '../lib/mentions';
@@ -15,9 +15,33 @@
   import History from '../lib/History.svelte';
   import SaveIndicator from '../lib/SaveIndicator.svelte';
 
-  let bookId = $state<number | null>(null);
-  let chapId = $state<number | null>(null);
-  let sceneId = $state<number | null>(null);
+  // Reopen what you were writing last, also after the app was closed.
+  const LAST = 'typewriter.write';
+  function lastOpen(): { book: number | null; chapter: number | null; scene: number | null } {
+    const none = { book: null, chapter: null, scene: null };
+    try {
+      const saved = JSON.parse(localStorage.getItem(LAST) ?? 'null');
+      if (!saved) return none;
+      // the item may have been deleted since: fall back from scene to chapter to book
+      const s = db.get('scene', saved.scene);
+      const c = db.get('chapter', s?.chapter ?? saved.chapter);
+      if (s && c && db.get('book', c.book)) return { book: c.book, chapter: c.id, scene: s.id };
+      if (c && db.get('book', c.book)) return { book: c.book, chapter: c.id, scene: scenesOf(c.id)[0]?.id ?? null };
+      const b = db.get('book', saved.book);
+      if (b) return { ...none, book: b.id };
+    } catch { /* no saved place, or storage is blocked */ }
+    return none;
+  }
+  const start = lastOpen();
+
+  let bookId = $state<number | null>(start.book);
+  let chapId = $state<number | null>(start.chapter);
+  let sceneId = $state<number | null>(start.scene);
+
+  $effect(() => {
+    const here = JSON.stringify({ book: bookId, chapter: chapId, scene: sceneId });
+    try { localStorage.setItem(LAST, here); } catch { /* fine without it */ }
+  });
 
   let showFind = $state(false);
   let showHistory = $state(false);
@@ -58,6 +82,14 @@
   const openComments = (id: number) => db.lists.comment.filter((c) => c.scene === id && !c.resolved).length;
   function addToCast(id: number) { if (scene) { scene.characters = [...(scene.characters ?? []), id]; saveScene(); } }
   function ignoreMention(id: number) { if (scene) { scene.ignoreMentions = [...(scene.ignoreMentions ?? []), id]; saveScene(); } }
+
+  // another tab asked for a scene (a backlink was clicked)
+  $effect(() => {
+    if (nav.scene == null || !db.ready) return;
+    const id = nav.scene;
+    nav.scene = null;
+    jumpToScene(id);
+  });
 
   function jumpToScene(id: number) {
     const s = db.get('scene', id);
@@ -309,7 +341,7 @@
         <input class="scenetitle" bind:value={scene.title} oninput={saveScene} placeholder="Scene title (only you see this)" />
       {/if}
       {#key scene.id + ':' + rev}
-        <RichEditor bind:this={rich} bare={nav.focus} oncomment={newComment} onfocuscomment={(id) => { if (id) activeComment = id; }} value={toHtml(scene.body ?? '')}
+        <RichEditor bind:this={rich} bare={nav.focus} onopenref={(k, id) => { db.flush(); openItem(k, id); }} oncomment={newComment} onfocuscomment={(id) => { if (id) activeComment = id; }} value={toHtml(scene.body ?? '')}
           onchange={(html) => { const before = scene.body ?? ''; scene.body = html; saveScene(); maybeAutoVersion(scene.id, before); }} />
       {/key}
       {@const words = sceneWords(scene)}

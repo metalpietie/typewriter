@@ -1,6 +1,7 @@
 <script lang="ts">
   import { db, NOTE_CATEGORIES, PLACE_TYPES } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
+  import Backlinks from '../lib/Backlinks.svelte';
   import { nav } from '../lib/nav.svelte';
 
   let mode = $state<'note' | 'location'>('note');
@@ -68,6 +69,7 @@
       <label>Tags (comma separated)</label><input bind:value={sel.tags} oninput={save} />
       <label>Details</label>
       <textarea style="min-height:50vh" bind:value={sel.body} oninput={save}></textarea>
+      <Backlinks kind="note" id={sel.id} />
     {:else if sel && mode === 'location'}
       <div class="head"><h2>{sel.name}</h2><ConfirmButton onconfirm={del} /></div>
       <div class="grid2">
@@ -88,6 +90,7 @@
       <p class="muted">
         {#if sel.map}Pinned on map “{db.name('map', sel.map)}”.{:else}Not on a map yet. Place it in the Maps tab.{/if}
       </p>
+      <Backlinks kind="location" id={sel.id} />
     {:else}
       <div class="empty">Pick an item, or press “+ New”.</div>
     {/if}

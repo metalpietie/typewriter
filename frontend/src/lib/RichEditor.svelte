@@ -4,8 +4,10 @@
   import StarterKit from '@tiptap/starter-kit';
   import Placeholder from '@tiptap/extension-placeholder';
   import SaveIndicator from './SaveIndicator.svelte';
+  import { db } from './db.svelte';
+  import { LINK_KINDS, labelOf, type LinkKind } from './backlinks';
 
-  let { value, onchange, placeholder = 'Start writing…', bare = false, oncomment, onfocuscomment }: {
+  let { value, onchange, placeholder = 'Start writing…', bare = false, oncomment, onfocuscomment, onopenref }: {
     value: string;
     onchange: (html: string) => void;
     placeholder?: string;
@@ -14,6 +16,8 @@
     oncomment?: (quote: string) => Promise<number | null>;
     /** Called when the cursor moves into or out of commented text. */
     onfocuscomment?: (id: number | null) => void;
+    /** Called when an @ link is Ctrl+clicked. */
+    onopenref?: (kind: LinkKind, id: number) => void;
   } = $props();
 
   let host: HTMLElement;
@@ -32,6 +36,97 @@
     parseHTML() { return [{ tag: 'span[data-comment]' }]; },
     renderHTML({ HTMLAttributes }) { return ['span', mergeAttributes({ class: 'cmt' }, HTMLAttributes), 0]; },
   });
+
+  // An @ link is a mark on the name. It saves as <span data-ref="character:12">.
+  const Ref = Mark.create({
+    name: 'ref',
+    inclusive: false,
+    addAttributes() {
+      return { to: { default: null, parseHTML: (el) => el.getAttribute('data-ref'), renderHTML: (a) => ({ 'data-ref': a.to }) } };
+    },
+    parseHTML() { return [{ tag: 'span[data-ref]' }]; },
+    renderHTML({ HTMLAttributes }) { return ['span', mergeAttributes({ class: 'ref' }, HTMLAttributes), 0]; },
+  });
+
+  // The pop-up that opens when you type @.
+  type Cand = { kind: LinkKind; id: number; label: string; word: string; also: string };
+  let sug = $state<{ from: number; to: number; x: number; top?: number; bottom?: number; items: Cand[]; at: number } | null>(null);
+
+  /** Where the pop-up goes: under the cursor, or above it when there is no room below. */
+  function place(pos: number, count: number) {
+    const c = editor!.view.coordsAtPos(pos);
+    const height = Math.min(count * 32 + 12, 290);
+    const below = window.innerHeight - c.bottom - 8;
+    const up = below < height && c.top > below;
+    return {
+      x: Math.max(8, Math.min(c.left, window.innerWidth - 270)),
+      top: up ? undefined : c.bottom + 4,
+      bottom: up ? window.innerHeight - c.top + 4 : undefined,
+    };
+  }
+
+  /** The page scrolled: keep the pop-up beside the cursor. */
+  function follow() {
+    if (sug && editor) Object.assign(sug, place(editor.state.selection.from, sug.items.length));
+  }
+
+  function candidates(q: string): Cand[] {
+    const query = q.toLowerCase();
+    const all: Cand[] = [];
+    for (const { kind, word } of LINK_KINDS) {
+      for (const it of db.lists[kind]) {
+        const label = labelOf(kind, it);
+        if (label) all.push({ kind, id: it.id, label, word, also: String(it.aliases ?? '').toLowerCase() });
+      }
+    }
+    if (!query) return all.slice(0, 8);
+    const score = (c: Cand) => {
+      const l = c.label.toLowerCase();
+      if (l.startsWith(query)) return 0;
+      if (l.split(/\s+/).some((w) => w.startsWith(query))) return 1;
+      if (c.also.includes(query)) return 2;
+      return l.includes(query) ? 3 : -1;
+    };
+    return all.map((c) => [score(c), c] as const).filter(([n]) => n >= 0).sort((a, b) => a[0] - b[0]).slice(0, 8).map(([, c]) => c);
+  }
+
+  /** Open, move or close the pop-up, depending on the text before the cursor. */
+  function checkSuggest() {
+    if (!editor || !onopenref) { sug = null; return; }
+    const { selection } = editor.state;
+    if (!selection.empty) { sug = null; return; }
+    const before = selection.$from.parent.textBetween(0, selection.$from.parentOffset, undefined, '￼');
+    const m = /(?:^|[\s(“"—])@([\p{L}\p{N}'’-]*(?: [\p{L}\p{N}'’-]*)?)$/u.exec(before);
+    if (!m) { sug = null; return; }
+    const items = candidates(m[1]);
+    if (!items.length) { sug = null; return; }
+    const keep = sug && sug.from === selection.from - m[1].length - 1 ? sug.at : 0;
+    sug = { from: selection.from - m[1].length - 1, to: selection.from, ...place(selection.from, items.length), items, at: Math.min(keep, items.length - 1) };
+  }
+
+  function pick(c: Cand) {
+    if (!editor || !sug) return;
+    const { from, to } = sug;
+    sug = null;
+    editor.chain().focus().insertContentAt({ from, to }, [
+      { type: 'text', text: c.label, marks: [{ type: 'ref', attrs: { to: c.kind + ':' + c.id } }] },
+      { type: 'text', text: ' ' },
+    ]).run();
+  }
+
+  function onKeys(e: KeyboardEvent): boolean {
+    if (!sug) return false;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      sug.at = (sug.at + (e.key === 'ArrowDown' ? 1 : sug.items.length - 1)) % sug.items.length;
+    } else if (e.key === 'Enter' || e.key === 'Tab') {
+      pick(sug.items[sug.at]);
+    } else if (e.key === 'Escape') {
+      e.stopPropagation(); // do not also leave focus mode
+      sug = null;
+    } else return false;
+    e.preventDefault();
+    return true;
+  }
 
   /** Where the text of one comment sits in the document. */
   function rangeOf(id: number): { from: number; to: number } | null {
@@ -77,11 +172,26 @@
         StarterKit.configure({ strike: false, code: false, codeBlock: false, heading: { levels: [1, 2, 3] } }),
         Placeholder.configure({ placeholder }),
         Comment,
+        Ref,
       ],
-      onUpdate: ({ editor }) => { tick++; onchange(editor.isEmpty ? '' : editor.getHTML()); },
-      onSelectionUpdate: ({ editor }) => { tick++; onfocuscomment?.(editor.getAttributes('comment').id ?? null); },
+      editorProps: {
+        handleKeyDown: (_view, e) => onKeys(e),
+        handleDOMEvents: {
+          click: (_view, e) => {
+            const el = (e.target as HTMLElement).closest?.('[data-ref]');
+            if (!el || !(e.ctrlKey || e.metaKey) || !onopenref) return false;
+            const [kind, id] = el.getAttribute('data-ref')!.split(':');
+            onopenref(kind as LinkKind, +id);
+            return true;
+          },
+        },
+      },
+      onUpdate: ({ editor }) => { tick++; onchange(editor.isEmpty ? '' : editor.getHTML()); checkSuggest(); },
+      onSelectionUpdate: ({ editor }) => { tick++; onfocuscomment?.(editor.getAttributes('comment').id ?? null); checkSuggest(); },
+      onBlur: () => setTimeout(() => (sug = null), 150),
     });
-    return () => editor?.destroy();
+    window.addEventListener('scroll', follow, true); // capture: the page scrolls inside a panel
+    return () => { window.removeEventListener('scroll', follow, true); editor?.destroy(); };
   });
 
   const is = (name: string, attrs?: object) => { tick; return !!editor?.isActive(name, attrs); };
@@ -102,6 +212,9 @@
     <button class:active={is('orderedList')} title="Numbered list" onclick={() => run().toggleOrderedList().run()}>1. List</button>
     <button class:active={is('blockquote')} title="Quote" onclick={() => run().toggleBlockquote().run()}>❝</button>
     <button title="Scene break" onclick={() => run().setHorizontalRule().run()}>―</button>
+    {#if onopenref}
+      <button title="Link to a character, place or lore note (type @)" onclick={() => run().insertContent('@').run()}>@</button>
+    {/if}
     {#if oncomment}
       <button title="Comment on the selected text" disabled={noSelection()} onclick={addComment}>💬</button>
     {/if}
@@ -112,6 +225,16 @@
   </div>
   <div class="rich-page" bind:this={host}></div>
 </div>
+
+{#if sug}
+  <div class="sug" style:left="{sug.x}px" style:top={sug.top != null ? sug.top + 'px' : null} style:bottom={sug.bottom != null ? sug.bottom + 'px' : null}>
+    {#each sug.items as c, i (c.kind + c.id)}
+      <button class:on={i === sug.at} onmousedown={(e) => { e.preventDefault(); pick(c); }}>
+        <span>{c.label}</span><small>{c.word}</small>
+      </button>
+    {/each}
+  </div>
+{/if}
 
 <style>
   .rich { display: flex; flex-direction: column; min-height: 60vh; }
@@ -141,6 +264,11 @@
   .rich-page :global(.ProseMirror hr) { border: 0; text-align: center; margin: 1.5em 0; }
   .rich-page :global(.ProseMirror hr::after) { content: '* * *'; color: var(--muted); letter-spacing: .5em; }
   .rich-page :global(.ProseMirror .cmt) { background: color-mix(in srgb, var(--accent-2) 28%, transparent); border-bottom: 2px solid var(--accent-2); cursor: pointer; }
+  .rich-page :global(.ProseMirror .ref) { color: var(--accent); border-bottom: 1px dotted var(--accent); }
+  .sug { position: fixed; z-index: 60; width: 260px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: .25rem; box-shadow: 0 10px 30px rgba(0, 0, 0, .4); }
+  .sug button { display: flex; justify-content: space-between; width: 100%; text-align: left; background: none; border: 1px solid transparent; padding: .3rem .5rem; }
+  .sug button.on { background: var(--panel-2); border-color: var(--line); }
+  .sug small { color: var(--muted); }
   .rich-page :global(.ProseMirror p.is-editor-empty:first-child::before) {
     content: attr(data-placeholder); color: var(--muted); float: left; height: 0; pointer-events: none;
   }

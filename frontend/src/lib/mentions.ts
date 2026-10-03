@@ -3,7 +3,7 @@ import { db, plainText, type Item } from './db.svelte';
 const cache = new Map<string, RegExp>();
 
 /** A name as a whole-word pattern. "Aldric" matches "Aldric's", not "Aldrich". */
-function pattern(name: string, ignoreCase: boolean): RegExp {
+export function pattern(name: string, ignoreCase: boolean): RegExp {
   const key = (ignoreCase ? 'i:' : 's:') + name;
   let re = cache.get(key);
   if (!re) {
@@ -18,7 +18,7 @@ function pattern(name: string, ignoreCase: boolean): RegExp {
  * The names a writer may use for a character in the text:
  * the full name, the first name (when no other character shares it), and each "also called" name.
  */
-function namesOf(c: Item): { text: string; ignoreCase: boolean }[] {
+export function namesOf(c: Item): { text: string; ignoreCase: boolean }[] {
   const out: { text: string; ignoreCase: boolean }[] = [];
   const full = String(c.name ?? '').trim();
   if (full.length >= 2) out.push({ text: full, ignoreCase: false });
@@ -34,11 +34,18 @@ function namesOf(c: Item): { text: string; ignoreCase: boolean }[] {
   return out;
 }
 
-/** Characters whose name appears in the text of a scene. */
+/** Ids of the items tagged with @ in a scene text, as "kind:id". */
+export function taggedIn(body: string): Set<string> {
+  return new Set([...body.matchAll(/data-ref="([a-z]+:\d+)"/g)].map((m) => m[1]));
+}
+
+/** Characters whose name appears in the text of a scene, or who are tagged with @. */
 export function mentionedIn(scene: Item): Item[] {
-  const text = plainText(scene.body ?? '');
+  const body = scene.body ?? '';
+  const text = plainText(body);
   if (!text.trim()) return [];
-  return db.lists.character.filter((c) => namesOf(c).some((n) => pattern(n.text, n.ignoreCase).test(text)));
+  const tags = taggedIn(body);
+  return db.lists.character.filter((c) => tags.has('character:' + c.id) || namesOf(c).some((n) => pattern(n.text, n.ignoreCase).test(text)));
 }
 
 /** Named in the text, but not in the cast and not marked "not here". */

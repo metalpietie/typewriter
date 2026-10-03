@@ -46,6 +46,8 @@ Use the menu on the left to switch screens. Press **Ctrl+K** anywhere to search.
 
 ### Write
 
+The Write tab reopens the book, chapter, and scene you had open last. This also works after you close the app.
+
 1. Press **+ Book**, then give the book a title and a place in the series.
 2. Press **+ Chapter**. A chapter holds one or more **scenes**. The new chapter starts with Scene 1.
 3. Write in the editor. It looks like the page you will export. The toolbar has bold, italic, underline, three heading sizes, lists, quotes, a scene break (`* * *`), and undo/redo. The usual shortcuts work: Ctrl+B, Ctrl+I, Ctrl+U. The word count updates as you type.
@@ -101,6 +103,16 @@ Select some text in a scene and press **💬** in the toolbar. The text is marke
 - If you delete the commented text, the card stays and says "(text deleted)".
 - The scene list shows 💬 and the number of open comments.
 - Comments never print in Word or PDF.
+
+#### @ links and backlinks
+
+Type **@** in a scene (or press **@** in the toolbar). A list opens with your characters, places, and lore notes. Keep typing to narrow it. Use the arrow keys and **Enter** (or click) to pick one.
+
+- The name goes into the text as a link, shown in the accent colour with a dotted line. It prints as normal text.
+- **Ctrl+click** a link to open that character, place, or note.
+- The link stays if you rename the item later. The text does not change by itself.
+- A tagged character counts as in the scene for the name check.
+- On every character, place, and lore note, **Appears in** lists the scenes that tag it with @ or write its name. Click a row to open that scene.
 
 #### Name check
 

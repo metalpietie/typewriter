@@ -1,6 +1,7 @@
 <script lang="ts">
   import { db, ROLES, REL_TYPES } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
+  import Backlinks from '../lib/Backlinks.svelte';
   import { nav } from '../lib/nav.svelte';
   import { scenesOf, sceneLabel } from '../lib/scenes';
 
@@ -112,6 +113,7 @@
           </span>
         {:else}<span class="muted">No relationships yet. Add them in the Relationships tab.</span>{/each}
       </div>
+      <Backlinks kind="character" id={sel.id} />
       <div class="card">
         <strong>{scenes.length}</strong> scene{scenes.length === 1 ? '' : 's'} ·
         <strong>{pathCount}</strong> map path point{pathCount === 1 ? '' : 's'}

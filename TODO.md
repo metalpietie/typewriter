@@ -2,7 +2,7 @@
 
 Ideas for Typewriter. Nothing here is built yet. Move an item up when you want it next.
 
-Suggested order: **@ links and backlinks**, then the rest.
+Suggested order: **automatic backups**, then the rest.
 
 ## Writing
 
@@ -10,8 +10,6 @@ Suggested order: **@ links and backlinks**, then the rest.
 
 ## World building
 
-- [ ] `@name` links in text to a character or place
-- [ ] Backlinks: each item shows where it is mentioned
 - [ ] Factions and organizations: members, ranks, allies, enemies
 - [ ] Family tree view, drawn from family links
 - [ ] Items and artifacts: who owns them and where they have been
@@ -43,6 +41,7 @@ Suggested order: **@ links and backlinks**, then the rest.
 
 ## Done
 
+- [x] `@name` links in text to a character, place or lore note, and backlinks on each item
 - [x] Character mention check: warn when a character is named in a scene but not in its cast
 - [x] Margin comments that you can resolve
 - [x] Full-screen focus mode (no menus, only the text)
