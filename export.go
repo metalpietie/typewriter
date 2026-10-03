@@ -3,6 +3,7 @@ package main
 import (
 	"archive/zip"
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -501,3 +502,27 @@ const (
 	lineHeight      = 7.3  // mm
 	paraGap         = 2.1  // mm
 )
+
+// SaveImage asks where to save, then writes a PNG you drew. dataURL is a "data:image/png;base64,..." string.
+// It returns the saved path, or "" if you cancel.
+func (e *Exporter) SaveImage(name, dataURL string) (string, error) {
+	_, b64, ok := strings.Cut(dataURL, ",")
+	if !ok {
+		return "", fmt.Errorf("bad image data")
+	}
+	raw, err := base64.StdEncoding.DecodeString(b64)
+	if err != nil {
+		return "", err
+	}
+	path, err := application.Get().Dialog.SaveFile().
+		SetFilename(safeName(name)+".png").
+		AddFilter("PNG image (*.png)", "*.png").
+		PromptForSingleSelection()
+	if err != nil || path == "" {
+		return "", nil
+	}
+	if !strings.HasSuffix(strings.ToLower(path), ".png") {
+		path += ".png"
+	}
+	return path, os.WriteFile(path, raw, 0o644)
+}

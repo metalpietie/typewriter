@@ -18,3 +18,11 @@ import { Call as $Call, CancellablePromise as $CancellablePromise } from "@wails
 export function Export(what: string, bookID: number, format: string): $CancellablePromise<string> {
     return $Call.ByID(3040724481, what, bookID, format);
 }
+
+/**
+ * SaveImage asks where to save, then writes a PNG you drew. dataURL is a "data:image/png;base64,..." string.
+ * It returns the saved path, or "" if you cancel.
+ */
+export function SaveImage(name: string, dataURL: string): $CancellablePromise<string> {
+    return $Call.ByID(3731908843, name, dataURL);
+}

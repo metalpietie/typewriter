@@ -1,6 +1,7 @@
 <script lang="ts">
   import { db, PLACE_TYPES } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
+  import MapEditor from '../lib/mapdraw/MapEditor.svelte';
 
   let mapId = $state<number | null>(null);
   let mode = $state<'pan' | 'pin' | 'path'>('pan');
@@ -61,6 +62,13 @@
     await new Promise((r) => { img.onload = r; img.src = image; });
     const m = await db.save('map', { name: file.name.replace(/\.[^.]+$/, ''), image, w: img.naturalWidth, h: img.naturalHeight, bg: '#2a3a2f', notes: '' });
     mapId = m.id; input.value = '';
+  }
+  let editing = $state(false);
+  let drawSize = $state('2400x1500');
+  async function drawNew() {
+    const [w, h] = drawSize.split('x').map(Number);
+    const m = await db.save('map', { name: 'New drawn map', image: '', w, h, bg: '#a8cbd8', notes: '', drawn: true, style: 'classic' });
+    mapId = m.id; selPin = selPoint = null; editing = true;
   }
   async function blank() {
     const m = await db.save('map', { name: 'New map', image: '', w: 1600, h: 1000, bg: '#2a3a2f', notes: '' });
@@ -170,6 +178,9 @@
   function polyline(pts: any[]) { return pts.map((p) => `${p.x * W},${p.y * H}`).join(' '); }
 </script>
 
+{#if editing && map}
+  <MapEditor {map} onclose={() => (editing = false)} />
+{:else}
 <div class="split wide">
   <aside class="side">
     <label style="margin-top:0">Map</label>
@@ -182,10 +193,19 @@
         <input type="file" accept="image/*" onchange={upload} style="display:none" /></label>
       <button onclick={blank}>+ Blank</button>
     </div>
+    <div class="row" style="margin-top:.4rem">
+      <button class="primary" onclick={drawNew}>✎ Draw a map</button>
+      <select bind:value={drawSize} style="flex:0 0 6.5rem" title="Size of the new map">
+        <option value="1600x1000">Small</option><option value="2400x1500">Medium</option><option value="3200x2000">Large</option>
+      </select>
+    </div>
 
     {#if map}
       <label>Name</label><input bind:value={map.name} oninput={saveMap} />
-      {#if !map.image}
+      {#if map.drawn}
+        <button class="primary" style="margin-top:.6rem;width:100%" onclick={() => (editing = true)}>✎ Edit drawing</button>
+      {/if}
+      {#if !map.image && !map.drawn}
         <div class="row"><div><label>Width</label><input type="number" bind:value={map.w} oninput={saveMap} /></div>
           <div><label>Height</label><input type="number" bind:value={map.h} oninput={saveMap} /></div></div>
         <label>Background</label><input type="color" bind:value={map.bg} oninput={saveMap} />
@@ -321,3 +341,4 @@
     {/if}
   </aside>
 </div>
+{/if}

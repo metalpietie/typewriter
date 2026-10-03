@@ -79,7 +79,7 @@ Two lists live here:
 
 ### Maps & Paths
 
-1. Press **+ Image** to load a map picture, or **+ Blank** for a plain canvas.
+1. Press **+ Image** to load a map picture, **+ Blank** for a plain canvas, or **✎ Draw a map** to draw one in the app (see below).
 2. Use the toolbar above the map:
    - **✋ Move:** drag to pan. Drag pins and steps to move them. Click one to edit it.
    - **📍 Add place:** click the map to drop a pin. Name it in the right panel.
@@ -88,6 +88,30 @@ Two lists live here:
 4. Click a step to say what happens there. You can add story time, a chapter, and a place.
 5. In the right panel, reorder a character's steps with ↑ and ↓.
 6. Scroll to zoom. **Fit** shows the whole map.
+
+#### Drawing a map
+
+Press **✎ Draw a map**. Pick a size first (Small, Medium, or Large). The drawing tool opens full screen. Press **← Done** when you finish. Then place pins and draw character paths on it as on any other map. Press **✎ Edit drawing** to open it again.
+
+Tools on the left. The keyboard shortcut is in brackets:
+
+- **Select (V):** click something to select it. Drag to move it. Drag the small squares to reshape a line or a coast. Press Delete to remove it. Ctrl+D copies it.
+- **Pan (H):** drag to move the view. Scroll to zoom. Hold Space to pan with any tool.
+- **Land (L):** draw around an island or continent. The shape closes by itself, gets a smooth coast, and a light shallow-water edge. Choose *Freehand*, or *Click points* (click each corner, then double-click or press Enter).
+- **Terrain brush (B):** paint grass, forest, hills, mountains, desert, snow, swamp, beach, or water. You can set size, softness, strength, and a custom color. Press [ and ] to change the size.
+- **Eraser (E):** rubs out terrain paint on the active layer.
+- **Lines (R):** rivers (thin at the source, wide at the mouth), roads, trails, and borders.
+- **Stamps (S):** mountains, hills, pines, oaks, castles, cities, villages, ports, towers, and caves. Turn on *Scatter* and drag to drop many, such as a forest.
+- **Text label (T):** click the map, then type the text on the right. Choose font, size, rotation, letter spacing, and color.
+
+On the right:
+
+- **Layers:** each map has Land, Terrain, Lines, Icons, and Labels layers. Hide, lock, rename, reorder, or delete them. Add more with **+ Layer**. A tool draws on the active layer of its type.
+- **Map style:** water, land, and ink colors, with three presets.
+- **Undo and redo:** the buttons at the top, or Ctrl+Z and Ctrl+Y. Undo keeps 60 steps while the editor is open.
+- **Export PNG:** save the map as a picture at 1× or 2× size.
+
+Changes save by themselves.
 
 Places made here also show in the **World** screen. Use **Unpin** to take a place off a map without deleting it.
 
@@ -134,6 +158,7 @@ Deleting removes the things that depend on it:
 | `export.go` | Word and PDF export |
 | `frontend/src/views/` | One Svelte file per screen |
 | `frontend/src/lib/` | Shared code: data store, search, theme |
+| `frontend/src/lib/mapdraw/` | The map drawing tool: `draw.ts` (drawing and hit tests) and `MapEditor.svelte` |
 | `frontend/bindings/` | Generated Go-to-JS bindings. Do not edit. |
 | `build/` | Icons and packaging settings. `build/logo.svg` is the logo source. |
 
