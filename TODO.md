@@ -2,7 +2,7 @@
 
 Ideas for Typewriter. Nothing here is built yet. Move an item up when you want it next.
 
-Suggested order: **calendar system**, then the rest.
+Suggested order: **more export types**, then the rest.
 
 ## Writing
 
@@ -11,7 +11,6 @@ Nothing open here.
 
 ## World building
 
-- [ ] Calendar system: your own months, days, and year names for the timeline
 - [ ] Name generator for people and places
 - [ ] Portrait for each character and a picture for each place
 
@@ -34,6 +33,7 @@ Nothing open here.
 
 ## Done
 
+- [x] Calendar system: your own months, days, and year names for the timeline
 - [x] Dashboard start screen with goals, recent work, and to-dos
 - [x] Daily writing goal, with a streak and a history graph
 - [x] Statistics: words per day, per chapter, and per character

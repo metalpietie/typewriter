@@ -221,6 +221,12 @@ Places made here also show in the **World** screen. Use **Unpin** to take a plac
 
 The timeline sorts by a **number**, such as a year. "Year 312" is only a label. Fill in the number too. The field is called **Position** on events, and **Timeline position** on chapters and path steps. Items with no number stay off the timeline.
 
+**Your own calendar:** press **Calendar…** on the Timeline screen (or **Set up your own calendar** next to any date field). Add your months and how many days each has. You can also add weekday names, names for years that repeat (such as animals), and text before or after the year ("Year 312 AE"). **Use a standard calendar** gives you a starting point to change.
+
+With a calendar, the date fields on scenes, events, and path steps change. You pick a **year**, a **month**, and a **day**. Leave the month empty for a whole year. The app saves the timeline number for you (the year plus a part for the day). It also fills the label, for example "Tuesday, 14 Frostmoon, Year 312 AE". If you write your own label, the app keeps it. Lists and the timeline show the label, or the date in your calendar when there is no label.
+
+Notes: there are no leap years. If you change the months later, numbers you already saved stay the same, so a date can read differently. The plot hole check works on the numbers, so days now have their own numbers.
+
 ### Dashboard
 
 The **Dashboard** is the first screen. It shows:
@@ -317,7 +323,7 @@ Deleting removes the things that depend on it:
 | `store.go` | SQLite storage service |
 | `export.go` | Word and PDF export |
 | `frontend/src/views/` | One Svelte file per screen |
-| `frontend/src/lib/` | Shared code: data store, search, theme |
+| `frontend/src/lib/` | Shared code: data store, search, theme, calendar (`calendarmath.ts` holds the date maths) |
 | `frontend/src/lib/mapdraw/` | The map drawing tool: `draw.ts` (drawing and hit tests) and `MapEditor.svelte` |
 | `frontend/bindings/` | Generated Go-to-JS bindings. Do not edit. |
 | `build/` | Icons and packaging settings. `build/logo.svg` is the logo source. |

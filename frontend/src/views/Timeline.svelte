@@ -3,6 +3,8 @@
   import { scenesOf, chapterCast, chapterHasPov } from '../lib/scenes';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import { nav } from '../lib/nav.svelte';
+  import DateField from '../lib/DateField.svelte';
+  import { timeText } from '../lib/calendar';
 
   let mode = $state<'time' | 'lanes'>('time');
   let selId = $state<number | null>(null);
@@ -97,6 +99,7 @@
 
     {#if mode === 'time'}
       <button class="primary" style="width:100%" onclick={add}>+ New event</button>
+      <button class="small" style="width:100%;margin-top:.4rem" onclick={() => (nav.calendar = true)}>Calendar…</button>
       <h3 style="margin-top:1rem">Show</h3>
       {#each [['event', 'Events'], ['chapter', 'Chapters and scenes'], ['step', 'Path steps']] as [k, label]}
         <label style="display:flex;gap:.4rem;margin:.2rem 0;color:var(--text)">
@@ -113,10 +116,7 @@
         <div class="card">
           <div class="head"><strong>Edit event</strong><ConfirmButton onconfirm={del} /></div>
           <label>Title</label><input bind:value={ev.title} oninput={save} />
-          <div class="row">
-            <div><label>Position (number)</label><input type="number" step="any" bind:value={ev.time} oninput={save} /></div>
-            <div><label>Label</label><input bind:value={ev.when} oninput={save} placeholder="Year 312" /></div>
-          </div>
+          <DateField bind:time={ev.time} bind:when={ev.when} onchange={save} placeholder="Year 312" timeLabel="Position (number)" />
           <label>Place</label>
           <select bind:value={ev.location} onchange={save}>
             <option value={null}>— none —</option>
@@ -149,7 +149,7 @@
           <div class="card" role="button" tabindex="0" style="position:relative;cursor:{r.type === 'event' ? 'pointer' : 'default'};border-left:4px solid {r.color};outline:{r.type === 'event' && r.id === selId ? '1px solid var(--accent)' : 'none'}"
             onclick={() => { if (r.type === 'event') selId = r.id; }}>
             <span style="position:absolute;left:calc(-2rem - 7px - 6.5rem);width:5.5rem;text-align:right;top:.8rem;font-size:.8rem;color:var(--muted)">
-              {r.when || r.time}
+              {r.when || timeText(r.time)}
             </span>
             <span class="dot" style="position:absolute;left:calc(-2rem - 7px + 1px);top:1rem;background:{r.color}"></span>
             <div class="head" style="margin:0"><strong>{r.title}</strong><span class="chip" style="margin:0">{r.label ?? (r.type === 'step' ? 'path step' : r.type)}</span></div>

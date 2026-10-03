@@ -3,12 +3,13 @@ import type { Kind } from './db.svelte';
 export type Tab = 'home' | 'write' | 'characters' | 'relationships' | 'world' | 'factions' | 'items' | 'family' | 'checks' | 'stats' | 'maps' | 'timeline' | 'export';
 
 /** Shared screen state, so search can jump to an item on another tab. */
-export const nav = $state<{ tab: Tab; pending: { kind: Kind; id: number } | null; searchOpen: boolean; focus: boolean; scene: number | null }>({
+export const nav = $state<{ tab: Tab; pending: { kind: Kind; id: number } | null; searchOpen: boolean; focus: boolean; scene: number | null; calendar: boolean }>({
   tab: 'home',
   pending: null,
   searchOpen: false,
   focus: false, // focus mode: only the text is on screen
   scene: null, // a scene the Write tab should open
+  calendar: false, // the calendar editor is open
 });
 
 export function openItem(kind: Kind, id: number) {

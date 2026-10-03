@@ -6,6 +6,7 @@
   import { nav, openItem } from '../lib/nav.svelte';
   import { STATUSES, scenesOf, sceneWords, chapterWords, chapterCast, addScene } from '../lib/scenes';
   import { maybeAutoVersion } from '../lib/versions';
+  import DateField from '../lib/DateField.svelte';
   import { addWords, dailyGoal, wordsToday } from '../lib/progress';
   import { missingCast } from '../lib/mentions';
   import Comments from '../lib/Comments.svelte';
@@ -387,8 +388,7 @@
         <option value={null}>— none —</option>
         {#each db.lists.location as l}<option value={l.id}>{l.name}</option>{/each}
       </select>
-      <label>When (story time)</label><input bind:value={scene.when} oninput={saveScene} placeholder="e.g. Year 312, dawn" />
-      <label>Timeline position (number, e.g. year)</label><input type="number" step="any" bind:value={scene.time} oninput={saveScene} />
+      <DateField bind:time={scene.time} bind:when={scene.when} onchange={saveScene} />
       <label>Who is in this scene</label>
       {#each db.lists.character as c}
         <div><label style="display:flex;gap:.4rem;margin:.15rem 0;color:var(--text)">

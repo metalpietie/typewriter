@@ -3,6 +3,7 @@
   import { db } from './lib/db.svelte';
   import { nav } from './lib/nav.svelte';
   import Search from './lib/Search.svelte';
+  import CalendarEditor from './lib/CalendarEditor.svelte';
   import UndoToast from './lib/UndoToast.svelte';
   import { migrateChapters } from './lib/scenes';
   import { currentTheme, setTheme, type Theme } from './lib/theme';
@@ -50,6 +51,7 @@
 <svelte:window onbeforeunload={() => db.flush()} onpagehide={() => db.flush()} onkeydown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); nav.searchOpen = !nav.searchOpen; } }} />
 <Search />
 <UndoToast />
+{#if nav.calendar}<CalendarEditor />{/if}
 
 <div class="app" class:focus={nav.focus}>
   <nav class="nav">

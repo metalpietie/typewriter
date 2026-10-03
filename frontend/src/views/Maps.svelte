@@ -2,6 +2,7 @@
   import { db, PLACE_TYPES } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import { nav } from '../lib/nav.svelte';
+  import DateField from '../lib/DateField.svelte';
   import { scenesOf } from '../lib/scenes';
   import MapEditor from '../lib/mapdraw/MapEditor.svelte';
 
@@ -310,8 +311,7 @@
         <div class="head"><h3 style="margin:0">Path step · {db.name('character', point.character)}</h3>
           <ConfirmButton onconfirm={() => delPoint(point.id)} /></div>
         <label>What happens here</label><input bind:value={point.label} oninput={savePoint} placeholder="e.g. Leaves the village" />
-        <label>When (story time)</label><input bind:value={point.when} oninput={savePoint} />
-        <label>Timeline position (number, e.g. year)</label><input type="number" step="any" bind:value={point.time} oninput={savePoint} />
+        <DateField bind:time={point.time} bind:when={point.when} onchange={savePoint} placeholder="" />
         <label>Chapter</label>
         <select bind:value={point.chapter} onchange={() => { point.scene = null; savePoint(); }}>
           <option value={null}>— none —</option>
