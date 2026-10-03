@@ -194,11 +194,23 @@ You can add links right on the Family tree tab. A family link with no role appea
 2. Use the toolbar above the map:
    - **✋ Move:** drag to pan. Drag pins and steps to move them. Click one to edit it.
    - **📍 Add place:** click the map to drop a pin. Name it in the right panel.
+   - **⬠ Region:** draw a border. Click the map to place corners. Click the first corner, or press **Finish** (or Enter), to close it. Backspace removes the last corner. Esc cancels.
    - **〰 Path:** draw a character's route. Click the map to add numbered steps. Click a pin to snap a step to that place.
 3. In the left panel, press **Draw** next to a character to pick whose route you draw. Use the tick boxes to show or hide routes.
 4. Click a step to say what happens there. You can add story time, a chapter, and a place.
 5. In the right panel, reorder a character's steps with ↑ and ↓.
 6. Scroll to zoom. **Fit** shows the whole map.
+
+#### Regions
+
+A region is a shape on one map, such as a kingdom or a forest. Click a region in **Move** mode to select it. In the right panel you can:
+
+- Give it a name, a colour and a description. The name shows on the map.
+- Drag a corner to move it. Click the outline to add a corner. Click a corner, then press **Remove corner**.
+- See the places whose pins lie inside it. When you select a pin, the panel names the region it is in.
+- Hide all regions with the **Regions** tick box in the tool bar.
+
+Regions are saved with the map. Deleting a map deletes its regions.
 
 #### Travel time
 

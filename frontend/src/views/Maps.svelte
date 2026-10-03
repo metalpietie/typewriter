@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { db, PLACE_TYPES } from '../lib/db.svelte';
+  import { db, PLACE_TYPES, CHARACTER_COLORS } from '../lib/db.svelte';
+  import { center, inside, nearestEdge, type Pt } from '../lib/regions';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import { nav } from '../lib/nav.svelte';
   import DateField from '../lib/DateField.svelte';
@@ -10,11 +11,15 @@
   import { rangeOn, statusAt, tracks, whereAt } from '../lib/tracks';
 
   let mapId = $state<number | null>(null);
-  let mode = $state<'pan' | 'pin' | 'path' | 'measure'>('pan');
+  let mode = $state<'pan' | 'pin' | 'path' | 'measure' | 'region'>('pan');
   let pathChar = $state<number | null>(null);
   let hiddenChars = $state<number[]>([]);
   let selPin = $state<number | null>(null);
   let selPoint = $state<number | null>(null);
+  let selRegion = $state<number | null>(null);
+  let selCorner = $state<number | null>(null);
+  let draft = $state<Pt[]>([]); // corners of a region being drawn
+  let showRegions = $state(true);
   // Open a path step when the Checks tab sends you here.
   $effect(() => {
     const p = nav.pending;
@@ -36,6 +41,11 @@
   const unplaced = $derived(db.lists.location.filter((l) => !l.map));
   const pin = $derived(db.get('location', selPin));
   const point = $derived(db.get('pathpoint', selPoint));
+  const regions = $derived(db.lists.region.filter((r) => r.map === mapId));
+  const region = $derived(db.get('region', selRegion));
+  const placesIn = (r: any) => pins.filter((l) => inside(r.points, l.x, l.y));
+  const regionsOf = (l: any) => regions.filter((r) => inside(r.points, l.x, l.y));
+  $effect(() => { mapId; draft = []; selRegion = null; selCorner = null; });
   const paths = $derived(
     db.lists.character
       .filter((c) => !hiddenChars.includes(c.id))
@@ -166,15 +176,19 @@
     const b = svg!.getBoundingClientRect();
     return { x: (e.clientX - b.left - view.tx) / view.k, y: (e.clientY - b.top - view.ty) / view.k };
   }
-  let drag: null | { kind: string; id: number; sx: number; sy: number; tx: number; ty: number; moved: boolean } = null;
+  let drag: null | { kind: string; id: number; idx: number; sx: number; sy: number; tx: number; ty: number; moved: boolean } = null;
 
   function down(e: PointerEvent) {
     e.preventDefault(); // stops text selection while dragging
     if (!map) return;
     svg!.setPointerCapture(e.pointerId);
     const el = (e.target as Element).closest('[data-kind]') as HTMLElement | null;
+    let kind = el?.dataset.kind ?? 'bg';
+    // a region only reacts in Move mode; in other modes a click goes through to the map
+    if (kind === 'region' && mode !== 'pan') kind = 'bg';
+    if ((kind === 'corner' || kind === 'edge') && mode !== 'pan') kind = 'bg';
     drag = {
-      kind: el?.dataset.kind ?? 'bg', id: +(el?.dataset.id ?? 0),
+      kind, id: +(el?.dataset.id ?? 0), idx: +(el?.dataset.idx ?? 0),
       sx: e.clientX, sy: e.clientY, tx: view.tx, ty: view.ty, moved: false,
     };
   }
@@ -182,8 +196,15 @@
     if (!drag) return;
     if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 4) return;
     drag.moved = true;
-    if (drag.kind === 'bg') {
+    if (drag.kind === 'bg' || drag.kind === 'region' || drag.kind === 'edge') {
       view.tx = drag.tx + e.clientX - drag.sx; view.ty = drag.ty + e.clientY - drag.sy;
+      return;
+    }
+    if (drag.kind === 'corner') {
+      const r = db.get('region', drag.id);
+      if (!r) return;
+      const p = toWorld(e);
+      r.points[drag.idx] = { x: Math.min(1, Math.max(0, p.x / W)), y: Math.min(1, Math.max(0, p.y / H)) };
       return;
     }
     const item = drag.kind === 'pin' ? db.get('location', drag.id) : db.get('pathpoint', drag.id);
@@ -197,6 +218,7 @@
     if (d.moved) {
       if (d.kind === 'pin') { const l = db.get('location', d.id); if (l) await db.save('location', l); }
       if (d.kind === 'point') { const p = db.get('pathpoint', d.id); if (p) await db.save('pathpoint', p); }
+      if (d.kind === 'corner') { const r = db.get('region', d.id); if (r) await db.save('region', r); }
       return;
     }
     if (mode === 'measure') {
@@ -209,10 +231,32 @@
       if (spot) ruler = !ruler.a || ruler.b ? { a: spot } : { a: ruler.a, b: spot };
       return;
     }
+    if (mode === 'region') {
+      if (d.kind === 'pin') return;
+      const p = toWorld(e);
+      if (p.x < 0 || p.y < 0 || p.x > W || p.y > H) return;
+      const pt = { x: p.x / W, y: p.y / H };
+      // a click near the first corner closes the shape
+      if (draft.length >= 3 && Math.hypot((pt.x - draft[0].x) * W, (pt.y - draft[0].y) * H) * view.k < 12) await finishRegion();
+      else draft = [...draft, pt];
+      return;
+    }
+    if (d.kind === 'region') { selRegion = d.id; selCorner = null; selPin = selPoint = null; return; }
+    if (d.kind === 'corner') { selCorner = d.idx; return; }
+    if (d.kind === 'edge') {
+      const r = db.get('region', d.id);
+      if (!r) return;
+      const p = toWorld(e);
+      const at = nearestEdge(r.points, p.x / W, p.y / H) + 1;
+      r.points = [...r.points.slice(0, at), { x: p.x / W, y: p.y / H }, ...r.points.slice(at)];
+      selCorner = at;
+      await db.save('region', r);
+      return;
+    }
     if (d.kind === 'pin') {
       const l = db.get('location', d.id)!;
       if (mode === 'path' && pathChar) await addPoint(l.x, l.y, l.id);
-      else { selPin = l.id; selPoint = null; }
+      else { selPin = l.id; selPoint = null; selRegion = null; }
     } else if (d.kind === 'point') {
       selPoint = d.id; selPin = null;
     } else {
@@ -221,7 +265,7 @@
       if (p.x < 0 || p.y < 0 || p.x > W || p.y > H) return;
       if (mode === 'pin') await addPin(x, y);
       else if (mode === 'path' && pathChar) await addPoint(x, y, null);
-      else { selPin = null; selPoint = null; }
+      else { selPin = null; selPoint = null; selRegion = null; }
     }
   }
   function wheel(e: WheelEvent) {
@@ -229,6 +273,31 @@
     const wx = (e.clientX - b.left - view.tx) / view.k, wy = (e.clientY - b.top - view.ty) / view.k;
     view.k = Math.min(8, Math.max(0.05, view.k * (e.deltaY < 0 ? 1.15 : 1 / 1.15)));
     view.tx = e.clientX - b.left - wx * view.k; view.ty = e.clientY - b.top - wy * view.k;
+  }
+
+  // ---- regions ----
+  async function finishRegion() {
+    if (draft.length < 3) return;
+    const r = await db.save('region', {
+      map: mapId, name: 'New region', description: '', points: draft,
+      color: CHARACTER_COLORS[db.lists.region.length % CHARACTER_COLORS.length],
+    });
+    draft = []; selRegion = r.id; selCorner = null; selPin = selPoint = null; mode = 'pan';
+  }
+  function saveRegion() { if (region) db.queue('region', region); }
+  async function dropCorner() {
+    if (!region || selCorner === null || region.points.length <= 3) return;
+    region.points = region.points.filter((_: unknown, i: number) => i !== selCorner);
+    selCorner = null;
+    await db.save('region', region);
+  }
+  async function delRegion() { if (selRegion) { await db.remove('region', selRegion); selRegion = null; } }
+  function keys(e: KeyboardEvent) {
+    const t = e.target as HTMLElement;
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+    if (mode === 'region' && e.key === 'Enter') finishRegion();
+    else if (mode === 'region' && e.key === 'Escape') { draft = []; mode = 'pan'; }
+    else if (mode === 'region' && e.key === 'Backspace') draft = draft.slice(0, -1);
   }
 
   // ---- places ----
@@ -268,6 +337,8 @@
   }
   function polyline(pts: any[]) { return pts.map((p) => `${p.x * W},${p.y * H}`).join(' '); }
 </script>
+
+<svelte:window onkeydown={keys} />
 
 {#if editing && map}
   <MapEditor {map} onclose={() => (editing = false)} />
@@ -348,7 +419,15 @@
           〰 Path{pathChar ? ': ' + db.name('character', pathChar) : ''}
         </button>
         <button class:active={mode === 'measure'} onclick={() => { mode = 'measure'; placing = null; ruler = {}; }}>📏 Measure</button>
+        <button class:active={mode === 'region'} onclick={() => { mode = 'region'; placing = null; draft = []; selRegion = null; }}>⬠ Region</button>
         <button onclick={fit}>Fit</button>
+        {#if regions.length}<label class="chip" style="margin:0;display:flex;align-items:center;gap:.3rem"><input type="checkbox" style="width:auto" bind:checked={showRegions} />Regions</label>{/if}
+        {#if mode === 'region'}
+          <span class="chip">{draft.length < 3 ? 'Click the map to place corners. ' + draft.length + ' so far.' : draft.length + ' corners. Click the first one, or press Finish.'}</span>
+          <button class="small primary" disabled={draft.length < 3} onclick={finishRegion}>Finish</button>
+          <button class="small" disabled={!draft.length} onclick={() => (draft = draft.slice(0, -1))}>Undo corner</button>
+          <button class="small" onclick={() => { draft = []; mode = 'pan'; }}>Cancel</button>
+        {/if}
         {#if mode === 'measure'}
           <span class="chip">
             {#if !scale}Set the map width in the left side bar first.
@@ -374,6 +453,21 @@
             <rect width={W} height={H} fill={map.bg} />
           {/if}
           <rect width={W} height={H} fill="none" stroke="#000" stroke-opacity=".5" stroke-width={2 / view.k} />
+
+          {#if showRegions}
+            {#each regions as r (r.id)}
+              {@const on = r.id === selRegion}
+              <polygon data-kind="region" data-id={r.id} points={polyline(r.points)} fill={r.color} fill-opacity={on ? 0.32 : 0.2}
+                stroke={r.color} stroke-width={(on ? 3.5 : 2.5) / view.k} stroke-linejoin="round" style="cursor:pointer" />
+              {#if on}
+                <polygon data-kind="edge" data-id={r.id} points={polyline(r.points)} fill="none" stroke="transparent" stroke-width={14 / view.k} stroke-linejoin="round" style="cursor:copy" />
+              {/if}
+              {#if r.name}
+                <text x={center(r.points).x * W} y={center(r.points).y * H} text-anchor="middle" font-size={16 / view.k} font-weight="700" fill="#fff"
+                  paint-order="stroke" stroke="#000" stroke-width={4 / view.k} letter-spacing={1 / view.k} pointer-events="none">{r.name.toUpperCase()}</text>
+              {/if}
+            {/each}
+          {/if}
 
           {#each paths as { c, pts } (c.id)}
             <polyline points={polyline(pts)} fill="none" stroke={c.color} stroke-width={3.5 / view.k}
@@ -402,6 +496,18 @@
               </g>
             {/each}
           {/each}
+          {#if region && showRegions && mode === 'pan'}
+            {#each region.points as p, i (i)}
+              <circle data-kind="corner" data-id={region.id} data-idx={i} cx={p.x * W} cy={p.y * H} r={(i === selCorner ? 8 : 6) / view.k}
+                fill={i === selCorner ? '#fff' : region.color} stroke="#000" stroke-width={2 / view.k} style="cursor:move" />
+            {/each}
+          {/if}
+          {#if draft.length}
+            <polyline points={polyline(draft)} fill="none" stroke="#fff" stroke-width={3 / view.k} stroke-dasharray="{8 / view.k} {5 / view.k}" />
+            {#each draft as p, i}
+              <circle cx={p.x * W} cy={p.y * H} r={(i === 0 ? 8 : 5) / view.k} fill={i === 0 ? '#2cd5e8' : '#fff'} stroke="#000" stroke-width={2 / view.k} />
+            {/each}
+          {/if}
           {#if ruler.a}
             <circle cx={ruler.a.x * W} cy={ruler.a.y * H} r={6 / view.k} fill="#fff" stroke="#000" stroke-width={2 / view.k} />
             {#if ruler.b}
@@ -458,6 +564,18 @@
         <label>Type</label>
         <select bind:value={pin.type} onchange={savePin}>{#each PLACE_TYPES as t}<option>{t}</option>{/each}</select>
         <label>Description</label><textarea bind:value={pin.description} oninput={savePin}></textarea>
+        {#if regionsOf(pin).length}<p class="muted" style="margin:.5rem 0 0">In: {#each regionsOf(pin) as r, i}{i ? ', ' : ''}<button class="small" onclick={() => { selRegion = r.id; selPin = null; }}>{r.name || 'Region'}</button>{/each}</p>{/if}
+      {:else if region}
+        <div class="head"><h3 style="margin:0">Region</h3><ConfirmButton onconfirm={delRegion} /></div>
+        <label>Name</label><input bind:value={region.name} oninput={saveRegion} placeholder="e.g. Kingdom of Ash" />
+        <label>Colour</label><input type="color" bind:value={region.color} oninput={saveRegion} />
+        <label>Description</label><textarea bind:value={region.description} oninput={saveRegion}></textarea>
+        <p class="muted" style="font-size:.8rem;margin:.5rem 0">Drag a corner to move it. Click the outline to add a corner. Click a corner, then press Remove corner.</p>
+        <button class="small" disabled={selCorner === null || region.points.length <= 3} onclick={dropCorner}>Remove corner</button>
+        <h3 style="margin-top:1rem">Places inside · {placesIn(region).length}</h3>
+        {#each placesIn(region) as l (l.id)}
+          <button class="who" onclick={() => { selPin = l.id; selRegion = null; }}><span>{l.name} <span class="muted">({l.type})</span></span></button>
+        {:else}<div class="muted">No pins inside.</div>{/each}
       {:else if point}
         <div class="head"><h3 style="margin:0">Path step · {db.name('character', point.character)}</h3>
           <ConfirmButton onconfirm={() => delPoint(point.id)} /></div>
@@ -481,7 +599,16 @@
           {#each db.lists.location as l}<option value={l.id}>{l.name}</option>{/each}
         </select>
       {:else}
-        <p class="muted">Click a pin or a path step to edit it.</p>
+        <p class="muted">Click a pin, a path step or a region to edit it.</p>
+      {/if}
+
+      {#if regions.length && !region}
+        <h3 style="margin-top:1.4rem">Regions on this map</h3>
+        {#each regions as r (r.id)}
+          <button class="who" onclick={() => { selRegion = r.id; selPin = selPoint = null; }}>
+            <span class="dot" style:background={r.color}></span><span>{r.name || 'Region'} <span class="muted">· {placesIn(r).length} place{placesIn(r).length === 1 ? '' : 's'}</span></span>
+          </button>
+        {/each}
       {/if}
 
       {#if pathChar}
