@@ -2,16 +2,22 @@
 
 Ideas for Typewriter. Nothing here is built yet. Move an item up when you want it next.
 
-Only one item is open, and it is marked **not now**. Build it only if you need it.
+These items are ideas for later. Pick one when you want it. Skip the items marked **not now**.
+
+Best next pick: **story arcs**, then the **notes board**.
 
 ## Writing
 
-Nothing open here.
+- [ ] Notes board: an index card for each scene, and drag the cards to reorder the book
+- [ ] Repeated word check: words used too often, and sentences that start the same way
+- [ ] Spell check in the writing screen
 
 
 ## World building
 
-Nothing open here.
+- [ ] Story arcs: mark a plot thread, see which scenes touch it, and where it starts and ends
+- [ ] Glossary of made-up words, with a warning when one is spelled two ways
+- [ ] Character age on any date, from the timeline and your calendar ("age 23 in this scene")
 
 ## Maps and paths
 
@@ -23,6 +29,7 @@ Nothing open here.
 
 ## Data and files
 
+- [ ] Sync to a folder: copy the data to Dropbox or OneDrive for a second safe copy
 - [ ] Import a Word file as chapters (**not now**: only useful to move an old draft in once)
 
 ## Done
