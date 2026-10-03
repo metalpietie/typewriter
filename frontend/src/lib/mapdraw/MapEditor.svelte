@@ -842,7 +842,7 @@
 {/snippet}
 
 <style>
-  .editor { display: grid; grid-template-columns: 210px 1fr 270px; grid-template-rows: auto auto 1fr; height: 100%; min-height: 0; }
+  .editor { display: grid; grid-template-columns: 210px minmax(0, 1fr) 270px; grid-template-rows: auto auto minmax(0, 1fr); height: 100%; min-height: 0; }
   header { grid-column: 1 / -1; display: flex; align-items: center; gap: .5rem; padding: .5rem .8rem; background: var(--panel); border-bottom: 1px solid var(--line); }
   .grow { flex: 1; }
   .notice { color: var(--accent); font-size: .85rem; }

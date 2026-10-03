@@ -136,8 +136,8 @@
 </section>
 
 <style>
-  .line { display: flex; align-items: center; gap: .6rem; padding: .15rem 0; }
-  .nm { flex: 0 0 14rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: .4rem; }
+  .line { display: flex; flex-wrap: wrap; align-items: center; gap: .2rem .6rem; padding: .15rem 0; }
+  .nm { flex: 0 1 14rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: .4rem; }
   .bar { flex: 1; min-width: 4rem; }
   .num { flex: 0 0 5.5rem; text-align: right; font-variant-numeric: tabular-nums; }
 </style>

@@ -34,25 +34,27 @@ button.small { padding: .15rem .45rem; font-size: .8rem; }
 button.active { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
 button:disabled { opacity: .4; cursor: default; }
 
-.app { display: grid; grid-template-columns: 170px 1fr; height: 100%; }
-.nav { background: var(--panel); border-right: 1px solid var(--line); padding: 1rem .6rem; display: flex; flex-direction: column; gap: .25rem; }
+.app { display: grid; grid-template-columns: 170px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); height: 100%; }
+.nav { min-height: 0; overflow-y: auto; background: var(--panel); border-right: 1px solid var(--line); padding: 1rem .6rem; display: flex; flex-direction: column; gap: .25rem; }
 .nav .brand { font-size: 1.2rem; font-weight: 700; color: var(--accent); padding: 0 .5rem 1rem; }
 .nav button { text-align: left; background: none; border: 1px solid transparent; padding: .55rem .7rem; }
 .nav .count { margin-left: .4rem; background: var(--danger); color: #fff; border-radius: 99px; font-size: .7rem; padding: 0 .4rem; }
 .nav button.on { background: var(--panel-2); border-color: var(--line); color: var(--accent); }
+.nav > * { flex-shrink: 0; }
 .nav .foot { margin-top: auto; font-size: .7rem; color: var(--muted); word-break: break-all; padding: .5rem; }
 .main { min-width: 0; min-height: 0; overflow: hidden; }
+.main > .pane { height: 100%; }
 
-.split { display: grid; grid-template-columns: 260px 1fr; height: 100%; }
-.split.wide { grid-template-columns: 260px 1fr 300px; }
+.split { display: grid; grid-template-columns: 260px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); height: 100%; min-height: 0; }
+.split.wide { grid-template-columns: 260px minmax(0, 1fr) 300px; }
 .side { background: var(--panel); border-right: 1px solid var(--line); padding: .8rem; overflow: auto; min-height: 0; }
 .side.right { border-right: 0; border-left: 1px solid var(--line); }
 .pane { padding: 1.2rem 1.6rem; overflow: auto; min-height: 0; }
 
 /* focus mode: no menus, only the text */
-.app.focus { grid-template-columns: 1fr; }
+.app.focus { grid-template-columns: minmax(0, 1fr); }
 .app.focus .nav { display: none; }
-.split.focus, .split.wide.focus { grid-template-columns: 1fr; }
+.split.focus, .split.wide.focus { grid-template-columns: minmax(0, 1fr); }
 .split.focus .side { display: none; }
 .split.focus .pane { padding: 6vh 1.6rem 0; }
 .split.focus .pane > *:not(.focus-hud) { max-width: 44rem; margin-left: auto; margin-right: auto; }
