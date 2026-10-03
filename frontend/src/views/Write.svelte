@@ -303,7 +303,7 @@
           <button class="item {dropClass('chapter', c.id)}" class:landed={landed === 'chapter' + c.id} class:on={c.id === chapId} class:dragging={drag?.type === 'chapter' && drag.id === c.id}
             data-chapter={c.id} onpointerdown={(e) => startDrag(e, { type: 'chapter', id: c.id, label: c.title || 'Chapter' })}
             onclick={() => { if (!suppressClick) pickChapter(c.id); }}>
-            {c.order}. {c.title}<small>{words}{goalOf(c) ? ' / ' + goalOf(c) : ''}</small>
+            <span class="ct">{c.order}. {c.title}</span><small class="cw">{words.toLocaleString()}{goalOf(c) ? ' / ' + goalOf(c).toLocaleString() : ''} words</small>
             {#if goalOf(c)}<span style="flex-basis:100%"><ProgressBar value={words} goal={goalOf(c)} thin /></span>{/if}
           </button>
           {#if c.id === chapId}
@@ -452,6 +452,9 @@
 {#if drag}<div class="ghost" style="transform: translate({ghost.x + 14}px, {ghost.y + 8}px) rotate({ghost.tilt}deg)"><span>{drag.label}</span></div>{/if}
 
 <style>
+  .list :global(.item) { flex-wrap: wrap; row-gap: .1rem; }
+  .ct { flex: 1 1 100%; min-width: 0; overflow-wrap: anywhere; }
+  .list :global(.item small.cw) { flex: 1 1 100%; margin-left: 0; font-size: .75rem; }
   .scenes { margin: 0 0 .5rem 1rem; padding-left: .6rem; border-left: 2px solid var(--line); display: flex; flex-direction: column; gap: 2px; }
   .scene { display: flex; align-items: center; gap: .45rem; text-align: left; background: none; border: 1px solid transparent; padding: .25rem .5rem; font-size: .85rem; }
   .scene.on { background: var(--panel-2); border-color: var(--line); }

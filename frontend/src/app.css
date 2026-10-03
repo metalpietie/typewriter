@@ -42,11 +42,14 @@ button:disabled { opacity: .4; cursor: default; }
 .nav button.on { background: var(--panel-2); border-color: var(--line); color: var(--accent); }
 .nav > * { flex-shrink: 0; }
 .nav .foot { margin-top: auto; font-size: .7rem; color: var(--muted); word-break: break-all; padding: .5rem; }
-.main { min-width: 0; min-height: 0; overflow: hidden; }
+.main { min-width: 0; min-height: 0; overflow: hidden; position: relative; }
+.resizer { position: absolute; top: 0; bottom: 0; left: calc(var(--side-w, 260px) - 4px); width: 8px; cursor: col-resize; z-index: 5; touch-action: none; }
+.resizer::after { content: ''; position: absolute; top: 0; bottom: 0; left: 3px; width: 2px; background: transparent; transition: background .15s; }
+.resizer:hover::after, .resizer.drag::after, .resizer:focus-visible::after { background: var(--accent); }
 .main > .pane { height: 100%; }
 
-.split { display: grid; grid-template-columns: 260px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); height: 100%; min-height: 0; }
-.split.wide { grid-template-columns: 260px minmax(0, 1fr) 300px; }
+.split { display: grid; grid-template-columns: var(--side-w, 260px) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); height: 100%; min-height: 0; }
+.split.wide { grid-template-columns: var(--side-w, 260px) minmax(0, 1fr) 300px; }
 .side { background: var(--panel); border-right: 1px solid var(--line); padding: .8rem; overflow: auto; min-height: 0; }
 .side.right { border-right: 0; border-left: 1px solid var(--line); }
 .pane { padding: 1.2rem 1.6rem; overflow: auto; min-height: 0; }

@@ -43,6 +43,31 @@
   // the number of open plot holes shows next to the Checks tab
   const holes = $derived(db.ready ? openConflicts(findConflicts().conflicts).length : 0);
 
+  // the width of the list on the left of each screen, kept between runs
+  const SIDE_KEY = 'typewriter-side-width', SIDE_MIN = 180, SIDE_MAX = 640, SIDE_DEFAULT = 260;
+  const clampSide = (n: number) => Math.min(SIDE_MAX, Math.max(SIDE_MIN, Math.round(n)));
+  let sideW = $state(SIDE_DEFAULT);
+  try { const v = Number(localStorage.getItem(SIDE_KEY)); if (v) sideW = clampSide(v); } catch { /* storage may be blocked */ }
+  $effect(() => {
+    document.documentElement.style.setProperty('--side-w', sideW + 'px');
+    try { localStorage.setItem(SIDE_KEY, String(sideW)); } catch { /* storage may be blocked */ }
+  });
+  const hasSide = $derived(!['home', 'checks', 'stats', 'export'].includes(nav.tab));
+  let dragging = $state(false);
+  function startResize(e: PointerEvent) {
+    const bar = e.currentTarget as HTMLElement;
+    const left = (bar.parentElement as HTMLElement).getBoundingClientRect().left;
+    bar.setPointerCapture?.(e.pointerId);
+    dragging = true;
+    const move = (ev: PointerEvent) => (sideW = clampSide(ev.clientX - left));
+    const stop = () => { dragging = false; bar.removeEventListener('pointermove', move); bar.removeEventListener('pointerup', stop); bar.removeEventListener('pointercancel', stop); };
+    bar.addEventListener('pointermove', move); bar.addEventListener('pointerup', stop); bar.addEventListener('pointercancel', stop);
+  }
+  function resizeKey(e: KeyboardEvent) {
+    if (e.key === 'ArrowLeft') { sideW = clampSide(sideW - 20); e.preventDefault(); }
+    else if (e.key === 'ArrowRight') { sideW = clampSide(sideW + 20); e.preventDefault(); }
+  }
+
   let error = $state('');
   let theme = $state<Theme>(currentTheme());
   function toggleTheme() { theme = theme === 'dark' ? 'light' : 'dark'; setTheme(theme); }
@@ -70,6 +95,12 @@
       Data file:<br />{db.dataPath}</div>
   </nav>
   <main class="main">
+    {#if hasSide && !nav.focus && db.ready}
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
+      <div class="resizer" class:drag={dragging} role="separator" aria-orientation="vertical" aria-label="Resize the list on the left. Drag, or use the left and right arrow keys. Double-click to reset."
+        aria-valuenow={sideW} aria-valuemin={SIDE_MIN} aria-valuemax={SIDE_MAX} tabindex="0" title="Drag to resize. Double-click to reset."
+        onpointerdown={startResize} onkeydown={resizeKey} ondblclick={() => (sideW = SIDE_DEFAULT)}></div>
+    {/if}
     {#if error}
       <div class="pane">Could not open the database: {error}</div>
     {:else if !db.ready}
