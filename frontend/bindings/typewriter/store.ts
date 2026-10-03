@@ -45,6 +45,14 @@ export function List(kind: string): $CancellablePromise<$models.Doc[] | null> {
 }
 
 /**
+ * ListBy returns the items of one kind whose JSON field equals id, newest first.
+ * History uses it to read the saved versions of one scene without loading all of them.
+ */
+export function ListBy(kind: string, field: string, id: number): $CancellablePromise<$models.Doc[] | null> {
+    return $Call.ByID(1503808682, kind, field, id);
+}
+
+/**
  * Restore puts items back exactly as Delete returned them, with their old ids.
  */
 export function Restore(docs: $models.Doc[] | null): $CancellablePromise<void> {

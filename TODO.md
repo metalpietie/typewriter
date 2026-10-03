@@ -6,10 +6,7 @@ Suggested order: **@ links and backlinks**, then the rest.
 
 ## Writing
 
-- [ ] Full-screen focus mode (no menus, only the text)
 - [ ] Daily writing goal, with a streak and a history graph
-- [ ] Find and replace across all chapters
-- [ ] Version history: go back to an older copy of a chapter
 - [ ] Character mention check: warn when a character appears in the text but not in the chapter's cast
 - [ ] Margin comments that you can resolve
 
@@ -48,6 +45,9 @@ Suggested order: **@ links and backlinks**, then the rest.
 
 ## Done
 
+- [x] Full-screen focus mode (no menus, only the text)
+- [x] Find and replace across all chapters
+- [x] Version history: go back to an older copy of a scene
 - [x] Scenes: split a chapter into scenes, each with its own place, point of view, cast, time, and notes
 - [x] Backup and restore with one button
 - [x] Map drawing tool (land, terrain brushes, rivers and roads, stamps, labels, layers, PNG export)

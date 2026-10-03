@@ -47,6 +47,16 @@ button:disabled { opacity: .4; cursor: default; }
 .side { background: var(--panel); border-right: 1px solid var(--line); padding: .8rem; overflow: auto; min-height: 0; }
 .side.right { border-right: 0; border-left: 1px solid var(--line); }
 .pane { padding: 1.2rem 1.6rem; overflow: auto; min-height: 0; }
+
+/* focus mode: no menus, only the text */
+.app.focus { grid-template-columns: 1fr; }
+.app.focus .nav { display: none; }
+.split.focus, .split.wide.focus { grid-template-columns: 1fr; }
+.split.focus .side { display: none; }
+.split.focus .pane { padding: 6vh 1.6rem 0; }
+.split.focus .pane > *:not(.focus-hud) { max-width: 44rem; margin-left: auto; margin-right: auto; }
+.focus-hud { position: fixed; right: 1rem; bottom: .8rem; z-index: 20; display: flex; gap: .8rem; align-items: center; font-size: .8rem; color: var(--muted); opacity: .35; transition: opacity .2s; }
+.focus-hud:hover { opacity: 1; }
 .row { display: flex; gap: .5rem; align-items: center; }
 .row > * { flex: 1; } .row > button, .row > .fit { flex: 0 0 auto; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }

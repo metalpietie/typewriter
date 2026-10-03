@@ -5,10 +5,11 @@
   import Placeholder from '@tiptap/extension-placeholder';
   import SaveIndicator from './SaveIndicator.svelte';
 
-  let { value, onchange, placeholder = 'Start writing…' }: {
+  let { value, onchange, placeholder = 'Start writing…', bare = false }: {
     value: string;
     onchange: (html: string) => void;
     placeholder?: string;
+    bare?: boolean; // hide the toolbar (focus mode)
   } = $props();
 
   let host: HTMLElement;
@@ -35,7 +36,7 @@
 </script>
 
 <div class="rich">
-  <div class="rich-bar">
+  <div class="rich-bar" hidden={bare}>
     <button class:active={is('bold')} title="Bold (Ctrl+B)" onclick={() => run().toggleBold().run()}><b>B</b></button>
     <button class:active={is('italic')} title="Italic (Ctrl+I)" onclick={() => run().toggleItalic().run()}><i>I</i></button>
     <button class:active={is('underline')} title="Underline (Ctrl+U)" onclick={() => run().toggleUnderline().run()}><u>U</u></button>
@@ -63,6 +64,7 @@
     position: sticky; top: -1.2rem; z-index: 5; background: var(--bg);
     padding: .4rem 0; border-bottom: 1px solid var(--line); margin-bottom: .8rem;
   }
+  .rich-bar[hidden] { display: none; }
   .rich-bar button { padding: .2rem .55rem; min-width: 2rem; }
   .rich-save { margin-left: auto; }
   .sep { width: 1px; height: 1.4rem; background: var(--line); margin: 0 .3rem; }

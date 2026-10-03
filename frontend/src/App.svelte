@@ -35,7 +35,7 @@
 <Search />
 <UndoToast />
 
-<div class="app">
+<div class="app" class:focus={nav.focus}>
   <nav class="nav">
     <div class="brand"><img src="/logo.svg" alt="" />Typewriter</div>
     <button class="search-btn" onclick={() => (nav.searchOpen = true)}>Search <kbd>Ctrl+K</kbd></button>

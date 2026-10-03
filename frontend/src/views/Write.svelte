@@ -1,14 +1,47 @@
 <script lang="ts">
+  import { onDestroy } from 'svelte';
   import { flip } from 'svelte/animate';
+  import { Window } from '@wailsio/runtime';
   import { db, toHtml } from '../lib/db.svelte';
+  import { nav } from '../lib/nav.svelte';
   import { STATUSES, scenesOf, sceneWords, chapterWords, chapterCast, addScene } from '../lib/scenes';
+  import { maybeAutoVersion } from '../lib/versions';
   import RichEditor from '../lib/RichEditor.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import ProgressBar from '../lib/ProgressBar.svelte';
+  import FindReplace from '../lib/FindReplace.svelte';
+  import History from '../lib/History.svelte';
+  import SaveIndicator from '../lib/SaveIndicator.svelte';
 
   let bookId = $state<number | null>(null);
   let chapId = $state<number | null>(null);
   let sceneId = $state<number | null>(null);
+
+  let showFind = $state(false);
+  let showHistory = $state(false);
+  let rev = $state(0); // bump to reload the editor after the text was changed from outside it
+
+  /** Focus mode hides everything but the text, and fills the screen. */
+  async function setFocus(on: boolean) {
+    nav.focus = on;
+    try { await (on ? Window.Fullscreen() : Window.UnFullscreen()); } catch { /* still fine without full screen */ }
+  }
+  onDestroy(() => { if (nav.focus) setFocus(false); });
+
+  function onKey(e: KeyboardEvent) {
+    const ctrl = e.ctrlKey || e.metaKey;
+    if (ctrl && e.key.toLowerCase() === 'h') { e.preventDefault(); showFind = true; }
+    else if (e.key === 'F11' || (ctrl && e.shiftKey && e.key.toLowerCase() === 'f')) { e.preventDefault(); setFocus(!nav.focus); }
+    // the find and history windows are still open when this runs, so Esc closes them first
+    else if (e.key === 'Escape' && nav.focus && !showFind && !showHistory && !nav.searchOpen) setFocus(false);
+  }
+
+  function jumpToScene(id: number) {
+    const s = db.get('scene', id);
+    const c = db.get('chapter', s?.chapter);
+    if (!s || !c) return;
+    bookId = c.book; chapId = c.id; sceneId = s.id;
+  }
 
   const book = $derived(db.get('book', bookId));
   const chapters = $derived(db.lists.chapter.filter((c) => c.book === bookId).sort((a, b) => a.order - b.order));
@@ -181,7 +214,9 @@
   }
 </script>
 
-<div class="split wide">
+<svelte:window onkeydown={onKey} />
+
+<div class="split wide" class:focus={nav.focus}>
   <aside class="side">
     <div class="row"><select bind:value={bookId} onchange={() => pickChapter(null)}>
       <option value={null}>— choose a book —</option>
@@ -234,19 +269,33 @@
   </aside>
 
   <section class="pane">
+    {#if !nav.focus}
+      <div class="tools">
+        <button class="small" onclick={() => (showFind = true)}>Find &amp; replace <kbd>Ctrl+H</kbd></button>
+        {#if scene}<button class="small" onclick={() => (showHistory = true)}>History</button>{/if}
+        <button class="small" onclick={() => setFocus(true)}>Focus mode <kbd>F11</kbd></button>
+      </div>
+    {/if}
     {#if chap && scene}
-      <input class="editor" style="font-size:1.4rem;min-height:0;margin-bottom:.4rem" bind:value={chap.title} oninput={saveChap} placeholder="Chapter title" />
-      <input class="scenetitle" bind:value={scene.title} oninput={saveScene} placeholder="Scene title (only you see this)" />
-      {#key scene.id}
-        <RichEditor value={toHtml(scene.body ?? '')} onchange={(html) => { scene.body = html; saveScene(); }} />
+      {#if !nav.focus}
+        <input class="editor" style="font-size:1.4rem;min-height:0;margin-bottom:.4rem" bind:value={chap.title} oninput={saveChap} placeholder="Chapter title" />
+        <input class="scenetitle" bind:value={scene.title} oninput={saveScene} placeholder="Scene title (only you see this)" />
+      {/if}
+      {#key scene.id + ':' + rev}
+        <RichEditor bare={nav.focus} value={toHtml(scene.body ?? '')}
+          onchange={(html) => { const before = scene.body ?? ''; scene.body = html; saveScene(); maybeAutoVersion(scene.id, before); }} />
       {/key}
       {@const words = sceneWords(scene)}
-      {#if Number(scene.goal) > 0}<div style="margin-top:.6rem"><ProgressBar value={words} goal={Number(scene.goal)} /></div>{/if}
-      <p class="muted">
-        Scene: {words.toLocaleString()}{Number(scene.goal) ? ' / ' + Number(scene.goal).toLocaleString() : ''} words{pctText(words, Number(scene.goal))}
-        · Chapter: {chapWords.toLocaleString()}{goalOf(chap) ? ' / ' + goalOf(chap).toLocaleString() : ''} words{pctText(chapWords, goalOf(chap))}
-        {#if goalOf(chap) && chapWords >= goalOf(chap)} · chapter goal reached{/if}
-      </p>
+      {#if nav.focus}
+        <div class="focus-hud">{words.toLocaleString()} words <SaveIndicator /> <span>Esc to leave</span></div>
+      {:else}
+        {#if Number(scene.goal) > 0}<div style="margin-top:.6rem"><ProgressBar value={words} goal={Number(scene.goal)} /></div>{/if}
+        <p class="muted">
+          Scene: {words.toLocaleString()}{Number(scene.goal) ? ' / ' + Number(scene.goal).toLocaleString() : ''} words{pctText(words, Number(scene.goal))}
+          · Chapter: {chapWords.toLocaleString()}{goalOf(chap) ? ' / ' + goalOf(chap).toLocaleString() : ''} words{pctText(chapWords, goalOf(chap))}
+          {#if goalOf(chap) && chapWords >= goalOf(chap)} · chapter goal reached{/if}
+        </p>
+      {/if}
     {:else if chap}
       <input class="editor" style="font-size:1.4rem;min-height:0;margin-bottom:.8rem" bind:value={chap.title} oninput={saveChap} />
       <div class="empty">This chapter has no scenes yet. <button class="primary" onclick={newScene}>+ Add the first scene</button></div>
@@ -315,6 +364,15 @@
   </aside>
 </div>
 
+{#if showFind}
+  <FindReplace {bookId} onjump={jumpToScene} onchanged={() => rev++} onclose={() => (showFind = false)} />
+{/if}
+{#if showHistory && scene}
+  <History sceneId={scene.id} title={scene.title} current={() => scene.body ?? ''}
+    onrestore={async (body) => { scene.body = body; await db.save('scene', scene); rev++; }}
+    onclose={() => (showHistory = false)} />
+{/if}
+
 {#if drag}<div class="ghost" style="transform: translate({ghost.x + 14}px, {ghost.y + 8}px) rotate({ghost.tilt}deg)"><span>{drag.label}</span></div>{/if}
 
 <style>
@@ -363,4 +421,6 @@
     .ghost, .ghost span, .drop-before::before, .drop-after::before, .drop-into, .landed, .dragging { animation: none; transition: none; }
   }
   .scenetitle { margin-bottom: .6rem; font-size: .95rem; color: var(--muted); }
+  .tools { display: flex; gap: .4rem; margin-bottom: .6rem; }
+  .tools kbd { font-size: .7rem; color: var(--muted); margin-left: .3rem; }
 </style>

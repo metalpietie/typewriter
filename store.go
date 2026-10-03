@@ -25,7 +25,7 @@ type Store struct {
 
 var kinds = map[string]bool{
 	"book": true, "chapter": true, "character": true, "relationship": true,
-	"location": true, "map": true, "pathpoint": true, "note": true, "event": true, "mapdoc": true, "scene": true,
+	"location": true, "map": true, "pathpoint": true, "note": true, "event": true, "mapdoc": true, "scene": true, "version": true,
 }
 
 // cascades lists, per kind, the JSON links that must go when that item is deleted.
@@ -34,6 +34,7 @@ var cascades = map[string][][2]string{
 	"map":       {{"pathpoint", "map"}, {"mapdoc", "map"}},
 	"book":      {{"chapter", "book"}, {"scene", "book"}},
 	"chapter":   {{"scene", "chapter"}},
+	"scene":     {{"version", "scene"}},
 }
 
 func OpenStore() (*Store, error) {
@@ -108,6 +109,35 @@ func (s *Store) Save(d Doc) (Doc, error) {
 	return d, err
 }
 
+// ListBy returns the items of one kind whose JSON field equals id, newest first.
+// History uses it to read the saved versions of one scene without loading all of them.
+func (s *Store) ListBy(kind, field string, id int64) ([]Doc, error) {
+	if !kinds[kind] {
+		return nil, fmt.Errorf("unknown kind %q", kind)
+	}
+	for _, r := range field {
+		if !(r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '_') {
+			return nil, fmt.Errorf("bad field %q", field)
+		}
+	}
+	rows, err := s.db.Query(
+		`SELECT id, kind, data, updated_at FROM docs WHERE kind = ? AND json_extract(data, ?) = ? ORDER BY id DESC`,
+		kind, "$."+field, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []Doc{}
+	for rows.Next() {
+		var d Doc
+		if err := rows.Scan(&d.ID, &d.Kind, &d.Data, &d.UpdatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, d)
+	}
+	return out, rows.Err()
+}
+
 // rowsWhere reads every item of a kind whose JSON field equals id.
 func rowsWhere(tx *sql.Tx, kind, field string, id int64) ([]Doc, error) {
 	rows, err := tx.Query(
@@ -161,6 +191,25 @@ func (s *Store) Delete(kind string, id int64) ([]Doc, error) {
 		if _, err := tx.Exec(
 			`DELETE FROM docs WHERE kind = ? AND json_extract(data, ?) = ?`,
 			c[0], "$."+c[1], id); err != nil {
+			return nil, err
+		}
+	}
+	if kind == "book" || kind == "chapter" { // saved versions of the scenes that just went
+		const orphans = `kind = 'version' AND json_extract(data, '$.scene') NOT IN (SELECT id FROM docs WHERE kind = 'scene')`
+		rows, err := tx.Query(`SELECT id, kind, data, updated_at FROM docs WHERE ` + orphans)
+		if err != nil {
+			return nil, err
+		}
+		for rows.Next() {
+			var d Doc
+			if err := rows.Scan(&d.ID, &d.Kind, &d.Data, &d.UpdatedAt); err != nil {
+				rows.Close()
+				return nil, err
+			}
+			removed = append(removed, d)
+		}
+		rows.Close()
+		if _, err := tx.Exec(`DELETE FROM docs WHERE ` + orphans); err != nil {
 			return nil, err
 		}
 	}

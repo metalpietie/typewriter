@@ -69,6 +69,28 @@ Scenes also show up elsewhere: each scene is its own row on the **Timeline**, **
 
 When you export, the scenes of a chapter are joined with a scene break (`* * *`). The first paragraph of each scene has no indent.
 
+#### Focus mode
+
+Press **F11** (or **Ctrl+Shift+F**, or the **Focus mode** button) to hide every menu and panel. You see only the text. The window goes full screen. A small word count and save status sit in the corner. Press **Esc** to leave.
+
+#### Find and replace
+
+Press **Ctrl+H** (or the **Find & replace** button). Type the text to find. Every scene that holds it is listed, with the words around each match.
+
+- **Match case** and **Whole word** narrow the search. **All books** searches the whole series.
+- Click a scene name to jump to it.
+- **Replace here** changes one scene. **Replace all** changes every scene in the list.
+- Bold and italic stay as they are. A match that runs across a style change (half bold, half plain) is not found.
+- Before each change, the old text of that scene is saved in History.
+
+#### History
+
+Press **History** to see old copies of the open scene. Click one to read it. **Go back to this** puts it back. The text you had just before is saved first, so you can undo going back.
+
+- The app keeps a copy of the old text when you start writing, at most once every 10 minutes per scene. It keeps the last 40 of these.
+- **Save a copy now** makes a copy that you name. The app never removes these by itself.
+- Deleting a scene deletes its copies. If you press **Undo** on the delete message, they come back.
+
 ### Characters
 
 Press **+ New** to add a character. Fill in the role, looks, traits, backstory, goals, and notes. Add your own fields, such as "Eye colour". Pick a colour. The same colour is used on the graph and the maps.
@@ -189,7 +211,7 @@ Deleting removes the things that depend on it:
 After you change a Go method that the frontend calls, regenerate the bindings:
 
 ```bash
-wails3 generate bindings -ts
+wails3 generate bindings -clean=true -ts -i
 ```
 
 ### How data is stored
