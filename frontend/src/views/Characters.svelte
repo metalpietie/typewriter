@@ -1,12 +1,10 @@
 <script lang="ts">
-  import { db, ROLES, REL_TYPES } from '../lib/db.svelte';
+  import { db, ROLES, REL_TYPES, CHARACTER_COLORS as PALETTE } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import Backlinks from '../lib/Backlinks.svelte';
   import { nav, openItem } from '../lib/nav.svelte';
   import { scenesOf, sceneLabel } from '../lib/scenes';
   import { itemsHeldBy, membershipsOf } from '../lib/items';
-
-  const PALETTE = ['#2cd5e8', '#e0b25f', '#6bbf8a', '#5aa9d9', '#e0689f', '#8f6bd1', '#d98a5b', '#d9625b', '#b5c95b'];
 
   let selId = $state<number | null>(null);
   // Jump here when a search result is picked.
@@ -56,6 +54,7 @@
       <input placeholder="Search…" bind:value={search} />
       <button class="primary" onclick={add}>+ New</button>
     </div>
+    <button class="small" style="width:100%;margin-top:.4rem" onclick={() => (nav.names = 'person')}>Name generator…</button>
     <div class="list">
       {#each shown as c (c.id)}
         <button class="item" class:on={c.id === selId} onclick={() => (selId = c.id)}>

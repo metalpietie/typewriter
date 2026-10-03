@@ -128,6 +128,18 @@ Press **+ New** to add a character. Fill in the role, looks, traits, backstory, 
 
 The bottom of each character shows their relationships, their chapters, and how many map steps they have.
 
+### Name generator
+
+Press **Name generator…** on the **Characters** screen (people) or on the **Places** list in the **World** screen (places).
+
+- Pick a **style**: Elvish, Dwarvish, Norse, Old English, Desert, or Harsh. Each style builds names from its own sound pieces. Places get endings such as "-ford", "-heim" or "-hold".
+- **My own words** builds names from words you give it, for example `frost, ember, hollow, stone` gives "Emberfrost" and "Stonefrost". Your words are saved.
+- The panel shows 12 names. Press **Generate again** for more. Click a name to copy it.
+- **＋ Character** or **＋ Place** makes a new item with that name and opens it.
+- Names already used by a character (or its aliases), place, faction, or item are left out.
+
+The names are made up from rules. Some sound odd, so press **Generate again**.
+
 ### Relationships
 
 This screen draws a graph of how characters connect.

@@ -4,6 +4,7 @@
   import { nav } from './lib/nav.svelte';
   import Search from './lib/Search.svelte';
   import CalendarEditor from './lib/CalendarEditor.svelte';
+  import NameGenerator from './lib/NameGenerator.svelte';
   import UndoToast from './lib/UndoToast.svelte';
   import { migrateChapters } from './lib/scenes';
   import { currentTheme, setTheme, type Theme } from './lib/theme';
@@ -52,6 +53,7 @@
 <Search />
 <UndoToast />
 {#if nav.calendar}<CalendarEditor />{/if}
+{#if nav.names}<NameGenerator />{/if}
 
 <div class="app" class:focus={nav.focus}>
   <nav class="nav">

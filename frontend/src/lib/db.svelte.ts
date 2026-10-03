@@ -133,6 +133,7 @@ export const REL_TYPES: Record<string, string> = {
   family: '#e0b25f', friend: '#6bbf8a', ally: '#5aa9d9', romance: '#e0689f',
   mentor: '#8f7bf0', rival: '#d98a5b', enemy: '#d9625b', other: '#9c93a6',
 };
+export const CHARACTER_COLORS = ['#2cd5e8', '#e0b25f', '#6bbf8a', '#5aa9d9', '#e0689f', '#8f6bd1', '#d98a5b', '#d9625b', '#b5c95b'];
 export const ROLES = ['protagonist', 'antagonist', 'supporting', 'minor'];
 export const NOTE_CATEGORIES = ['History', 'Magic', 'Culture', 'Religion', 'Politics', 'Creatures', 'Technology', 'Language', 'Other'];
 export const PLACE_TYPES = ['city', 'town', 'village', 'fortress', 'ruin', 'landmark', 'region', 'water', 'other'];

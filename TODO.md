@@ -2,7 +2,7 @@
 
 Ideas for Typewriter. Nothing here is built yet. Move an item up when you want it next.
 
-Suggested order: **import a Word file**, then the rest.
+Suggested order: **portraits**, then the rest. Skip the items marked **not now**.
 
 ## Writing
 
@@ -11,7 +11,6 @@ Nothing open here.
 
 ## World building
 
-- [ ] Name generator for people and places
 - [ ] Portrait for each character and a picture for each place
 
 ## Maps and paths
@@ -28,10 +27,11 @@ Nothing open here.
 ## Data and files
 
 - [ ] Several projects: one data file per series
-- [ ] Import a Word file as chapters
+- [ ] Import a Word file as chapters (**not now**: only useful to move an old draft in once)
 
 ## Done
 
+- [x] Name generator for people and places
 - [x] More export types: EPUB, Markdown, and a print-ready PDF with page size choices
 - [x] Calendar system: your own months, days, and year names for the timeline
 - [x] Dashboard start screen with goals, recent work, and to-dos
