@@ -1,6 +1,7 @@
 <script lang="ts">
   import { db, PLACE_TYPES } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
+  import { scenesOf } from '../lib/scenes';
   import MapEditor from '../lib/mapdraw/MapEditor.svelte';
 
   let mapId = $state<number | null>(null);
@@ -303,10 +304,17 @@
         <label>When (story time)</label><input bind:value={point.when} oninput={savePoint} />
         <label>Timeline position (number, e.g. year)</label><input type="number" step="any" bind:value={point.time} oninput={savePoint} />
         <label>Chapter</label>
-        <select bind:value={point.chapter} onchange={savePoint}>
+        <select bind:value={point.chapter} onchange={() => { point.scene = null; savePoint(); }}>
           <option value={null}>— none —</option>
           {#each chapters as c}<option value={c.id}>{db.name('book', c.book, 'title')} · {c.order}. {c.title}</option>{/each}
         </select>
+        {#if point.chapter && scenesOf(point.chapter).length}
+          <label>Scene</label>
+          <select bind:value={point.scene} onchange={savePoint}>
+            <option value={null}>— none —</option>
+            {#each scenesOf(point.chapter) as s, i}<option value={s.id}>{i + 1}. {s.title || 'Untitled'}</option>{/each}
+          </select>
+        {/if}
         <label>Place</label>
         <select bind:value={point.location} onchange={savePoint}>
           <option value={null}>— none —</option>

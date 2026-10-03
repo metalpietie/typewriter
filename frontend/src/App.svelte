@@ -4,6 +4,7 @@
   import { nav } from './lib/nav.svelte';
   import Search from './lib/Search.svelte';
   import UndoToast from './lib/UndoToast.svelte';
+  import { migrateChapters } from './lib/scenes';
   import { currentTheme, setTheme, type Theme } from './lib/theme';
   import Write from './views/Write.svelte';
   import Characters from './views/Characters.svelte';
@@ -27,7 +28,7 @@
   let theme = $state<Theme>(currentTheme());
   function toggleTheme() { theme = theme === 'dark' ? 'light' : 'dark'; setTheme(theme); }
 
-  onMount(() => { db.load().catch((e) => (error = String(e))); });
+  onMount(() => { db.load().then(migrateChapters).catch((e) => (error = String(e))); });
 </script>
 
 <svelte:window onbeforeunload={() => db.flush()} onpagehide={() => db.flush()} onkeydown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); nav.searchOpen = !nav.searchOpen; } }} />

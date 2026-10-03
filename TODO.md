@@ -6,7 +6,6 @@ Suggested order: **@ links and backlinks**, then the rest.
 
 ## Writing
 
-- [ ] Scenes: split a chapter into scenes, each with its own notes
 - [ ] Full-screen focus mode (no menus, only the text)
 - [ ] Daily writing goal, with a streak and a history graph
 - [ ] Find and replace across all chapters
@@ -49,5 +48,6 @@ Suggested order: **@ links and backlinks**, then the rest.
 
 ## Done
 
+- [x] Scenes: split a chapter into scenes, each with its own place, point of view, cast, time, and notes
 - [x] Backup and restore with one button
 - [x] Map drawing tool (land, terrain brushes, rivers and roads, stamps, labels, layers, PNG export)

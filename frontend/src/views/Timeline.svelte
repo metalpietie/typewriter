@@ -1,5 +1,6 @@
 <script lang="ts">
   import { db } from '../lib/db.svelte';
+  import { scenesOf, chapterCast, chapterHasPov } from '../lib/scenes';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
 
   let mode = $state<'time' | 'lanes'>('time');
@@ -15,7 +16,7 @@
     ),
   );
 
-  type Row = { key: string; type: 'event' | 'chapter' | 'step'; id: number; time: number; title: string; when: string; sub: string; color: string; chars: number[] };
+  type Row = { key: string; type: 'event' | 'chapter' | 'step'; id: number; time: number; title: string; when: string; sub: string; color: string; chars: number[]; label?: string };
 
   const all = $derived.by<Row[]>(() => {
     const rows: Row[] = [];
@@ -26,6 +27,18 @@
       });
     }
     for (const c of chapters) {
+      const sc = scenesOf(c.id);
+      if (sc.length) {
+        sc.forEach((s, i) => {
+          const cast = new Set<number>([...(s.pov ? [s.pov] : []), ...(s.characters ?? [])]);
+          rows.push({
+            key: 's' + s.id, type: 'chapter', label: 'scene', id: s.id, time: s.time,
+            title: `${db.name('book', c.book, 'title')} · ch. ${c.order}, scene ${i + 1}${s.title ? ': ' + s.title : ''}`,
+            when: s.when ?? '', sub: s.summary ?? '', color: 'var(--accent-2)', chars: [...cast].filter((x) => db.get('character', x)),
+          });
+        });
+        continue;
+      }
       rows.push({
         key: 'c' + c.id, type: 'chapter', id: c.id, time: c.time, title: `${db.name('book', c.book, 'title')} · ch. ${c.order}: ${c.title}`,
         when: c.when ?? '', sub: c.summary ?? '', color: 'var(--accent-2)', chars: (c.characters ?? []).filter((x: number) => db.get('character', x)),
@@ -62,7 +75,7 @@
 
   function cell(c: any, ch: any) {
     const steps = db.lists.pathpoint.filter((p) => p.character === c.id && p.chapter === ch.id).length;
-    return { pov: ch.pov === c.id, present: (ch.characters ?? []).includes(c.id), steps };
+    return { pov: chapterHasPov(ch, c.id), present: chapterCast(ch).includes(c.id), steps };
   }
 </script>
 
@@ -76,7 +89,7 @@
     {#if mode === 'time'}
       <button class="primary" style="width:100%" onclick={add}>+ New event</button>
       <h3 style="margin-top:1rem">Show</h3>
-      {#each [['event', 'Events'], ['chapter', 'Chapters'], ['step', 'Path steps']] as [k, label]}
+      {#each [['event', 'Events'], ['chapter', 'Chapters and scenes'], ['step', 'Path steps']] as [k, label]}
         <label style="display:flex;gap:.4rem;margin:.2rem 0;color:var(--text)">
           <input type="checkbox" style="width:auto" bind:checked={show[k as 'event']} />{label}
         </label>
@@ -130,7 +143,7 @@
               {r.when || r.time}
             </span>
             <span class="dot" style="position:absolute;left:calc(-2rem - 7px + 1px);top:1rem;background:{r.color}"></span>
-            <div class="head" style="margin:0"><strong>{r.title}</strong><span class="chip" style="margin:0">{r.type === 'step' ? 'path step' : r.type}</span></div>
+            <div class="head" style="margin:0"><strong>{r.title}</strong><span class="chip" style="margin:0">{r.label ?? (r.type === 'step' ? 'path step' : r.type)}</span></div>
             {#if r.sub}<div class="muted" style="margin-top:.3rem">{r.sub}</div>{/if}
             <div style="margin-top:.4rem">
               {#each r.chars as id}<span class="chip"><span class="dot" style="display:inline-block;background:{db.get('character', id)?.color}"></span> {db.name('character', id)}</span>{/each}
@@ -158,7 +171,7 @@
                   <th style="min-width:96px;max-width:96px;padding:.4rem;font-size:.75rem;font-weight:500;vertical-align:bottom;border-bottom:1px solid var(--line)">
                     <div class="muted">{db.name('book', ch.book, 'title')}</div>
                     {ch.order}. {ch.title}
-                    {#if ch.when}<div class="muted">{ch.when}</div>{/if}
+                    {#if scenesOf(ch.id)[0]?.when || ch.when}<div class="muted">{scenesOf(ch.id)[0]?.when || ch.when}</div>{/if}
                   </th>
                 {/each}
               </tr>

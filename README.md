@@ -47,11 +47,27 @@ Use the menu on the left to switch screens. Press **Ctrl+K** anywhere to search.
 ### Write
 
 1. Press **+ Book**, then give the book a title and a place in the series.
-2. Press **+ Chapter**. Write in the editor. It looks like the page you will export. The toolbar has bold, italic, underline, three heading sizes, lists, quotes, a scene break (`* * *`), and undo/redo. The usual shortcuts work: Ctrl+B, Ctrl+I, Ctrl+U. The word count updates as you type.
-3. In the right panel, set each chapter's status, point-of-view character, main place, story time, and who is in it.
-4. Use the ↑ and ↓ buttons to reorder chapters.
+2. Press **+ Chapter**. A chapter holds one or more **scenes**. The new chapter starts with Scene 1.
+3. Write in the editor. It looks like the page you will export. The toolbar has bold, italic, underline, three heading sizes, lists, quotes, a scene break (`* * *`), and undo/redo. The usual shortcuts work: Ctrl+B, Ctrl+I, Ctrl+U. The word count updates as you type.
+4. Reorder by dragging. Drag a chapter or a scene in the left list and drop it where you want it. A line shows the spot. You can also use the ↑ and ↓ buttons in the right panel.
 
 Chapters you wrote before the editor existed open as plain paragraphs. They convert when you edit them.
+
+#### Scenes
+
+A scene is a part of a chapter with its own place, point of view, time, and cast. Use scenes when a chapter jumps around.
+
+- In the left list, the open chapter shows its scenes. Press **+ Scene** to add one. Click a scene to write it.
+- The **Scene** panel on the right holds the status (idea, draft, revised, final), point of view, place, story time, a timeline number, who is in it, notes and plan, and a word goal.
+- A scene with only notes and no text is a plan. Fill in the text later.
+- **Drag a scene** up or down to reorder it. Drop it on another chapter's name to move it to the end of that chapter. **Move to chapter** in the panel does the same.
+- The **Chapter** panel holds the chapter goal and summary, and shows everyone who appears in any of its scenes.
+- The scene title is for you. It does not print.
+- Older chapters that had their own text, cast, and place are converted once, when the app starts. The text becomes Scene 1 of that chapter.
+
+Scenes also show up elsewhere: each scene is its own row on the **Timeline**, **Who's where** counts a character as present in a chapter if they are in any scene, a character's page lists their scenes, and a map path step can name a chapter and a scene.
+
+When you export, the scenes of a chapter are joined with a scene break (`* * *`). The first paragraph of each scene has no indent.
 
 ### Characters
 
@@ -154,7 +170,8 @@ Deleting removes the things that depend on it:
 | --- | --- |
 | A character | Their relationships and map steps |
 | A map | Its path steps. The places stay, unpinned. |
-| A book | Its chapters |
+| A chapter | Its scenes |
+| A book | Its chapters and scenes |
 
 ## Project layout
 

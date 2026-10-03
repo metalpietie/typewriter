@@ -2,6 +2,7 @@
   import { db, ROLES, REL_TYPES } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import { nav } from '../lib/nav.svelte';
+  import { scenesOf, sceneLabel } from '../lib/scenes';
 
   const PALETTE = ['#2cd5e8', '#e0b25f', '#6bbf8a', '#5aa9d9', '#e0689f', '#8f6bd1', '#d98a5b', '#d9625b', '#b5c95b'];
 
@@ -21,9 +22,15 @@
   const rels = $derived(
     db.lists.relationship.filter((r) => r.a === selId || r.b === selId),
   );
-  const scenes = $derived(
-    db.lists.chapter.filter((c) => c.pov === selId || (c.characters ?? []).includes(selId)),
-  );
+  // Scenes the character is in, plus older chapters that have no scenes yet.
+  const scenes = $derived([
+    ...db.lists.scene
+      .filter((s) => s.pov === selId || (s.characters ?? []).includes(selId))
+      .map((s) => ({ id: 's' + s.id, title: sceneLabel(s) })),
+    ...db.lists.chapter
+      .filter((c) => !scenesOf(c.id).length && (c.pov === selId || (c.characters ?? []).includes(selId)))
+      .map((c) => ({ id: 'c' + c.id, title: c.title || 'Untitled' })),
+  ]);
   const pathCount = $derived(db.lists.pathpoint.filter((p) => p.character === selId).length);
 
   async function add() {
@@ -106,10 +113,10 @@
         {:else}<span class="muted">No relationships yet. Add them in the Relationships tab.</span>{/each}
       </div>
       <div class="card">
-        <strong>{scenes.length}</strong> chapter{scenes.length === 1 ? '' : 's'} ·
+        <strong>{scenes.length}</strong> scene{scenes.length === 1 ? '' : 's'} ·
         <strong>{pathCount}</strong> map path point{pathCount === 1 ? '' : 's'}
         <div style="margin-top:.5rem">
-          {#each scenes as c}<span class="chip">{c.title || 'Untitled'}</span>{/each}
+          {#each scenes as c (c.id)}<span class="chip">{c.title}</span>{/each}
         </div>
       </div>
     {:else}

@@ -143,7 +143,7 @@ func paragraphs(s string) []string {
 }
 
 func (e *Exporter) manuscript(bookID int64) ([]block, string) {
-	books, chapters := e.load("book"), e.load("chapter")
+	books, chapters, scenes := e.load("book"), e.load("chapter"), e.load("scene")
 	byOrder(books, "order")
 	var out []block
 	title := "Manuscript"
@@ -177,14 +177,7 @@ func (e *Exporter) manuscript(bookID int64) ([]block, string) {
 				h += ": " + t
 			}
 			out = append(out, block{kind: "h1", text: h})
-			body := chapterBlocks(str(c, "body"))
-			for i := range body {
-				if body[i].kind == "p" {
-					body[i].flush = true
-					break
-				}
-			}
-			out = append(out, body...)
+			out = append(out, chapterText(c, scenes)...)
 		}
 		title = str(b, "title")
 	}
@@ -525,4 +518,42 @@ func (e *Exporter) SaveImage(name, dataURL string) (string, error) {
 		path += ".png"
 	}
 	return path, os.WriteFile(path, raw, 0o644)
+}
+
+// chapterText is the text of one chapter. A chapter with scenes is its scenes in order, with a
+// scene break between them. An older chapter without scenes uses its own text.
+func chapterText(c rec, scenes []rec) []block {
+	var mine []rec
+	for _, sc := range scenes {
+		if num(sc, "chapter") == num(c, "id") {
+			mine = append(mine, sc)
+		}
+	}
+	if len(mine) == 0 {
+		return flushFirst(chapterBlocks(str(c, "body")))
+	}
+	byOrder(mine, "order")
+	var out []block
+	for _, sc := range mine {
+		body := flushFirst(chapterBlocks(str(sc, "body")))
+		if len(body) == 0 {
+			continue // a planned scene with no text yet
+		}
+		if len(out) > 0 {
+			out = append(out, block{kind: "rule"})
+		}
+		out = append(out, body...)
+	}
+	return out
+}
+
+// flushFirst takes the indent off the first paragraph of a chapter or scene.
+func flushFirst(body []block) []block {
+	for i := range body {
+		if body[i].kind == "p" {
+			body[i].flush = true
+			break
+		}
+	}
+	return body
 }

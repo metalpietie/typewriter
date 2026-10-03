@@ -25,15 +25,15 @@ type Store struct {
 
 var kinds = map[string]bool{
 	"book": true, "chapter": true, "character": true, "relationship": true,
-	"location": true, "map": true, "pathpoint": true, "note": true, "event": true, "mapdoc": true,
+	"location": true, "map": true, "pathpoint": true, "note": true, "event": true, "mapdoc": true, "scene": true,
 }
 
 // cascades lists, per kind, the JSON links that must go when that item is deleted.
 var cascades = map[string][][2]string{
 	"character": {{"relationship", "a"}, {"relationship", "b"}, {"pathpoint", "character"}},
 	"map":       {{"pathpoint", "map"}, {"mapdoc", "map"}},
-	"book":      {{"chapter", "book"}},
-	"chapter":   {},
+	"book":      {{"chapter", "book"}, {"scene", "book"}},
+	"chapter":   {{"scene", "chapter"}},
 }
 
 func OpenStore() (*Store, error) {
