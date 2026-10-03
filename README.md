@@ -221,6 +221,15 @@ Places made here also show in the **World** screen. Use **Unpin** to take a plac
 
 The timeline sorts by a **number**, such as a year. "Year 312" is only a label. Fill in the number too. The field is called **Position** on events, and **Timeline position** on chapters and path steps. Items with no number stay off the timeline.
 
+### Dashboard
+
+The **Dashboard** is the first screen. It shows:
+
+- today's words, your daily goal, your streak, and a **Continue writing** button that opens the scene you changed last,
+- what needs attention: open plot holes, unfinished things, and open comments (click to go to the Checks tab),
+- your 8 most recent changes (scenes, characters, places, lore notes, factions, items, events). Click one to open it,
+- a **to-do** list. Type a task and press Enter. Tick it when done. **Clear done** removes the ticked ones.
+
 ### Statistics and daily goal
 
 The **Statistics** tab shows your progress.

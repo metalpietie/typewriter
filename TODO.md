@@ -2,7 +2,7 @@
 
 Ideas for Typewriter. Nothing here is built yet. Move an item up when you want it next.
 
-Suggested order: **dashboard**, then the rest.
+Suggested order: **calendar system**, then the rest.
 
 ## Writing
 
@@ -25,7 +25,6 @@ Nothing open here.
 
 ## Checks and tools
 
-- [ ] Dashboard start screen with goals, recent work, and to-dos
 
 ## Data and files
 
@@ -35,6 +34,7 @@ Nothing open here.
 
 ## Done
 
+- [x] Dashboard start screen with goals, recent work, and to-dos
 - [x] Daily writing goal, with a streak and a history graph
 - [x] Statistics: words per day, per chapter, and per character
 - [x] Consistency list: missing ages, empty profiles, places on no map

@@ -6,6 +6,7 @@
   import UndoToast from './lib/UndoToast.svelte';
   import { migrateChapters } from './lib/scenes';
   import { currentTheme, setTheme, type Theme } from './lib/theme';
+  import Dashboard from './views/Dashboard.svelte';
   import Write from './views/Write.svelte';
   import Characters from './views/Characters.svelte';
   import Relationships from './views/Relationships.svelte';
@@ -21,6 +22,7 @@
   import Export from './views/Export.svelte';
 
   const tabs = [
+    ['home', 'Dashboard'],
     ['write', 'Write'],
     ['characters', 'Characters'],
     ['relationships', 'Relationships'],
@@ -65,6 +67,7 @@
       <div class="pane">Could not open the database: {error}</div>
     {:else if !db.ready}
       <div class="pane muted">Loading…</div>
+    {:else if nav.tab === 'home'}<Dashboard />
     {:else if nav.tab === 'write'}<Write />
     {:else if nav.tab === 'characters'}<Characters />
     {:else if nav.tab === 'relationships'}<Relationships />
