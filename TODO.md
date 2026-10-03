@@ -2,7 +2,7 @@
 
 Ideas for Typewriter. Nothing here is built yet. Move an item up when you want it next.
 
-Suggested order: **automatic backups**, then the rest.
+Suggested order: **plot hole check**, then the rest.
 
 ## Writing
 
@@ -31,13 +31,13 @@ Suggested order: **automatic backups**, then the rest.
 
 ## Data and files
 
-- [ ] Automatic backups: a copy each day, keeping the last few
 - [ ] Several projects: one data file per series
 - [ ] More export types: EPUB, Markdown, and a print-ready PDF with page size choices
 - [ ] Import a Word file as chapters
 
 ## Done
 
+- [x] Automatic backups: a copy each day, keeping the last 7
 - [x] Factions and organizations: members, ranks, allies, enemies
 - [x] Family tree view, drawn from family links
 - [x] Items and artifacts: who owns them and where they have been

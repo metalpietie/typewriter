@@ -9,6 +9,7 @@ export {
 };
 
 export type {
+    AutoBackup,
     Doc,
     RestoreResult
 } from "./models.js";

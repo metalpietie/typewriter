@@ -239,7 +239,16 @@ PDF uses standard fonts. Letters outside Western languages may show as `?`. Use 
 Under the export options, the **Backup** section has two buttons.
 
 - **Back up my data…** saves one `.db` file with everything: books, characters, maps, and drawings. Pick where to save it. The file name has today's date. Keep copies on a USB drive or in cloud storage.
-- **Restore from backup…** replaces everything in the app with a backup file. It asks you to confirm first. Before it changes anything, it saves your current data to a safety copy in `%APPDATA%	ypewriterackups`. A file that is not a Typewriter backup is refused and nothing changes.
+- **Restore from backup…** replaces everything in the app with a backup file. It asks you to confirm first. Before it changes anything, it saves your current data to a safety copy in `%APPDATA%\typewriter\backups`. A file that is not a Typewriter backup is refused and nothing changes.
+
+#### Automatic backups
+
+You do not have to press anything. The first time you open the app each day, it saves a copy of your data in `%APPDATA%\typewriter\backups`. The file is called `auto-YYYY-MM-DD.db`. The app keeps the last 7 days and deletes older ones. If the app stays open past midnight, it makes the new copy within half an hour.
+
+- A copy is your data as it was when that day began. A mistake you make today is not in today's copy.
+- The **Automatic backups** list on the Export & Backup tab shows each copy. **Restore** (then **Sure?**) puts that copy back. Your current data is saved to a safety copy first. The app keeps the last 5 safety copies.
+- **Open the backup folder** shows the files. You can copy them to a USB drive or the cloud.
+- If the app has no data yet, it makes no copy. An empty copy never replaces a good one.
 
 ## Deleting things
 

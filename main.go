@@ -16,6 +16,8 @@ func main() {
 		log.Fatal(err)
 	}
 
+	store.StartAutoBackup() // one copy of your data per day
+
 	app := application.New(application.Options{
 		Name:        "Typewriter",
 		Description: "Write books. Track worlds, people and paths.",

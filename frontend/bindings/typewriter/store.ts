@@ -15,6 +15,13 @@ import { Call as $Call, CancellablePromise as $CancellablePromise } from "@wails
 import * as $models from "./models.js";
 
 /**
+ * AutoBackups lists the daily copies, newest first.
+ */
+export function AutoBackups(): $CancellablePromise<$models.AutoBackup[] | null> {
+    return $Call.ByID(3760417899);
+}
+
+/**
  * Backup asks where to save, then writes a copy of all your data.
  * It returns the saved path, or "" if you cancel.
  */
@@ -53,10 +60,24 @@ export function ListBy(kind: string, field: string, id: number): $CancellablePro
 }
 
 /**
+ * OpenBackupFolder shows the folder with the daily copies in the file manager.
+ */
+export function OpenBackupFolder(): $CancellablePromise<void> {
+    return $Call.ByID(3678566953);
+}
+
+/**
  * Restore puts items back exactly as Delete returned them, with their old ids.
  */
 export function Restore(docs: $models.Doc[] | null): $CancellablePromise<void> {
     return $Call.ByID(3517283055, docs);
+}
+
+/**
+ * RestoreAuto replaces all data with one of the daily copies. Your current data is saved to a safety copy first.
+ */
+export function RestoreAuto(name: string): $CancellablePromise<$models.RestoreResult> {
+    return $Call.ByID(3461220284, name);
 }
 
 /**
@@ -72,4 +93,11 @@ export function RestoreBackup(): $CancellablePromise<$models.RestoreResult> {
  */
 export function Save(d: $models.Doc): $CancellablePromise<$models.Doc> {
     return $Call.ByID(624024658, d);
+}
+
+/**
+ * StartAutoBackup makes today's copy now, then checks every half hour in case a new day began.
+ */
+export function StartAutoBackup(): $CancellablePromise<void> {
+    return $Call.ByID(2305477576);
 }
