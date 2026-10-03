@@ -83,6 +83,7 @@
   let drag: null | { kind: string; id: number; sx: number; sy: number; tx: number; ty: number; moved: boolean } = null;
 
   function down(e: PointerEvent) {
+    e.preventDefault(); // stops text selection while dragging
     if (!map) return;
     svg!.setPointerCapture(e.pointerId);
     const el = (e.target as Element).closest('[data-kind]') as HTMLElement | null;
