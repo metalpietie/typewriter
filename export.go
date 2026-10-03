@@ -190,7 +190,21 @@ func (e *Exporter) manuscript(bookID int64) ([]block, string) {
 func (e *Exporter) bible() []block {
 	chars, rels := e.load("character"), e.load("relationship")
 	places, notes, events := e.load("location"), e.load("note"), e.load("event")
+	factions, members, frels := e.load("faction"), e.load("membership"), e.load("factionrel")
+	items, logs := e.load("item"), e.load("itemlog")
+	byOrder(logs, "order")
 	out := []block{{kind: "title", text: "Story bible"}}
+
+	// the last log entry of an item says who has it and where it is now
+	lastLog := func(item float64) rec {
+		var last rec
+		for _, l := range logs {
+			if num(l, "item") == item {
+				last = l
+			}
+		}
+		return last
+	}
 
 	kv := func(label, text string) {
 		if text != "" {
@@ -228,12 +242,105 @@ func (e *Exporter) bible() []block {
 				continue
 			}
 			l := str(r, "type") + ": " + nameOf(chars, other, "name")
+			switch str(r, "fam") {
+			case "parent":
+				if num(c, "id") == num(r, "a") {
+					l = "parent of " + nameOf(chars, other, "name")
+				} else {
+					l = "child of " + nameOf(chars, other, "name")
+				}
+			case "partner":
+				l = "partner: " + nameOf(chars, other, "name")
+			case "sibling":
+				l = "sibling: " + nameOf(chars, other, "name")
+			}
 			if d := str(r, "description"); d != "" {
 				l += " (" + d + ")"
 			}
 			links = append(links, l)
 		}
 		kv("Relationships", strings.Join(links, "; "))
+		var in []string
+		for _, m := range members {
+			if num(m, "character") == num(c, "id") {
+				t := nameOf(factions, num(m, "faction"), "name")
+				if r := str(m, "rank"); r != "" {
+					t += " (" + r + ")"
+				}
+				in = append(in, t)
+			}
+		}
+		kv("Factions", strings.Join(in, "; "))
+		var held []string
+		for _, it := range items {
+			if l := lastLog(num(it, "id")); l != nil && num(l, "character") == num(c, "id") && has(l, "character") {
+				held = append(held, str(it, "name"))
+			}
+		}
+		kv("Items held", strings.Join(held, "; "))
+	}
+
+	out = append(out, block{kind: "pagebreak"}, block{kind: "h1", text: "Factions"})
+	for _, f := range factions {
+		out = append(out, block{kind: "h2", text: str(f, "name")})
+		kv("Type", str(f, "type"))
+		kv("Headquarters", nameOf(places, num(f, "hq"), "name"))
+		kv("Ranks", strings.Join(paragraphs(str(f, "ranks")), ", "))
+		kv("Description", str(f, "description"))
+		var who []string
+		for _, m := range members {
+			if num(m, "faction") == num(f, "id") {
+				t := nameOf(chars, num(m, "character"), "name")
+				if r := str(m, "rank"); r != "" {
+					t += " (" + r + ")"
+				}
+				who = append(who, t)
+			}
+		}
+		kv("Members", strings.Join(who, "; "))
+		var ties []string
+		for _, r := range frels {
+			var other float64
+			switch num(f, "id") {
+			case num(r, "a"):
+				other = num(r, "b")
+			case num(r, "b"):
+				other = num(r, "a")
+			default:
+				continue
+			}
+			ties = append(ties, str(r, "type")+": "+nameOf(factions, other, "name"))
+		}
+		kv("Relations", strings.Join(ties, "; "))
+	}
+
+	out = append(out, block{kind: "pagebreak"}, block{kind: "h1", text: "Items and artifacts"})
+	for _, it := range items {
+		out = append(out, block{kind: "h2", text: str(it, "name")})
+		kv("Type", str(it, "type"))
+		kv("Description", str(it, "description"))
+		kv("History", str(it, "history"))
+		var trail []string
+		for _, l := range logs {
+			if num(l, "item") != num(it, "id") {
+				continue
+			}
+			t := "unknown holder"
+			if has(l, "character") {
+				t = nameOf(chars, num(l, "character"), "name")
+			}
+			if has(l, "location") {
+				t += " at " + nameOf(places, num(l, "location"), "name")
+			}
+			if w := str(l, "when"); w != "" {
+				t += " (" + w + ")"
+			}
+			if n := str(l, "note"); n != "" {
+				t += ": " + n
+			}
+			trail = append(trail, t)
+		}
+		kv("Journey", strings.Join(trail, "; "))
 	}
 
 	out = append(out, block{kind: "pagebreak"}, block{kind: "h1", text: "Places"})

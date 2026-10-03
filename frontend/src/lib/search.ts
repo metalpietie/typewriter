@@ -63,15 +63,23 @@ function fieldsOf(kind: Kind, it: Item): Field[] {
     ];
   }
   if (kind === 'location') return [f(it.name, 3), f(it.tags, 2), f(it.type, 1), f(it.description, 1)];
+  if (kind === 'faction') return [f(it.name, 3), f(it.type, 1), f(it.ranks, 1), f(it.description, 1)];
+  if (kind === 'item') return [f(it.name, 3), f(it.tags, 2), f(it.type, 1), f(it.description, 1), f(it.history, 1)];
   return [f(it.title, 3), f(it.tags, 2), f(it.category, 1), f(it.body, 1)];
 }
 
 function titleOf(kind: Kind, it: Item) { return kind === 'note' ? it.title : it.name; }
-function subOf(kind: Kind, it: Item) { return kind === 'character' ? it.role : kind === 'location' ? `place · ${it.type}` : `lore · ${it.category}`; }
+function subOf(kind: Kind, it: Item) {
+  if (kind === 'character') return it.role;
+  if (kind === 'location') return `place · ${it.type}`;
+  if (kind === 'faction') return `faction · ${it.type ?? ''}`;
+  if (kind === 'item') return `item · ${it.type ?? ''}`;
+  return `lore · ${it.category}`;
+}
 function bodyOf(kind: Kind, it: Item): string {
   return kind === 'character'
     ? [it.description, it.backstory, it.traits, it.goals, it.notes].filter(Boolean).join(' ')
-    : (kind === 'location' ? it.description : it.body) ?? '';
+    : (kind === 'location' || kind === 'faction' || kind === 'item' ? it.description : it.body) ?? '';
 }
 
 function snippet(kind: Kind, it: Item, tokens: string[]): string {
@@ -91,7 +99,7 @@ export function search(query: string, lists: Record<Kind, Item[]>, limit = 30): 
   const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
   if (!tokens.length) return [];
   const hits: Hit[] = [];
-  const kinds: Kind[] = ['character', 'location', 'note'];
+  const kinds: Kind[] = ['character', 'location', 'note', 'faction', 'item'];
   for (const kind of kinds) {
     for (const it of lists[kind]) {
       const fields = fieldsOf(kind, it);

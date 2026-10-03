@@ -10,9 +10,6 @@ Suggested order: **automatic backups**, then the rest.
 
 ## World building
 
-- [ ] Factions and organizations: members, ranks, allies, enemies
-- [ ] Family tree view, drawn from family links
-- [ ] Items and artifacts: who owns them and where they have been
 - [ ] Calendar system: your own months, days, and year names for the timeline
 - [ ] Name generator for people and places
 - [ ] Portrait for each character and a picture for each place
@@ -41,6 +38,9 @@ Suggested order: **automatic backups**, then the rest.
 
 ## Done
 
+- [x] Factions and organizations: members, ranks, allies, enemies
+- [x] Family tree view, drawn from family links
+- [x] Items and artifacts: who owns them and where they have been
 - [x] `@name` links in text to a character, place or lore note, and backlinks on each item
 - [x] Character mention check: warn when a character is named in a scene but not in its cast
 - [x] Margin comments that you can resolve

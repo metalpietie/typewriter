@@ -1,8 +1,8 @@
 import { Store } from '../../bindings/typewriter';
 import type { Doc } from '../../bindings/typewriter/models.js';
 
-export type Kind = 'book' | 'chapter' | 'character' | 'relationship' | 'location' | 'map' | 'pathpoint' | 'note' | 'event' | 'mapdoc' | 'scene' | 'comment';
-export const KINDS: Kind[] = ['book', 'chapter', 'character', 'relationship', 'location', 'map', 'pathpoint', 'note', 'event', 'mapdoc', 'scene', 'comment'];
+export type Kind = 'book' | 'chapter' | 'character' | 'relationship' | 'location' | 'map' | 'pathpoint' | 'note' | 'event' | 'mapdoc' | 'scene' | 'comment' | 'faction' | 'membership' | 'factionrel' | 'item' | 'itemlog';
+export const KINDS: Kind[] = ['book', 'chapter', 'character', 'relationship', 'location', 'map', 'pathpoint', 'note', 'event', 'mapdoc', 'scene', 'comment', 'faction', 'membership', 'factionrel', 'item', 'itemlog'];
 
 // An item is its saved fields plus id, kind and updatedAt.
 export type Item = { id: number; kind: Kind; updatedAt: string; [field: string]: any };
@@ -15,7 +15,7 @@ function parse(d: Doc): Item {
 
 class Db {
   lists = $state<Record<Kind, Item[]>>({
-    book: [], chapter: [], character: [], relationship: [], location: [], map: [], pathpoint: [], note: [], event: [], mapdoc: [], scene: [], comment: [],
+    book: [], chapter: [], character: [], relationship: [], location: [], map: [], pathpoint: [], note: [], event: [], mapdoc: [], scene: [], comment: [], faction: [], membership: [], factionrel: [], item: [], itemlog: [],
   });
   ready = $state(false);
   dataPath = $state('');
@@ -160,3 +160,7 @@ export function plainText(body: string): string {
 export function wordCount(body: string) {
   return (plainText(body).match(/\S+/g) ?? []).length;
 }
+
+export const FACTION_TYPES = ['kingdom', 'empire', 'house', 'guild', 'order', 'army', 'cult', 'company', 'gang', 'other'];
+export const FACTION_REL: Record<string, string> = { ally: '#6bbf8a', enemy: '#d9625b', rival: '#d98a5b', rules: '#8f7bf0', neutral: '#9c93a6' };
+export const ITEM_TYPES = ['weapon', 'armor', 'relic', 'jewel', 'tool', 'book', 'document', 'vehicle', 'other'];

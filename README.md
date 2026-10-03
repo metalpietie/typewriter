@@ -146,6 +146,36 @@ Two lists live here:
 - **Lore notes:** history, magic, culture, religion, politics, and more. Filter by category and tags.
 - **Places:** cities, ruins, regions, and so on. A place can sit inside another place.
 
+### Factions
+
+A faction is any group: a kingdom, guild, order, house, army, cult.
+
+- Set a type, a colour, a headquarters (one of your places), and the **ranks**, one per line, highest first.
+- **Members:** add characters and give each a rank. Members are listed highest rank first. A character can be in many factions.
+- **Allies and enemies:** link a faction to another one as ally, enemy, rival, neutral, or “rules” (this faction rules the other).
+- A character's page lists their factions and ranks.
+- You can tag a faction with **@** in a scene. **Appears in** shows where it is named.
+
+### Items
+
+An item is a sword, a crown, a letter, anything that moves through your story.
+
+- Fill in the type, a description, and its history and powers.
+- **Journey:** each step says who has the item and where it is, and optionally when and in which scene. A new step starts as a copy of the last one, so you only change what moved. Use ↑ ↓ to put steps in order.
+- **Where it is now** comes from the last step.
+- A character's page lists the items they hold now.
+- Items can be tagged with **@** in a scene.
+
+### Family tree
+
+The tree is drawn from the “family” links of the Relationships tab. Each link needs a role:
+
+- **A is a parent of B:** B hangs under A. Put the parent as person A.
+- **A and B are partners:** they sit side by side and share their children.
+- **A and B are siblings:** use this when you do not know the parents. If the parents are linked, siblings show up from them.
+
+You can add links right on the Family tree tab. A family link with no role appears in a list on the left, where you pick its role. Pick **Family of …** to show one family only. Drag to move, scroll to zoom, click a person for details.
+
 ### Maps & Paths
 
 1. Press **+ Image** to load a map picture, **+ Blank** for a plain canvas, or **✎ Draw a map** to draw one in the app (see below).
@@ -198,7 +228,7 @@ Press **Ctrl+K**. Type a few letters. Typos are fine: "aldrik" finds "Aldric". I
 ### Export & Backup
 
 1. Open **Export**.
-2. Choose **Manuscript** (a title page, then each chapter on a new page, with your bold, italic, underline, headings, lists and quotes) or **Story bible** (characters, relationships, places, lore, timeline).
+2. Choose **Manuscript** (a title page, then each chapter on a new page, with your bold, italic, underline, headings, lists and quotes) or **Story bible** (characters, relationships, places, factions, items, lore, timeline).
 3. For a manuscript, pick one book or the whole series.
 4. Choose **Word (.docx)** or **PDF**, press **Export…**, and pick where to save.
 

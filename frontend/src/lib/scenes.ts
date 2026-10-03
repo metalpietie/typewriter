@@ -65,3 +65,12 @@ export async function migrateChapters() {
     await db.save('chapter', { ...c, body: '', pov: null, location: null, characters: [], when: '', time: null });
   }
 }
+
+/** Every scene of every book, in reading order. */
+export function orderedScenes(): Item[] {
+  const out: Item[] = [];
+  for (const b of [...db.lists.book].sort((x, y) => x.order - y.order)) {
+    for (const c of db.lists.chapter.filter((x) => x.book === b.id).sort((x, y) => x.order - y.order)) out.push(...scenesOf(c.id));
+  }
+  return out;
+}

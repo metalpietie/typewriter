@@ -3,6 +3,7 @@
   import { untrack } from 'svelte';
   import { db, REL_TYPES } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
+  import { FAM_ROLES, setFamRole, type FamRole } from '../lib/familytree';
 
   let selRel = $state<number | null>(null);
   let focus = $state<number | null>(null);
@@ -196,6 +197,13 @@
         <select bind:value={rel.b} onchange={save}>{#each db.lists.character as c}<option value={c.id}>{c.name}</option>{/each}</select>
         <label>Type</label>
         <select bind:value={rel.type} onchange={save}>{#each Object.keys(REL_TYPES) as t}<option>{t}</option>{/each}</select>
+        {#if rel.type === 'family'}
+          <label>Family role (for the Family tree tab)</label>
+          <select value={rel.fam ?? ''} onchange={(e) => { setFamRole(rel, e.currentTarget.value as FamRole | ''); save(); }}>
+            <option value="">— not set —</option>
+            {#each FAM_ROLES as x}<option value={x.role}>{x.label}</option>{/each}
+          </select>
+        {/if}
         <label>Label on graph (e.g. “sister”, “teacher of”)</label>
         <input bind:value={rel.label} oninput={save} />
         <label>Since (story time or chapter)</label>

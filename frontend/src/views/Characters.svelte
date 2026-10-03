@@ -2,8 +2,9 @@
   import { db, ROLES, REL_TYPES } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import Backlinks from '../lib/Backlinks.svelte';
-  import { nav } from '../lib/nav.svelte';
+  import { nav, openItem } from '../lib/nav.svelte';
   import { scenesOf, sceneLabel } from '../lib/scenes';
+  import { itemsHeldBy, membershipsOf } from '../lib/items';
 
   const PALETTE = ['#2cd5e8', '#e0b25f', '#6bbf8a', '#5aa9d9', '#e0689f', '#8f6bd1', '#d98a5b', '#d9625b', '#b5c95b'];
 
@@ -113,6 +114,22 @@
           </span>
         {:else}<span class="muted">No relationships yet. Add them in the Relationships tab.</span>{/each}
       </div>
+      {@const inFactions = membershipsOf(sel.id)}
+      {@const held = itemsHeldBy(sel.id)}
+      {#if inFactions.length || held.length}
+        <div class="card">
+          {#if inFactions.length}
+            <div><strong>Factions</strong>
+              {#each inFactions as m}<button class="chip" onclick={() => openItem('faction', m.faction.id)}><span class="dot" style="display:inline-block;background:{m.faction.color}"></span> {m.faction.name}{m.rank ? ' · ' + m.rank : ''}</button>{/each}
+            </div>
+          {/if}
+          {#if held.length}
+            <div style="margin-top:.4rem"><strong>Holds</strong>
+              {#each held as it}<button class="chip" onclick={() => openItem('item', it.id)}>{it.name}</button>{/each}
+            </div>
+          {/if}
+        </div>
+      {/if}
       <Backlinks kind="character" id={sel.id} />
       <div class="card">
         <strong>{scenes.length}</strong> scene{scenes.length === 1 ? '' : 's'} ·

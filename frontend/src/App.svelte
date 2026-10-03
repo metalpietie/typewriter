@@ -10,6 +10,9 @@
   import Characters from './views/Characters.svelte';
   import Relationships from './views/Relationships.svelte';
   import World from './views/World.svelte';
+  import Factions from './views/Factions.svelte';
+  import Items from './views/Items.svelte';
+  import FamilyTree from './views/FamilyTree.svelte';
   import Maps from './views/Maps.svelte';
   import Timeline from './views/Timeline.svelte';
   import Export from './views/Export.svelte';
@@ -19,6 +22,9 @@
     ['characters', 'Characters'],
     ['relationships', 'Relationships'],
     ['world', 'World'],
+    ['factions', 'Factions'],
+    ['items', 'Items'],
+    ['family', 'Family tree'],
     ['maps', 'Maps & Paths'],
     ['timeline', 'Timeline'],
     ['export', 'Export & Backup'],
@@ -55,6 +61,9 @@
     {:else if nav.tab === 'characters'}<Characters />
     {:else if nav.tab === 'relationships'}<Relationships />
     {:else if nav.tab === 'world'}<World />
+    {:else if nav.tab === 'factions'}<Factions />
+    {:else if nav.tab === 'items'}<Items />
+    {:else if nav.tab === 'family'}<FamilyTree />
     {:else if nav.tab === 'maps'}<Maps />
     {:else if nav.tab === 'timeline'}<Timeline />
     {:else if nav.tab === 'export'}<Export />

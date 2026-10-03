@@ -2,13 +2,15 @@ import { db, type Item } from './db.svelte';
 import { scenesOf, sceneLabel } from './scenes';
 import { namesOf, pattern } from './mentions';
 
-export type LinkKind = 'character' | 'location' | 'note';
+export type LinkKind = 'character' | 'location' | 'note' | 'faction' | 'item';
 
 /** What an @ link can point at. */
 export const LINK_KINDS: { kind: LinkKind; word: string }[] = [
   { kind: 'character', word: 'character' },
   { kind: 'location', word: 'place' },
   { kind: 'note', word: 'lore' },
+  { kind: 'faction', word: 'faction' },
+  { kind: 'item', word: 'item' },
 ];
 
 /** The name an item goes by in the text. */
