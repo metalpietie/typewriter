@@ -259,6 +259,18 @@ Two lists live here:
 - **Lore notes:** history, magic, culture, religion, politics, and more. Filter by category and tags.
 - **Places:** cities, ruins, regions, and so on. A place can sit inside another place. Press **Add picture** to give a place a picture. It is shrunk to 480 px on the long side.
 
+### Glossary
+
+The **Glossary** tab holds the made-up words of your world: a greeting, a curse, a title, a unit of time.
+
+- Press **+ New**. Write the word, its type, how it is said, what it means, and notes.
+- **Other spellings that are fine** is a comma separated list. The spelling check leaves these alone.
+- Under **Spelling** you see words in your scenes that are almost this word, for example "ketah" when your word is "ketha". Press **Change all** to fix it in every scene. The old text goes to History. Press **It is fine** to keep the other spelling.
+- **Used in the text** lists the scenes that use the word. Click one to write it.
+- A red mark in the list shows a word that has another spelling in the text.
+- The same hints show in the **Names** list of the Checks tab.
+- The Story bible export has a Glossary section, in alphabetical order.
+
 ### Factions
 
 A faction is any group: a kingdom, guild, order, house, army, cult.
@@ -403,7 +415,7 @@ The **Checks** tab has four lists: **Plot holes**, **Unfinished**, **Names** and
 
 **Unfinished** lists things that look incomplete: characters with no age, description, backstory, relationships or scene; places on no map or with no description; scenes with no point of view, place, timeline number, summary or text; factions with no members or headquarters; items with no description or journey; events with no number or place; empty lore notes. Click a row to open it. Press **Skip** if it is fine as it is. Skipped rows go to a list where you can bring them back.
 
-**Names** finds a name that is spelled two ways. It reads your scenes. It flags a capitalised word that is almost a name from your Characters (including "also called" names), Places, Factions or Items, for example "Aldrick" when you have "Aldric". It also flags a rare word that is almost a name you use often in the text, even if that name is not in your data.
+**Names** finds a name that is spelled two ways. It reads your scenes. It flags a capitalised word that is almost a name from your Characters (including "also called" names), Places, Factions or Items, for example "Aldrick" when you have "Aldric". It also flags a rare word that is almost a name you use often in the text, even if that name is not in your data. It also flags a word that is almost one of your Glossary words, for example "ketah" when you have "ketha".
 
 - Each row shows the word, the spelling it probably should be, and where it is. Click a place to open that scene.
 - **Change all to “…”** fixes it in every scene. Your bold, italic and other styles stay. The old text of each scene is saved, so **History** in that scene can bring it back.
@@ -446,7 +458,7 @@ Press **Ctrl+K**. Type a few letters. Typos are fine: "aldrik" finds "Aldric". I
 ### Export & Backup
 
 1. Open **Export**.
-2. Choose **Manuscript** (a title page, then each chapter on a new page, with your bold, italic, underline, headings, lists and quotes) or **Story bible** (characters, relationships, places, factions, items, lore, timeline).
+2. Choose **Manuscript** (a title page, then each chapter on a new page, with your bold, italic, underline, headings, lists and quotes) or **Story bible** (characters, relationships, places, glossary, factions, items, lore, timeline).
 3. For a manuscript, pick one book or the whole series.
 4. Type your **author name** if you want it on the title page. The app remembers it.
 5. Choose a file type, press **Export…**, and pick where to save.

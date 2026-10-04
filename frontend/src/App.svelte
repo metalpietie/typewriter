@@ -15,6 +15,7 @@
   import Write from './views/Write.svelte';
   import Board from './views/Board.svelte';
   import Arcs from './views/Arcs.svelte';
+  import Glossary from './views/Glossary.svelte';
   import Characters from './views/Characters.svelte';
   import Relationships from './views/Relationships.svelte';
   import World from './views/World.svelte';
@@ -33,7 +34,7 @@
     { items: [['home', 'Dashboard']] },
     { title: 'Story', items: [['draft', 'Draft'], ['write', 'Write'], ['board', 'Board'], ['arcs', 'Story arcs']] },
     { title: 'People', items: [['characters', 'Characters'], ['relationships', 'Relationships'], ['family', 'Family tree'], ['factions', 'Factions']] },
-    { title: 'Worldbuilding', items: [['world', 'World'], ['items', 'Items'], ['maps', 'Maps & Paths'], ['timeline', 'Timeline']] },
+    { title: 'Worldbuilding', items: [['world', 'World'], ['glossary', 'Glossary'], ['items', 'Items'], ['maps', 'Maps & Paths'], ['timeline', 'Timeline']] },
     { title: 'Review', items: [['checks', 'Checks'], ['stats', 'Statistics'], ['export', 'Export & Backup']] },
   ] as const;
 
@@ -117,6 +118,7 @@
     {:else if nav.tab === 'characters'}<Characters />
     {:else if nav.tab === 'relationships'}<Relationships />
     {:else if nav.tab === 'world'}<World />
+    {:else if nav.tab === 'glossary'}<Glossary />
     {:else if nav.tab === 'factions'}<Factions />
     {:else if nav.tab === 'items'}<Items />
     {:else if nav.tab === 'family'}<FamilyTree />

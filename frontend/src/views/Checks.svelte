@@ -188,8 +188,8 @@
     {/if}
   {:else if tab === 'names'}
     <p class="muted">
-      Finds a name that is spelled two ways. It looks for a capitalised word that is almost a name from your Characters, Places, Factions or Items,
-      and for a rare word that is almost a name you use often in the text. It reads your scenes only.
+      Finds a name or a made-up word that is spelled two ways. It looks for a capitalised word that is almost a name from your Characters, Places, Factions or Items,
+      for a word that is almost one of your Glossary words, and for a rare word that is almost a name you use often in the text. It reads your scenes only.
       Press <b>Skip</b> if the word is right (for example a different person with a close name).
     </p>
     {#if nameMsg}<p style="color:var(--ok)">{nameMsg}</p>{/if}

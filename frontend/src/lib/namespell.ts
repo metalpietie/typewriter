@@ -1,6 +1,7 @@
 import { db, plainText, type Item } from './db.svelte';
 import { scenesOf, sceneLabel } from './scenes';
 import { findTypos, type Typo } from './namespell-core';
+import { findTermVariants, type TermInput } from './glossary-core';
 import { replaceIn } from './findreplace';
 import { addVersion } from './versions';
 
@@ -11,7 +12,7 @@ export type NameIssue = Typo & {
   reason: string;
 };
 
-const wordRe = (w: string) => new RegExp(`(?<![\\p{L}\\p{N}_])${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}_])`, 'gu');
+export const wordRe = (w: string) => new RegExp(`(?<![\\p{L}\\p{N}_])${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}_])`, 'gu');
 
 /** Every name you have given a character, place, faction or item. */
 export function worldNames(): string[] {
@@ -21,7 +22,15 @@ export function worldNames(): string[] {
     for (const a of String(c.aliases ?? '').split(/[,;\n]/)) out.push(a);
   }
   for (const k of ['location', 'faction', 'item'] as const) for (const i of db.lists[k]) out.push(String(i.name ?? ''));
+  // glossary words with a capital letter are names too. Lower case ones are checked on their own.
+  for (const t of glossaryTerms()) {
+    for (const w of [t.word, ...t.accepted.split(/[,;\n]/)]) if (/^\p{Lu}/u.test(w.trim())) out.push(w);
+  }
   return out.filter((n) => n.trim());
+}
+
+export function glossaryTerms(): TermInput[] {
+  return db.lists.term.map((t) => ({ word: String(t.word ?? '').trim(), accepted: String(t.accepted ?? '') })).filter((t) => t.word);
 }
 
 /** Scenes in reading order. */
@@ -36,7 +45,8 @@ function allScenes(): Item[] {
 export function findNameIssues(): NameIssue[] {
   const scenes = allScenes();
   const texts = scenes.map((s) => plainText(s.body ?? ''));
-  const typos = findTypos(texts, worldNames());
+  const names = worldNames();
+  const typos = [...findTypos(texts, names), ...findTermVariants(texts, glossaryTerms(), names)];
   return typos.map((t) => {
     const re = wordRe(t.word);
     const places: Place[] = [];
@@ -56,7 +66,9 @@ export function findNameIssues(): NameIssue[] {
       places,
       reason: t.from === 'name'
         ? `looks like a name in your world data: “${t.suggest}”`
-        : `looks like a typo of “${t.suggest}”, which you write more often`,
+        : t.from === 'glossary'
+          ? `looks like the glossary word “${t.suggest}”`
+          : `looks like a typo of “${t.suggest}”, which you write more often`,
     };
   });
 }

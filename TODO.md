@@ -4,7 +4,7 @@ Ideas for Typewriter. Nothing here is built yet. Move an item up when you want i
 
 These items are ideas for later. Pick one when you want it. Skip the items marked **not now**.
 
-Best next pick: **glossary**.
+Best next pick: **character age on any date**.
 
 ## Writing
 
@@ -12,7 +12,6 @@ Best next pick: **glossary**.
 
 ## World building
 
-- [ ] Glossary of made-up words, with a warning when one is spelled two ways
 - [ ] Character age on any date, from the timeline and your calendar ("age 23 in this scene")
 
 ## Maps and paths
@@ -30,6 +29,7 @@ Nothing open here.
 
 ## Done
 
+- [x] Glossary of made-up words, with a warning when one is spelled two ways
 - [x] Story arcs: plot threads, tag scenes, an overview grid, and hints about loose ends and gaps
 - [x] Draft tab: a rough notepad for story ideas, and a menu with headings
 - [x] Notes board: an index card for each scene, and drag the cards to reorder the book

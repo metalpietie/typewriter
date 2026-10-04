@@ -7,7 +7,7 @@ export type Typo = {
   word: string; // as written in the text
   suggest: string; // what it should probably be
   count: number; // how often the word is in the text
-  from: 'name' | 'text'; // 'name': it looks like a name in your world data. 'text': it looks like a typo of a name you use often in the text.
+  from: 'name' | 'text' | 'glossary'; // 'name': it looks like a name in your world data. 'text': it looks like a typo of a name you use often in the text.
 };
 
 const MIN_LEN = 4; // shorter words give too many false alarms

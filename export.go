@@ -368,6 +368,23 @@ func (e *Exporter) bible() []block {
 		}
 	}
 
+	// the glossary, in alphabetical order
+	terms := e.load("term")
+	sort.SliceStable(terms, func(i, j int) bool {
+		return strings.ToLower(str(terms[i], "word")) < strings.ToLower(str(terms[j], "word"))
+	})
+	if len(terms) > 0 {
+		out = append(out, block{kind: "pagebreak"}, block{kind: "h1", text: "Glossary"})
+		for _, t := range terms {
+			out = append(out, block{kind: "h2", text: str(t, "word")})
+			kv("Type", str(t, "type"))
+			kv("Said", str(t, "pronunciation"))
+			kv("Meaning", str(t, "meaning"))
+			kv("Also spelled", str(t, "accepted"))
+			kv("Notes", str(t, "notes"))
+		}
+	}
+
 	byOrder(events, "time")
 	out = append(out, block{kind: "pagebreak"}, block{kind: "h1", text: "Timeline"})
 	for _, ev := range events {
