@@ -31,6 +31,7 @@ Nothing open here.
 
 ## Done
 
+- [x] Draft tab: a rough notepad for story ideas, and a menu with headings
 - [x] Notes board: an index card for each scene, and drag the cards to reorder the book
 - [x] Repeated word check: words close together, sentences that start the same way, and the most used words
 - [x] Name spelling check: finds a name spelled two ways, and fixes it in every scene

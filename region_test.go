@@ -18,3 +18,9 @@ func TestRegionKindAndCascade(t *testing.T) {
 		t.Error("deleting a map must delete its regions")
 	}
 }
+
+func TestDraftKind(t *testing.T) {
+	if !kinds["draft"] {
+		t.Fatal("draft is not a known kind")
+	}
+}

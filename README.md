@@ -101,9 +101,20 @@ The app saves as you type. There is no save button.
 
 ## Using the app
 
-Use the menu on the left to switch screens. Press **Ctrl+K** anywhere to search. The button at the bottom of the menu switches between dark and light theme.
+Use the menu on the left to switch screens. Press **Ctrl+K** anywhere to search. The menu has headings (Story, People, Worldbuilding, Review) to keep the screens in groups. The button at the bottom of the menu switches between dark and light theme.
 
 Most screens have a list on the left. Drag its right edge to make it wider or narrower. You can also click the edge and press the left or right arrow key. Double-click the edge to go back to the normal width. The app remembers the width.
+
+### Draft
+
+The **Draft** tab is a rough notepad for your story idea. Nothing here is part of the book.
+
+- Press **+ New** to add a page. Give it a title, such as "Idea", "Ending" or "What if".
+- Write in the same editor as the Write tab: bold, italic, headings, lists, and `@` links.
+- Use the **↑** and **↓** buttons to put the pages in order.
+- The search box above the list looks at the title and the text of every page.
+- Draft pages are not counted in your word counts, checks or exports.
+
 
 ### Write
 

@@ -11,6 +11,7 @@
   import { migrateChapters } from './lib/scenes';
   import { currentTheme, setTheme, type Theme } from './lib/theme';
   import Dashboard from './views/Dashboard.svelte';
+  import Draft from './views/Draft.svelte';
   import Write from './views/Write.svelte';
   import Board from './views/Board.svelte';
   import Characters from './views/Characters.svelte';
@@ -26,21 +27,13 @@
   import Timeline from './views/Timeline.svelte';
   import Export from './views/Export.svelte';
 
-  const tabs = [
-    ['home', 'Dashboard'],
-    ['write', 'Write'],
-    ['board', 'Board'],
-    ['characters', 'Characters'],
-    ['relationships', 'Relationships'],
-    ['world', 'World'],
-    ['factions', 'Factions'],
-    ['items', 'Items'],
-    ['family', 'Family tree'],
-    ['maps', 'Maps & Paths'],
-    ['timeline', 'Timeline'],
-    ['checks', 'Checks'],
-    ['stats', 'Statistics'],
-    ['export', 'Export & Backup'],
+  // The menu: first a tab with no heading, then groups. Each group has a heading.
+  const menu = [
+    { items: [['home', 'Dashboard']] },
+    { title: 'Story', items: [['draft', 'Draft'], ['write', 'Write'], ['board', 'Board']] },
+    { title: 'People', items: [['characters', 'Characters'], ['relationships', 'Relationships'], ['family', 'Family tree'], ['factions', 'Factions']] },
+    { title: 'Worldbuilding', items: [['world', 'World'], ['items', 'Items'], ['maps', 'Maps & Paths'], ['timeline', 'Timeline']] },
+    { title: 'Review', items: [['checks', 'Checks'], ['stats', 'Statistics'], ['export', 'Export & Backup']] },
   ] as const;
 
   // the number of open plot holes shows next to the Checks tab
@@ -91,8 +84,11 @@
     <div class="brand"><img src="/logo.svg" alt="" />Typewriter</div>
     <button class="project-btn" title="Switch or add a project (a book or series)" onclick={() => (nav.projects = true)}>▾ {db.project || 'Projects'}</button>
     <button class="search-btn" onclick={() => (nav.searchOpen = true)}>Search <kbd>Ctrl+K</kbd></button>
-    {#each tabs as [id, label]}
-      <button class:on={nav.tab === id} onclick={() => (nav.tab = id)}>{label}{#if id === 'checks' && holes}<span class="count">{holes}</span>{/if}</button>
+    {#each menu as group}
+      {#if 'title' in group}<div class="group">{group.title}</div>{/if}
+      {#each group.items as [id, label]}
+        <button class:on={nav.tab === id} onclick={() => (nav.tab = id)}>{label}{#if id === 'checks' && holes}<span class="count">{holes}</span>{/if}</button>
+      {/each}
     {/each}
     <div class="foot">
       <button onclick={toggleTheme}>{theme === 'dark' ? '☀ Light theme' : '☾ Dark theme'}</button>
@@ -113,6 +109,7 @@
     {:else if !db.ready}
       <div class="pane muted">Loading…</div>
     {:else if nav.tab === 'home'}<Dashboard />
+    {:else if nav.tab === 'draft'}<Draft />
     {:else if nav.tab === 'write'}<Write />
     {:else if nav.tab === 'board'}<Board />
     {:else if nav.tab === 'characters'}<Characters />

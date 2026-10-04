@@ -33,7 +33,7 @@ type Store struct {
 var kinds = map[string]bool{
 	"book": true, "chapter": true, "character": true, "relationship": true,
 	"location": true, "map": true, "pathpoint": true, "note": true, "event": true, "mapdoc": true, "scene": true, "version": true, "comment": true,
-	"faction": true, "membership": true, "factionrel": true, "item": true, "itemlog": true, "plotignore": true, "wordday": true, "todo": true, "setting": true, "region": true,
+	"faction": true, "membership": true, "factionrel": true, "item": true, "itemlog": true, "plotignore": true, "wordday": true, "todo": true, "setting": true, "region": true, "draft": true,
 }
 
 // cascades lists, per kind, the JSON links that must go when that item is deleted.
