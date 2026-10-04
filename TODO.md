@@ -4,11 +4,10 @@ Ideas for Typewriter. Nothing here is built yet. Move an item up when you want i
 
 These items are ideas for later. Pick one when you want it. Skip the items marked **not now**.
 
-Best next pick: **story arcs**, then the **notes board**.
+Best next pick: **story arcs**.
 
 ## Writing
 
-- [ ] Notes board: an index card for each scene, and drag the cards to reorder the book
 
 
 ## World building
@@ -32,6 +31,7 @@ Nothing open here.
 
 ## Done
 
+- [x] Notes board: an index card for each scene, and drag the cards to reorder the book
 - [x] Repeated word check: words close together, sentences that start the same way, and the most used words
 - [x] Name spelling check: finds a name spelled two ways, and fixes it in every scene
 - [x] Several projects: one data file per book or series, with a switcher in the menu

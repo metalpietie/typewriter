@@ -11,6 +11,7 @@
   import { currentTheme, setTheme, type Theme } from './lib/theme';
   import Dashboard from './views/Dashboard.svelte';
   import Write from './views/Write.svelte';
+  import Board from './views/Board.svelte';
   import Characters from './views/Characters.svelte';
   import Relationships from './views/Relationships.svelte';
   import World from './views/World.svelte';
@@ -27,6 +28,7 @@
   const tabs = [
     ['home', 'Dashboard'],
     ['write', 'Write'],
+    ['board', 'Board'],
     ['characters', 'Characters'],
     ['relationships', 'Relationships'],
     ['world', 'World'],
@@ -52,7 +54,7 @@
     document.documentElement.style.setProperty('--side-w', sideW + 'px');
     try { localStorage.setItem(SIDE_KEY, String(sideW)); } catch { /* storage may be blocked */ }
   });
-  const hasSide = $derived(!['home', 'checks', 'stats', 'export'].includes(nav.tab));
+  const hasSide = $derived(!['home', 'board', 'checks', 'stats', 'export'].includes(nav.tab));
   let dragging = $state(false);
   function startResize(e: PointerEvent) {
     const bar = e.currentTarget as HTMLElement;
@@ -107,6 +109,7 @@
       <div class="pane muted">Loading…</div>
     {:else if nav.tab === 'home'}<Dashboard />
     {:else if nav.tab === 'write'}<Write />
+    {:else if nav.tab === 'board'}<Board />
     {:else if nav.tab === 'characters'}<Characters />
     {:else if nav.tab === 'relationships'}<Relationships />
     {:else if nav.tab === 'world'}<World />

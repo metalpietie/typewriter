@@ -139,6 +139,21 @@ If a scene names a character who is not in its cast (and is not its point of vie
 - **Add to cast** puts the character in the scene.
 - **Not here** means they are only mentioned. The warning stays away for that scene.
 
+### Board
+
+The **Board** tab shows your book as index cards. Each chapter is a column. Each scene is a card.
+
+- A card shows the scene title, a summary, a status, the point of view, the place, and the word count. Type in the summary box to change it. Use the status list to change the status.
+- **Drag the grip ⠿** on a card (top right) to move it up or down in its chapter, or into another chapter. Only the grip starts a drag, so you can click and type on the card as normal. No text is selected while you drag. A line shows where it will land. Drop it on the empty part of a column to put it at the end.
+- **Drag the grip ⠿** left of a chapter's title to move the whole chapter left or right. The chapter numbers update.
+- Hold a card near the left or right edge to scroll the board.
+- **Click a card's title** to open that scene in the Write tab.
+- **+ Scene** adds a scene to a chapter and opens it. **+ Chapter** adds a column.
+- **Colour by status** or **Colour by point of view** sets the colour bar on the left of each card. A point of view uses the character's colour.
+- Pick the book at the top. The Board starts on the book you wrote in last.
+
+Changes on the Board are the same changes as in the Write tab. The new order shows there, and in your exports.
+
 ### Characters
 
 Press **+ New** to add a character. Fill in the role, looks, traits, backstory, goals, and notes. Add your own fields, such as "Eye colour". Pick a colour. The same colour is used on the graph and the maps.
