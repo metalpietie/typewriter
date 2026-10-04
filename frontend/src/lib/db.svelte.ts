@@ -1,8 +1,8 @@
 import { Store } from '../../bindings/typewriter';
 import type { Doc } from '../../bindings/typewriter/models.js';
 
-export type Kind = 'book' | 'chapter' | 'character' | 'relationship' | 'location' | 'map' | 'pathpoint' | 'note' | 'event' | 'mapdoc' | 'scene' | 'comment' | 'faction' | 'membership' | 'factionrel' | 'item' | 'itemlog' | 'plotignore' | 'wordday' | 'setting' | 'todo' | 'region' | 'draft';
-export const KINDS: Kind[] = ['book', 'chapter', 'character', 'relationship', 'location', 'map', 'pathpoint', 'note', 'event', 'mapdoc', 'scene', 'comment', 'faction', 'membership', 'factionrel', 'item', 'itemlog', 'plotignore', 'wordday', 'setting', 'todo', 'region', 'draft'];
+export type Kind = 'book' | 'chapter' | 'character' | 'relationship' | 'location' | 'map' | 'pathpoint' | 'note' | 'event' | 'mapdoc' | 'scene' | 'comment' | 'faction' | 'membership' | 'factionrel' | 'item' | 'itemlog' | 'plotignore' | 'wordday' | 'setting' | 'todo' | 'region' | 'draft' | 'arc' | 'arcscene';
+export const KINDS: Kind[] = ['book', 'chapter', 'character', 'relationship', 'location', 'map', 'pathpoint', 'note', 'event', 'mapdoc', 'scene', 'comment', 'faction', 'membership', 'factionrel', 'item', 'itemlog', 'plotignore', 'wordday', 'setting', 'todo', 'region', 'draft', 'arc', 'arcscene'];
 
 // An item is its saved fields plus id, kind and updatedAt.
 export type Item = { id: number; kind: Kind; updatedAt: string; [field: string]: any };
@@ -15,7 +15,7 @@ function parse(d: Doc): Item {
 
 class Db {
   lists = $state<Record<Kind, Item[]>>({
-    book: [], chapter: [], character: [], relationship: [], location: [], map: [], pathpoint: [], note: [], event: [], mapdoc: [], scene: [], comment: [], faction: [], membership: [], factionrel: [], item: [], itemlog: [], plotignore: [], wordday: [], setting: [], todo: [], region: [], draft: [],
+    book: [], chapter: [], character: [], relationship: [], location: [], map: [], pathpoint: [], note: [], event: [], mapdoc: [], scene: [], comment: [], faction: [], membership: [], factionrel: [], item: [], itemlog: [], plotignore: [], wordday: [], setting: [], todo: [], region: [], draft: [], arc: [], arcscene: [],
   });
   ready = $state(false);
   dataPath = $state('');

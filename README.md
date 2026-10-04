@@ -209,6 +209,18 @@ The **Board** tab shows your book as index cards. Each chapter is a column. Each
 
 Changes on the Board are the same changes as in the Write tab. The new order shows there, and in your exports.
 
+### Story arcs
+
+A story arc is one plot thread, such as "The crown" or "Ana and Bram". The **Story arcs** tab shows every thread across a book.
+
+- Press **+ New arc**. Give it a name and a colour. Add notes about how it starts, turns and ends.
+- Tag the scenes that belong to the arc. You can do it in two ways: tick the arc in the right-hand panel of a scene in the Write tab, or use **Add a scene…** on the arc's page.
+- For each scene you can say what it does for the arc: **starts**, **turns**, **ends**, or just **touches** it.
+- **All arcs** is the overview. It has one row for each arc and one column for each chapter. A dot is a scene. The letters **S**, **T** and **E** mark a start, a turn and an end. A line shows how long the arc runs. Click a dot to write that scene.
+- **To check** lists hints: no scene marked as the start or the end, a start that is not the first scene, scenes after the end, or 3 or more chapters in a row with nothing for the arc.
+- Cards on the Board show a small coloured dot for each arc of the scene.
+- Deleting an arc only removes the tags. It never deletes a scene. You can undo it for a short time.
+
 ### Characters
 
 Press **+ New** to add a character. Fill in the role, looks, traits, backstory, goals, and notes. Add your own fields, such as "Eye colour". Pick a colour. The same colour is used on the graph and the maps.

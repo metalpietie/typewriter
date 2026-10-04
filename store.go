@@ -33,7 +33,7 @@ type Store struct {
 var kinds = map[string]bool{
 	"book": true, "chapter": true, "character": true, "relationship": true,
 	"location": true, "map": true, "pathpoint": true, "note": true, "event": true, "mapdoc": true, "scene": true, "version": true, "comment": true,
-	"faction": true, "membership": true, "factionrel": true, "item": true, "itemlog": true, "plotignore": true, "wordday": true, "todo": true, "setting": true, "region": true, "draft": true,
+	"faction": true, "membership": true, "factionrel": true, "item": true, "itemlog": true, "plotignore": true, "wordday": true, "todo": true, "setting": true, "region": true, "draft": true, "arc": true, "arcscene": true,
 }
 
 // cascades lists, per kind, the JSON links that must go when that item is deleted.
@@ -44,7 +44,8 @@ var cascades = map[string][][2]string{
 	"map":       {{"pathpoint", "map"}, {"mapdoc", "map"}, {"region", "map"}},
 	"book":      {{"chapter", "book"}, {"scene", "book"}},
 	"chapter":   {{"scene", "chapter"}},
-	"scene":     {{"version", "scene"}, {"comment", "scene"}},
+	"scene":     {{"version", "scene"}, {"comment", "scene"}, {"arcscene", "scene"}},
+	"arc":       {{"arcscene", "arc"}},
 }
 
 // OpenStore opens the data of the project you used last.
@@ -234,8 +235,8 @@ func (s *Store) Delete(kind string, id int64) ([]Doc, error) {
 			return nil, err
 		}
 	}
-	if kind == "book" || kind == "chapter" { // versions and comments of the scenes that just went
-		const orphans = `kind IN ('version', 'comment') AND json_extract(data, '$.scene') NOT IN (SELECT id FROM docs WHERE kind = 'scene')`
+	if kind == "book" || kind == "chapter" { // versions, comments and arc links of the scenes that just went
+		const orphans = `kind IN ('version', 'comment', 'arcscene') AND json_extract(data, '$.scene') NOT IN (SELECT id FROM docs WHERE kind = 'scene')`
 		rows, err := tx.Query(`SELECT id, kind, data, updated_at FROM docs WHERE ` + orphans)
 		if err != nil {
 			return nil, err

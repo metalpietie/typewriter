@@ -14,6 +14,7 @@
   import Draft from './views/Draft.svelte';
   import Write from './views/Write.svelte';
   import Board from './views/Board.svelte';
+  import Arcs from './views/Arcs.svelte';
   import Characters from './views/Characters.svelte';
   import Relationships from './views/Relationships.svelte';
   import World from './views/World.svelte';
@@ -30,7 +31,7 @@
   // The menu: first a tab with no heading, then groups. Each group has a heading.
   const menu = [
     { items: [['home', 'Dashboard']] },
-    { title: 'Story', items: [['draft', 'Draft'], ['write', 'Write'], ['board', 'Board']] },
+    { title: 'Story', items: [['draft', 'Draft'], ['write', 'Write'], ['board', 'Board'], ['arcs', 'Story arcs']] },
     { title: 'People', items: [['characters', 'Characters'], ['relationships', 'Relationships'], ['family', 'Family tree'], ['factions', 'Factions']] },
     { title: 'Worldbuilding', items: [['world', 'World'], ['items', 'Items'], ['maps', 'Maps & Paths'], ['timeline', 'Timeline']] },
     { title: 'Review', items: [['checks', 'Checks'], ['stats', 'Statistics'], ['export', 'Export & Backup']] },
@@ -112,6 +113,7 @@
     {:else if nav.tab === 'draft'}<Draft />
     {:else if nav.tab === 'write'}<Write />
     {:else if nav.tab === 'board'}<Board />
+    {:else if nav.tab === 'arcs'}<Arcs />
     {:else if nav.tab === 'characters'}<Characters />
     {:else if nav.tab === 'relationships'}<Relationships />
     {:else if nav.tab === 'world'}<World />

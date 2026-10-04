@@ -1,5 +1,6 @@
 <script lang="ts">
   import Select from '../lib/Select.svelte';
+  import { BEATS, arcsSorted, linkFor, tagScene, untagScene, setBeat, type Beat } from '../lib/arcs';
   import { onDestroy } from 'svelte';
   import { flip } from 'svelte/animate';
   import { Window } from '@wailsio/runtime';
@@ -390,6 +391,23 @@
         {#each db.lists.location as l}<option value={l.id}>{l.name}</option>{/each}
       </Select>
       <DateField bind:time={scene.time} bind:when={scene.when} onchange={saveScene} />
+      <label>Story arcs</label>
+      {#each arcsSorted() as a (a.id)}
+        {@const lk = linkFor(a.id, scene.id)}
+        <div class="arcrow">
+          <label class="arcchk">
+            <input type="checkbox" style="width:auto" checked={!!lk} onchange={() => (lk ? untagScene(a.id, scene!.id) : tagScene(a.id, scene!.id))} />
+            <span class="dot" style:background={a.color}></span><span class="arcname">{a.name}</span>
+          </label>
+          {#if lk}
+            <Select style="flex:0 0 6rem" aria-label="What this scene does for {a.name}" value={lk.beat ?? ''} onchange={(e) => setBeat(lk, e.currentTarget.value as Beat)}>
+              {#each BEATS as [v, l]}<option value={v}>{l}</option>{/each}
+            </Select>
+          {/if}
+        </div>
+      {:else}
+        <div class="muted" style="font-size:.85rem">No arcs yet. <button class="small" onclick={() => (nav.tab = 'arcs')}>Add one</button></div>
+      {/each}
       <label>Who is in this scene</label>
       {#each db.lists.character as c}
         <div><label style="display:flex;gap:.4rem;margin:.15rem 0;color:var(--text)">
@@ -503,6 +521,9 @@
   .scenetitle { margin-bottom: .6rem; font-size: .95rem; color: var(--muted); }
   .badge { font-size: .7rem; color: var(--muted); }
   .warn { border: 1px solid var(--accent-2); border-radius: 6px; padding: .5rem; margin-top: .6rem; font-size: .85rem; background: color-mix(in srgb, var(--accent-2) 10%, transparent); }
+  .arcrow { display: flex; align-items: center; gap: .4rem; margin: .15rem 0; }
+  .arcchk { flex: 1; min-width: 0; display: flex; align-items: center; gap: .4rem; margin: 0; color: var(--text); }
+  .arcname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .mrow { display: flex; align-items: center; justify-content: space-between; gap: .4rem; margin-top: .3rem; }
   .tools { display: flex; gap: .4rem; margin-bottom: .6rem; }
   .tools kbd { font-size: .7rem; color: var(--muted); margin-left: .3rem; }

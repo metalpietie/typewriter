@@ -1,6 +1,6 @@
 import type { Kind } from './db.svelte';
 
-export type Tab = 'home' | 'draft' | 'write' | 'board' | 'characters' | 'relationships' | 'world' | 'factions' | 'items' | 'family' | 'checks' | 'stats' | 'maps' | 'timeline' | 'export';
+export type Tab = 'home' | 'draft' | 'write' | 'board' | 'arcs' | 'characters' | 'relationships' | 'world' | 'factions' | 'items' | 'family' | 'checks' | 'stats' | 'maps' | 'timeline' | 'export';
 
 /** Shared screen state, so search can jump to an item on another tab. */
 export const nav = $state<{ tab: Tab; pending: { kind: Kind; id: number } | null; searchOpen: boolean; focus: boolean; scene: number | null; calendar: boolean; names: '' | 'person' | 'place'; projects: boolean; dataFolder: boolean }>({

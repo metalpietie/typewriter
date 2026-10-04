@@ -5,6 +5,7 @@
   import { openScene } from '../lib/nav.svelte';
   import { STATUSES, scenesOf, sceneWords, chapterWords, addScene } from '../lib/scenes';
   import ProgressBar from '../lib/ProgressBar.svelte';
+  import { arcsOfScene } from '../lib/arcs';
 
   // start on the book you were writing in
   const lastBook = () => {
@@ -204,6 +205,7 @@
                 <textarea rows="3" placeholder="What happens in this scene?" aria-label="Summary" bind:value={s.summary} oninput={() => saveScene(s)}></textarea>
                 <div class="foot muted">
                   <Select class="st" aria-label="Status" bind:value={s.status} onchange={() => saveScene(s)}>{#each STATUSES as t}<option>{t}</option>{/each}</Select>
+                  {#each arcsOfScene(s.id) as a (a.id)}<span class="adot" style:background={a.color} title="Arc: {a.name}"></span>{/each}
                   {#if povOf(s)}<span class="tag" title="Point of view">{povOf(s)}</span>{/if}
                   {#if placeOf(s)}<span class="tag" title="Place">{placeOf(s)}</span>{/if}
                   <span class="fit">{sceneWords(s).toLocaleString()} words</span>
@@ -248,6 +250,7 @@
   .foot :global(.st) { width: auto; padding: .05rem .3rem; font-size: .75rem; }
   .foot .fit { margin-left: auto; }
   .tag { background: var(--panel); border: 1px solid var(--line); border-radius: 99px; padding: 0 .5rem; max-width: 7rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .adot { width: .6rem; height: .6rem; border-radius: 50%; flex: 0 0 auto; }
   .addscene { align-self: flex-start; }
   .dragging { opacity: .35; transform: scale(.97); }
 
