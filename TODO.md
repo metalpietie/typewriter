@@ -4,7 +4,7 @@ Ideas for Typewriter. Nothing here is built yet. Move an item up when you want i
 
 These items are ideas for later. Pick one when you want it. Skip the items marked **not now**.
 
-Best next pick: **sync to a folder**.
+Best next pick: none right now. Both open ideas are marked **not now**.
 
 ## Writing
 
@@ -23,8 +23,8 @@ Nothing open here.
 
 ## Data and files
 
-- [ ] Sync to a folder: copy the data to Dropbox or OneDrive for a second safe copy
-- [ ] Import a Word file as chapters (**not now**: only useful to move an old draft in once)
+- [ ] Sync to a folder: copy the data to Dropbox or OneDrive for a second safe copy (**not now**: it needs an online connection, which you do not want. You upload the backups by hand when you need to)
+- [ ] Import a Word file as chapters (**not now**: you plan to write your own work, so there is no old draft to bring in. It could come back if you get Word files for feedback)
 
 ## Done
 
