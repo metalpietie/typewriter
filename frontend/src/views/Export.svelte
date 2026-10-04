@@ -9,6 +9,7 @@
   let format = $state<'docx' | 'pdf' | 'epub' | 'md'>('docx');
   let pageSize = $state('letter');
   let print = $state(false);
+  let contents = $state(saved('typewriter.contents') !== 'no'); // on, until you turn it off
   let author = $state(saved('typewriter.author'));
   let busy = $state(false);
   let message = $state('');
@@ -26,9 +27,12 @@
 
   async function run() {
     busy = true; message = ''; failed = false;
-    try { localStorage.setItem('typewriter.author', author.trim()); } catch { /* the name is only a convenience */ }
     try {
-      const path = await Exporter.Export(what, what === 'manuscript' ? bookId : 0, format, { author: author.trim(), pageSize, print: format === 'pdf' && print });
+      localStorage.setItem('typewriter.author', author.trim());
+      localStorage.setItem('typewriter.contents', contents ? 'yes' : 'no');
+    } catch { /* these are only conveniences */ }
+    try {
+      const path = await Exporter.Export(what, what === 'manuscript' ? bookId : 0, format, { author: author.trim(), pageSize, print: format === 'pdf' && print, contents });
       message = path ? `Saved: ${path}` : 'Cancelled.';
     } catch (e: any) {
       failed = true; message = e?.message ?? String(e);
@@ -62,6 +66,17 @@
   <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={format} value="pdf" />PDF (.pdf)</label>
   <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={format} value="epub" />E-book (.epub): for e-readers and phones</label>
   <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={format} value="md" />Markdown (.md): plain text with simple marks</label>
+
+  <label style="display:flex;gap:.5rem;color:var(--text);margin-top:1rem"><input type="checkbox" style="width:auto" bind:checked={contents} />
+    Table of contents after the title page</label>
+  {#if contents}
+    <p class="muted" style="margin:.2rem 0 0;font-size:.85rem">
+      {#if format === 'pdf'}Each chapter has its page number. Click a line to jump to that chapter.
+      {:else if format === 'docx'}Each line is a link to its chapter. Word does not know the page numbers, so there are none.
+      {:else if format === 'epub'}A Contents page with a link for each chapter. Your e-reader also has its own list.
+      {:else}A list of links to the chapter headings.{/if}
+    </p>
+  {/if}
 
   {#if format === 'docx' || format === 'pdf'}
     <label>Page size</label>

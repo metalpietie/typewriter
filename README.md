@@ -127,6 +127,16 @@ The Write tab reopens the book, chapter, and scene you had open last. This also 
 
 Chapters you wrote before the editor existed open as plain paragraphs. They convert when you edit them.
 
+#### Finish date
+
+In the book panel of the Write tab, set a **Book goal (words)** and a **Finish by** date. The app then says how many words to write each day to finish on time.
+
+- Today and the finish day both count as days to write.
+- It compares the number with what you wrote on a normal day: the average of the 7 days before today. It says **On track**, or **Behind** with the day you would finish at that pace.
+- It counts all your writing, not one book, so with several books the pace is for your whole writing.
+- When the goal is reached, it says so. When the date has passed, it says how long ago, and you can pick a new date.
+- Books with a finish date also show a **Finish line** card on the Dashboard.
+
 #### Scenes
 
 A scene is a part of a chapter with its own place, point of view, time, and cast. Use scenes when a chapter jumps around.
@@ -403,6 +413,7 @@ Notes: there are no leap years. If you change the months later, numbers you alre
 The **Dashboard** is the first screen. It shows:
 
 - today's words, your daily goal, your streak, and a **Continue writing** button that opens the scene you changed last,
+- a **Finish line** card for each book that has a finish date (words a day, and whether you are on track),
 - what needs attention: open plot holes, unfinished things, and open comments (click to go to the Checks tab),
 - your 8 most recent changes (scenes, characters, places, lore notes, factions, items, events). Click one to open it,
 - a **to-do** list. Type a task and press Enter. Tick it when done. **Clear done** removes the ticked ones.
@@ -478,7 +489,8 @@ Every result shows what kind it is. Typos are only allowed in short text such as
 2. Choose **Manuscript** (a title page, then each chapter on a new page, with your bold, italic, underline, headings, lists and quotes) or **Story bible** (characters, relationships, places, glossary, factions, items, lore, timeline).
 3. For a manuscript, pick one book or the whole series.
 4. Type your **author name** if you want it on the title page. The app remembers it.
-5. Choose a file type, press **Export…**, and pick where to save.
+5. Leave **Table of contents** ticked if you want one after the title page. The app remembers your choice.
+6. Choose a file type, press **Export…**, and pick where to save.
 
 | File type | Use it for |
 | --- | --- |
@@ -498,11 +510,18 @@ Every result shows what kind it is. Typos are only allowed in short text such as
 
 Check the page count with your printer. Some printers want a multiple of 4 pages or more binding space, and the app does not add pages at the end.
 
-**E-book notes:** each chapter is one page file, and the e-book has a contents list. It does not have a cover image. Your bold, italic, underline, quotes, lists and scene breaks are kept. The language is set to English. Test it in an e-reader app before you publish. It has not been run through the official EPUB checker tool.
+**E-book notes:** each chapter is one page file, and the e-book has a contents list (your e-reader's own list, and a Contents page after the title page when **Table of contents** is ticked). It does not have a cover image. Your bold, italic, underline, quotes, lists and scene breaks are kept. The language is set to English. Test it in an e-reader app before you publish. It has not been run through the official EPUB checker tool.
 
 **Markdown notes:** the book title is a `#` heading and each chapter is `##`. Bold and italic become `**` and `*`. Underline becomes `<u>`. A scene break is `* * *`.
 
 PDF uses standard fonts. Letters outside Western languages may show as `?`. Use Word or the e-book for those.
+
+**Table of contents** comes after the title page and lists every chapter. A series with several books lists each book, with its chapters under it. The Story bible lists its sections.
+
+- **PDF:** each line has the page number, with dots between. You can click a line to jump to the chapter. In print layout the numbers count the empty pages too.
+- **Word:** each line is a link to the chapter. Word does not tell the app which page a chapter lands on, so the lines have no page numbers.
+- **E-book:** a Contents page with a link for each chapter.
+- **Markdown:** a list of links to the chapter headings.
 
 #### Backup and restore
 

@@ -7,6 +7,7 @@ type ExportOptions struct {
 	Author   string `json:"author"`   // printed under the title, and set in the e-book
 	PageSize string `json:"pageSize"` // a key from pageSizes (Word and PDF)
 	Print    bool   `json:"print"`    // PDF only: mirrored margins, chapters on right-hand pages
+	Contents bool   `json:"contents"` // add a table of contents after the title page
 }
 
 // pageSize is a paper size in millimetres.

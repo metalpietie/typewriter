@@ -55,6 +55,9 @@ p.first, p.kv, p.li, p.subtitle, p.author { text-indent: 0; }
 p.kv, p.li { margin: 0 0 .4em; }
 p.li { margin-left: 1.5em; }
 p.subtitle, p.author { text-align: center; font-style: italic; margin-top: .8em; }
+p.toc { text-indent: 0; margin: .5em 0; }
+p.toc.l1 { margin-left: 1.5em; }
+p.toc a { text-decoration: none; color: inherit; }
 p.rule { text-align: center; text-indent: 0; margin: 1.2em 0; }
 blockquote { margin: .8em 1.5em; font-style: italic; }
 blockquote p { text-indent: 0; }
@@ -70,15 +73,33 @@ func buildEPUB(blocks []block, title, author string) ([]byte, error) {
 		parts = append(parts, cur)
 		return cur
 	}
+	anchorFile := map[string]string{} // heading anchor -> the page file it starts
+	var tocPart *epubPart
+	var tocItems []block
 	for _, b := range blocks {
 		switch b.kind {
 		case "pagebreak":
 			continue
 		case "title":
-			start(b.text).body.WriteString(`<h1 class="title">` + xhtmlEsc(b.text) + "</h1>\n")
+			p := start(b.text)
+			p.body.WriteString(`<h1 class="title">` + xhtmlEsc(b.text) + "</h1>\n")
+			if b.anchor != "" {
+				anchorFile[b.anchor] = p.file
+			}
 			continue
 		case "h1":
-			start(b.text).body.WriteString("<h1>" + xhtmlEsc(b.text) + "</h1>\n")
+			p := start(b.text)
+			p.body.WriteString("<h1>" + xhtmlEsc(b.text) + "</h1>\n")
+			if b.anchor != "" {
+				anchorFile[b.anchor] = p.file
+			}
+			continue
+		case "tochead":
+			tocPart = start(b.text)
+			tocPart.body.WriteString("<h1>" + xhtmlEsc(b.text) + "</h1>\n")
+			continue
+		case "tocitem":
+			tocItems = append(tocItems, b) // written after the loop, when every page file is known
 			continue
 		}
 		if cur == nil {
@@ -112,6 +133,15 @@ func buildEPUB(blocks []block, title, author string) ([]byte, error) {
 	}
 	if len(parts) == 0 {
 		return nil, fmt.Errorf("nothing to put in the e-book")
+	}
+	if tocPart != nil {
+		for _, it := range tocItems {
+			file, ok := anchorFile[it.anchor]
+			if !ok {
+				continue
+			}
+			tocPart.body.WriteString(fmt.Sprintf(`<p class="toc l%d"><a href="%s">%s</a></p>`+"\n", it.level, file, xhtmlEsc(it.text)))
+		}
 	}
 	for _, p := range parts {
 		if strings.TrimSpace(p.label) == "" {

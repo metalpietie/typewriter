@@ -4,6 +4,7 @@
   import ProgressBar from '../lib/ProgressBar.svelte';
   import { sceneLabel, sceneWords } from '../lib/scenes';
   import { dailyGoal, streak, wordsToday } from '../lib/progress';
+  import FinishLine from '../lib/FinishLine.svelte';
   import { findConflicts, openConflicts } from '../lib/plotholes';
   import { findGaps, openGaps } from '../lib/consistency';
 
@@ -15,6 +16,8 @@
   const total = $derived(db.lists.scene.reduce((a, s) => a + sceneWords(s), 0));
   const holes = $derived(openConflicts(findConflicts().conflicts).length);
   const gaps = $derived(openGaps(findGaps()).length);
+  // books that have a finish date
+  const finishBooks = $derived([...db.lists.book].filter((b) => b.finishBy).sort((a, b) => a.order - b.order));
 
   type Recent = { kind: Kind; id: number; label: string; what: string; at: string };
   const WHAT: Partial<Record<Kind, string>> = { scene: 'scene', character: 'character', location: 'place', note: 'lore note', faction: 'faction', item: 'item', event: 'event' };
@@ -90,6 +93,17 @@
       <p class="muted" style="margin:.5rem 0 0">Plot holes and unfinished things are on the Checks tab.</p>
     </div>
   </div>
+
+  {#if finishBooks.length}
+    <div class="cols">
+      {#each finishBooks as b (b.id)}
+        <div class="card">
+          <h3>Finish line · {b.title || 'Untitled book'}</h3>
+          <FinishLine book={b} />
+        </div>
+      {/each}
+    </div>
+  {/if}
 
   <div class="cols">
     <div class="card">

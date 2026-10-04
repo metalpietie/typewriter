@@ -58,13 +58,14 @@ func mdInline(spans []span) string {
 func buildMarkdown(blocks []block) []byte {
 	var out strings.Builder
 	inList := false
+	slugs := markdownSlugs(blocks)
 	put := func(s string) {
 		if strings.TrimSpace(s) != "" {
 			out.WriteString(s + "\n\n")
 		}
 	}
 	for _, b := range blocks {
-		if inList && b.kind != "li" {
+		if inList && b.kind != "li" && b.kind != "tocitem" {
 			out.WriteString("\n") // a blank line ends a list
 			inList = false
 		}
@@ -76,6 +77,11 @@ func buildMarkdown(blocks []block) []byte {
 			put("*by " + mdInline([]span{{text: b.text}}) + "*")
 		case "subtitle":
 			put("*" + mdInline([]span{{text: b.text}}) + "*")
+		case "tochead":
+			put("## " + mdInline([]span{{text: b.text}}))
+		case "tocitem":
+			out.WriteString(strings.Repeat("  ", b.level) + "- [" + mdInline([]span{{text: b.text}}) + "](#" + slugs[b.anchor] + ")\n")
+			inList = true
 		case "h1":
 			put("## " + mdInline([]span{{text: b.text}}))
 		case "h2":

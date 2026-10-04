@@ -1,6 +1,7 @@
 <script lang="ts">
   import Select from '../lib/Select.svelte';
   import { shortAge, impossible } from '../lib/ages';
+  import FinishLine from '../lib/FinishLine.svelte';
   import { BEATS, arcsSorted, linkFor, tagScene, untagScene, setBeat, type Beat } from '../lib/arcs';
   import { onDestroy } from 'svelte';
   import { flip } from 'svelte/animate';
@@ -293,6 +294,12 @@
         <div><label>Book goal (words)</label><input type="number" min="0" bind:value={book.goal} oninput={saveBook} /></div>
         <div><label>Default per chapter</label><input type="number" min="0" bind:value={book.chapterGoal} oninput={saveBook} /></div>
       </div>
+      <label for="finishby">Finish by</label>
+      <div class="row">
+        <input id="finishby" type="date" bind:value={book.finishBy} oninput={saveBook} onchange={saveBook} />
+        {#if book.finishBy}<button class="small" title="Clear the finish date" onclick={() => { book.finishBy = ''; saveBook(); }}>✕</button>{/if}
+      </div>
+      <div style="margin-top:.4rem"><FinishLine {book} /></div>
       {#if book.goal > 0}
         <div style="margin-top:.6rem"><ProgressBar value={total} goal={book.goal} /></div>
         <div class="muted" style="font-size:.8rem;margin-top:.2rem">{total.toLocaleString()} / {Number(book.goal).toLocaleString()} words{pctText(total, book.goal)}</div>

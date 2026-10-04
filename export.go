@@ -21,11 +21,13 @@ type Exporter struct {
 
 // block is one piece of an export, kept neutral so Word and PDF share it.
 type block struct {
-	kind  string // title, subtitle, h1, h2, sub, p, quote, li, rule, kv, pagebreak
-	label string // for kv
-	text  string
-	spans []span // styled text; when empty, text is used
-	flush bool   // no first-line indent (first paragraph of a chapter)
+	kind   string // title, subtitle, h1, h2, sub, p, quote, li, rule, kv, pagebreak
+	label  string // for kv
+	text   string
+	spans  []span // styled text; when empty, text is used
+	flush  bool   // no first-line indent (first paragraph of a chapter)
+	anchor string // set on a heading that the table of contents points to
+	level  int    // tocitem: 0 for a chapter (or a book title), 1 for a chapter in a series
 }
 
 type rec = map[string]any
@@ -107,6 +109,10 @@ func (e *Exporter) Export(what string, bookID int64, format string, opts ExportO
 	}
 	if !strings.HasSuffix(strings.ToLower(path), "."+format) {
 		path += "." + format
+	}
+
+	if opts.Contents {
+		blocks = withContents(blocks)
 	}
 
 	var data []byte
@@ -443,18 +449,31 @@ func buildDocx(blocks []block, opts ExportOptions) ([]byte, error) {
 	sz := sizeOf(opts.PageSize)
 	m := twips(sz.margin())
 	var body strings.Builder
+	marks := 0
+	// a heading that the table of contents points to gets a bookmark
+	bookmark := func(b block, inner string) string {
+		if b.anchor == "" {
+			return inner
+		}
+		marks++
+		return fmt.Sprintf(`<w:bookmarkStart w:id="%d" w:name="%s"/>`, marks, b.anchor) + inner + fmt.Sprintf(`<w:bookmarkEnd w:id="%d"/>`, marks)
+	}
 	for _, b := range blocks {
 		switch b.kind {
 		case "pagebreak":
 			body.WriteString(`<w:p><w:r><w:br w:type="page"/></w:r></w:p>`)
+		case "tochead":
+			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="ContentsHeading"/></w:pPr>` + run(b.text, false) + `</w:p>`)
+		case "tocitem":
+			body.WriteString(fmt.Sprintf(`<w:p><w:pPr><w:pStyle w:val="ContentsItem"/><w:ind w:left="%d" w:firstLine="0"/></w:pPr><w:hyperlink w:anchor="%s" w:history="1">`, b.level*480, b.anchor) + run(b.text, false) + `</w:hyperlink></w:p>`)
 		case "author":
 			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Subtitle"/></w:pPr>` + run("by "+b.text, false) + `</w:p>`)
 		case "title":
-			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Title"/></w:pPr>` + run(b.text, false) + `</w:p>`)
+			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Title"/></w:pPr>` + bookmark(b, run(b.text, false)) + `</w:p>`)
 		case "subtitle":
 			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Subtitle"/></w:pPr>` + run(b.text, false) + `</w:p>`)
 		case "h1":
-			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr>` + run(b.text, false) + `</w:p>`)
+			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr>` + bookmark(b, run(b.text, false)) + `</w:p>`)
 		case "h2":
 			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Heading2"/></w:pPr>` + run(b.text, false) + `</w:p>`)
 		case "kv":
@@ -492,6 +511,8 @@ func buildDocx(blocks []block, opts ExportOptions) ([]byte, error) {
 <w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:before="3000" w:after="360"/><w:ind w:firstLine="0"/><w:jc w:val="center"/></w:pPr><w:rPr><w:b/><w:sz w:val="64"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="Subtitle"><w:name w:val="Subtitle"/><w:basedOn w:val="Normal"/><w:pPr><w:ind w:firstLine="0"/><w:jc w:val="center"/></w:pPr><w:rPr><w:i/><w:sz w:val="26"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:pPr><w:keepNext/><w:spacing w:before="480" w:after="360"/><w:ind w:firstLine="0"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:sz w:val="40"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="ContentsHeading"><w:name w:val="Contents Heading"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:pPr><w:keepNext/><w:spacing w:before="480" w:after="360"/><w:ind w:firstLine="0"/></w:pPr><w:rPr><w:b/><w:sz w:val="40"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="ContentsItem"><w:name w:val="Contents Item"/><w:basedOn w:val="Plain"/><w:pPr><w:spacing w:after="120"/></w:pPr></w:style>
 <w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:pPr><w:keepNext/><w:spacing w:before="320" w:after="120"/><w:ind w:firstLine="0"/><w:outlineLvl w:val="1"/></w:pPr><w:rPr><w:b/><w:sz w:val="30"/></w:rPr></w:style>
 </w:styles>`
 

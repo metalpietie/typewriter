@@ -71,6 +71,11 @@ export interface ExportOptions {
      * PDF only: mirrored margins, chapters on right-hand pages
      */
     "print": boolean;
+
+    /**
+     * add a table of contents after the title page
+     */
+    "contents": boolean;
 }
 
 /**
