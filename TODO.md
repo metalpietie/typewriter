@@ -6,15 +6,6 @@ These items are ideas for later. Pick one when you want it. Skip the items marke
 
 Best next pick: **backup reminder**.
 
-## Contents
-
-- [Writing](#writing)
-- [World building](#world-building)
-- [Maps and paths](#maps-and-paths)
-- [Checks and tools](#checks-and-tools)
-- [Data and files](#data-and-files)
-- [Done](#done)
-
 ## Writing
 
 - [ ] Finish date: set a date and a word goal for a book, and see how many words to write each day to finish on time
