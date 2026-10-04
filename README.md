@@ -21,6 +21,35 @@ For live editing while you change the code:
 wails3 dev
 ```
 
+### Linux
+
+You can build the Linux app on Windows with Docker. This works because the build runs inside a Linux container.
+
+1. Install Docker Desktop and start it.
+2. Build the image once (about 800 MB):
+
+   ```bash
+   wails3 task setup:docker
+   ```
+
+3. Build the Linux app:
+
+   ```bash
+   wails3 task linux:build
+   ```
+
+   The program is `bin/typewriter`. It is for 64-bit Linux (amd64). The Windows program is `bin\typewriter.exe`, but the Linux build can remove it. Run `wails3 build` again to get the Windows program back.
+
+On the Linux computer:
+
+1. Install the window parts. On Debian or Ubuntu: `sudo apt install libgtk-4-1 libwebkitgtk-6.0-4`. On Fedora: `sudo dnf install gtk4 webkitgtk6.0`. On Arch: `sudo pacman -S gtk4 webkitgtk-6.0`.
+2. Copy `typewriter` over, then run `chmod +x typewriter` and `./typewriter`.
+3. Your data is in `~/.config/typewriter` (the file `typewriter.db`, the `projects` folder, and the `backups` folders). To move your book from Windows, close the app, then copy the `typewriter.db` file from `%APPDATA%\typewriter` to that folder.
+
+On Linux, **Open the backup folder** uses `xdg-open`. To build packages (.deb, .rpm, AppImage), see `build/linux` and `wails3 task linux:package`.
+
+If you build on a Linux computer instead, install Go, Node.js, `gcc`, `libgtk-4-dev` and `libwebkitgtk-6.0-dev`, then run `wails3 build`.
+
 ### Requirements for building
 
 - Go 1.25 or newer
