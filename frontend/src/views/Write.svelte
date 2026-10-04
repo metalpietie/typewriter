@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Select from '../lib/Select.svelte';
   import { onDestroy } from 'svelte';
   import { flip } from 'svelte/animate';
   import { Window } from '@wailsio/runtime';
@@ -277,10 +278,10 @@
 
 <div class="split wide" class:focus={nav.focus}>
   <aside class="side">
-    <div class="row"><select bind:value={bookId} onchange={() => pickChapter(null)}>
+    <div class="row"><Select bind:value={bookId} onchange={() => pickChapter(null)}>
       <option value={null}>— choose a book —</option>
       {#each [...db.lists.book].sort((a, b) => a.order - b.order) as b}<option value={b.id}>{b.order}. {b.title}</option>{/each}
-    </select><button class="primary" onclick={addBook}>+ Book</button></div>
+    </Select><button class="primary" onclick={addBook}>+ Book</button></div>
 
     {#if book}
       <label>Book title</label><input bind:value={book.title} oninput={saveBook} />
@@ -377,17 +378,17 @@
         </span>
       </div>
       <label>Status</label>
-      <select bind:value={scene.status} onchange={saveScene}>{#each STATUSES as s}<option>{s}</option>{/each}</select>
+      <Select bind:value={scene.status} onchange={saveScene}>{#each STATUSES as s}<option>{s}</option>{/each}</Select>
       <label>Point of view</label>
-      <select bind:value={scene.pov} onchange={saveScene}>
+      <Select bind:value={scene.pov} onchange={saveScene}>
         <option value={null}>— none —</option>
         {#each db.lists.character as c}<option value={c.id}>{c.name}</option>{/each}
-      </select>
+      </Select>
       <label>Place</label>
-      <select bind:value={scene.location} onchange={saveScene}>
+      <Select bind:value={scene.location} onchange={saveScene}>
         <option value={null}>— none —</option>
         {#each db.lists.location as l}<option value={l.id}>{l.name}</option>{/each}
-      </select>
+      </Select>
       <DateField bind:time={scene.time} bind:when={scene.when} onchange={saveScene} />
       <label>Who is in this scene</label>
       {#each db.lists.character as c}
@@ -415,9 +416,9 @@
       <label>Word goal for this scene</label>
       <input type="number" min="0" bind:value={scene.goal} oninput={saveScene} />
       <label>Move to chapter</label>
-      <select value={scene.chapter} onchange={(e) => moveScene(+e.currentTarget.value)}>
+      <Select value={scene.chapter} onchange={(e) => moveScene(+e.currentTarget.value)}>
         {#each chapters as c}<option value={c.id}>{c.order}. {c.title}</option>{/each}
-      </select>
+      </Select>
     {/if}
 
     {#if chap}

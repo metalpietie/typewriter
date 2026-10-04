@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Select from '../lib/Select.svelte';
   import { db, ROLES, REL_TYPES, CHARACTER_COLORS as PALETTE } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import Backlinks from '../lib/Backlinks.svelte';
@@ -80,7 +81,7 @@
         <div><label>Name</label><input bind:value={sel.name} oninput={save} /></div>
         <div><label>Also called</label><input bind:value={sel.aliases} oninput={save} placeholder="nicknames, titles" /></div>
         <div><label>Role</label>
-          <select bind:value={sel.role} onchange={save}>{#each ROLES as r}<option>{r}</option>{/each}</select>
+          <Select bind:value={sel.role} onchange={save}>{#each ROLES as r}<option>{r}</option>{/each}</Select>
         </div>
         <div><label>Age / born / died</label><input bind:value={sel.age} oninput={save} /></div>
         <div><label>Colour (used on graph and maps)</label><input type="color" bind:value={sel.color} oninput={save} /></div>

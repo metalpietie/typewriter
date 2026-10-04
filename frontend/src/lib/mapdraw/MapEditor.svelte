@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Select from '../Select.svelte';
   import { onMount, onDestroy, tick } from 'svelte';
   import { db, type Item } from '../db.svelte';
   import { Exporter } from '../../../bindings/typewriter';
@@ -721,9 +722,9 @@
     <span class="grow"></span>
     {#if notice}<span class="notice">{notice}</span>{/if}
     <SaveIndicator />
-    <select bind:value={exportScale} title="Export size" style="width:auto">
+    <Select bind:value={exportScale} title="Export size" style="width:auto">
       <option value={1}>PNG 1×</option><option value={2}>PNG 2×</option>
-    </select>
+    </Select>
     <button onclick={exportPng}>Export PNG…</button>
   </header>
   {#if exportMsg}<div class="exportmsg">{exportMsg}</div>{/if}
@@ -758,7 +759,7 @@
         {/if}
         {#if tool === 'brush'}
           <label for="tex">Texture</label>
-          <select id="tex" bind:value={texture}>{#each TEXTURES as t}<option value={t.key}>{t.name}</option>{/each}</select>
+          <Select id="tex" bind:value={texture}>{#each TEXTURES as t}<option value={t.key}>{t.name}</option>{/each}</Select>
         {/if}
         <label>Size · {brushSize}  <span class="muted">( [ and ] )</span></label>
         <input type="range" min="4" max="400" bind:value={brushSize} />
@@ -801,7 +802,7 @@
           <p class="muted">Click the map to place a label. Then type its text on the right.</p>
         {/if}
         <label>Font</label>
-        <select bind:value={fontIdx}>{#each FONTS as f, i}<option value={i}>{f.name}</option>{/each}</select>
+        <Select bind:value={fontIdx}>{#each FONTS as f, i}<option value={i}>{f.name}</option>{/each}</Select>
         <label>Size · {labelSize}</label>
         <input type="range" min="10" max="200" bind:value={labelSize} />
         <label>Color</label>
@@ -847,9 +848,9 @@
       {/each}
     </div>
     <div class="row" style="margin-top:.4rem">
-      <select bind:value={newType} style="flex:1">
+      <Select bind:value={newType} style="flex:1">
         {#each Object.entries(LAYER_NAMES) as [t, n]}<option value={t}>{n}</option>{/each}
-      </select>
+      </Select>
       <button class="small" onclick={() => addLayer(newType)}>+ Layer</button>
     </div>
 
@@ -859,9 +860,9 @@
         <label>Text</label>
         <input bind:this={labelInput} value={selView.text} oninput={(e) => setProp('text', e.currentTarget.value)} />
         <label>Font</label>
-        <select value={selView.font} onchange={(e) => setProp('font', e.currentTarget.value)}>
+        <Select value={selView.font} onchange={(e) => setProp('font', e.currentTarget.value)}>
           {#each FONTS as f}<option value={f.css}>{f.name}</option>{/each}
-        </select>
+        </Select>
         <label>Size · {selView.size}</label>
         <input type="range" min="10" max="240" value={selView.size} oninput={(e) => setProp('size', +e.currentTarget.value)} />
         {#if selView.pts}
@@ -877,15 +878,15 @@
         <label class="check"><input type="checkbox" checked={selView.halo} onchange={(e) => setProp('halo', e.currentTarget.checked)} /> Light outline</label>
       {:else if selView.k === 'icon'}
         <label>Picture</label>
-        <select value={selView.icon} onchange={(e) => setProp('icon', e.currentTarget.value)}>{#each ICONS as n}<option>{n}</option>{/each}</select>
+        <Select value={selView.icon} onchange={(e) => setProp('icon', e.currentTarget.value)}>{#each ICONS as n}<option>{n}</option>{/each}</Select>
         <label>Size · {selView.size}</label>
         <input type="range" min="8" max="400" value={selView.size} oninput={(e) => setProp('size', +e.currentTarget.value)} />
         <label class="check"><input type="checkbox" checked={selView.flip} onchange={(e) => setProp('flip', e.currentTarget.checked)} /> Flip</label>
       {:else if selView.k === 'line'}
         <label>Type</label>
-        <select value={selView.type} onchange={(e) => setProp('type', e.currentTarget.value)}>
+        <Select value={selView.type} onchange={(e) => setProp('type', e.currentTarget.value)}>
           {#each Object.entries(LINE_TYPES) as [id, t]}<option value={id}>{t.name}</option>{/each}
-        </select>
+        </Select>
         <label>Width · {selView.width}</label>
         <input type="range" min="1" max="40" value={selView.width} oninput={(e) => setProp('width', +e.currentTarget.value)} />
       {:else if selView.k === 'land'}
@@ -909,13 +910,13 @@
       <div><label>Ink</label><input type="color" value={style.ink} oninput={(e) => setStyle('ink', e.currentTarget.value)} /></div>
     </div>
     <label for="landtex">Land texture</label>
-    <select id="landtex" value={style.landTexture} onchange={(e) => setTexture('landTexture', e.currentTarget.value)}>
+    <Select id="landtex" value={style.landTexture} onchange={(e) => setTexture('landTexture', e.currentTarget.value)}>
       {#each TEXTURES as t}<option value={t.key}>{t.name}</option>{/each}
-    </select>
+    </Select>
     <label for="watertex">Water texture</label>
-    <select id="watertex" value={style.waterTexture} onchange={(e) => setTexture('waterTexture', e.currentTarget.value)}>
+    <Select id="watertex" value={style.waterTexture} onchange={(e) => setTexture('waterTexture', e.currentTarget.value)}>
       {#each TEXTURES as t}<option value={t.key}>{t.name}</option>{/each}
-    </select>
+    </Select>
     {#if map.original}
       <label class="check" style="margin-top:.6rem"><input type="checkbox" bind:checked={showBase} onchange={requestDraw} /> Show the original picture (this screen only)</label>
     {/if}

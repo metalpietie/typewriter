@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Select from './Select.svelte';
   import { onMount } from 'svelte';
   import { db, type Item } from './db.svelte';
   import { nav } from './nav.svelte';
@@ -91,9 +92,9 @@
       </div>
       {#if row.weekdays?.length}
         <label>First day of year 0 is a</label>
-        <select bind:value={row.weekdayShift} onchange={save}>
+        <Select bind:value={row.weekdayShift} onchange={save}>
           {#each row.weekdays as w, i}<option value={i}>{w}</option>{/each}
-        </select>
+        </Select>
       {/if}
 
       {#if ok}
@@ -101,7 +102,7 @@
           <h3>Try it</h3>
           <div class="try">
             <input type="number" step="1" bind:value={year} aria-label="Year" />
-            <select bind:value={month} aria-label="Month">{#each asCal!.months as mo, i}<option value={i}>{mo.name}</option>{/each}</select>
+            <Select bind:value={month} aria-label="Month">{#each asCal!.months as mo, i}<option value={i}>{mo.name}</option>{/each}</Select>
             <input type="number" min="1" step="1" bind:value={day} aria-label="Day" />
           </div>
           <p style="margin:.6rem 0 0"><b>{sample}</b></p>

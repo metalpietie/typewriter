@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Select from './Select.svelte';
   import { db, CHARACTER_COLORS, type Item } from './db.svelte';
   import { nav, openItem } from './nav.svelte';
   import { CUSTOM, STYLES, customStyle, makeNames, type Style } from './namegen';
@@ -80,10 +81,10 @@
     </div>
 
     <label for="style">Style</label>
-    <select id="style" bind:value={styleKey}>
+    <Select id="style" bind:value={styleKey}>
       {#each STYLES as s}<option value={s.key}>{s.label}</option>{/each}
       <option value={CUSTOM}>My own words…</option>
-    </select>
+    </Select>
 
     {#if styleKey === CUSTOM}
       <label for="words">Your words (at least 3, separated by spaces, commas or new lines). Names are built from them.</label>

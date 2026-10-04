@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Select from '../lib/Select.svelte';
   import { db, NOTE_CATEGORIES, PLACE_TYPES } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import Backlinks from '../lib/Backlinks.svelte';
@@ -49,7 +50,7 @@
     <div class="row"><input placeholder="Search…" bind:value={search} /><button class="primary" onclick={add}>+ New</button></div>
     {#if mode === 'location'}<button class="small" style="width:100%;margin-top:.4rem" onclick={() => (nav.names = 'place')}>Name generator…</button>{/if}
     <label>Filter</label>
-    <select bind:value={filter}>{#each cats as c}<option>{c}</option>{/each}</select>
+    <Select bind:value={filter}>{#each cats as c}<option>{c}</option>{/each}</Select>
     <div class="list">
       {#each items as i (i.id)}
         <button class="item" class:on={i.id === selId} onclick={() => (selId = i.id)}>
@@ -65,7 +66,7 @@
       <div class="grid2">
         <div><label>Title</label><input bind:value={sel.title} oninput={save} /></div>
         <div><label>Category</label>
-          <select bind:value={sel.category} onchange={save}>{#each NOTE_CATEGORIES as c}<option>{c}</option>{/each}</select>
+          <Select bind:value={sel.category} onchange={save}>{#each NOTE_CATEGORIES as c}<option>{c}</option>{/each}</Select>
         </div>
       </div>
       <label>Tags (comma separated)</label><input bind:value={sel.tags} oninput={save} />
@@ -77,13 +78,13 @@
       <div class="grid2">
         <div><label>Name</label><input bind:value={sel.name} oninput={save} /></div>
         <div><label>Type</label>
-          <select bind:value={sel.type} onchange={save}>{#each PLACE_TYPES as c}<option>{c}</option>{/each}</select>
+          <Select bind:value={sel.type} onchange={save}>{#each PLACE_TYPES as c}<option>{c}</option>{/each}</Select>
         </div>
         <div><label>Inside (parent place)</label>
-          <select bind:value={sel.parent} onchange={save}>
+          <Select bind:value={sel.parent} onchange={save}>
             <option value={null}>— none —</option>
             {#each db.lists.location.filter((l) => l.id !== sel.id) as l}<option value={l.id}>{l.name}</option>{/each}
-          </select>
+          </Select>
         </div>
         <div><label>Tags</label><input bind:value={sel.tags} oninput={save} /></div>
       </div>

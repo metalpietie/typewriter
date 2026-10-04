@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Select from './Select.svelte';
   import { nav } from './nav.svelte';
   import { calendar, format, fromTime, monthLength, toTime } from './calendar';
 
@@ -31,10 +32,10 @@
   <label>Date</label>
   <div class="date">
     <input type="number" step="1" placeholder="Year" aria-label="Year" value={p?.year ?? ''} oninput={(e) => set(num(e.currentTarget.value), p?.month ?? null, p?.day ?? null)} />
-    <select aria-label="Month" disabled={!p} value={p?.month ?? ''} onchange={(e) => { const v = e.currentTarget.value; set(p!.year, v === '' ? null : +v, v === '' ? null : p?.day ?? 1); }}>
+    <Select aria-label="Month" disabled={!p} value={p?.month ?? ''} onchange={(e) => { const v = e.currentTarget.value; set(p!.year, v === '' ? null : +v, v === '' ? null : p?.day ?? 1); }}>
       <option value="">— whole year —</option>
       {#each cal.months as m, i}<option value={i}>{m.name}</option>{/each}
-    </select>
+    </Select>
     {#if p && p.month !== null}
       <input type="number" min="1" max={monthLength(cal.months[p.month])} step="1" aria-label="Day" value={p.day ?? 1}
         oninput={(e) => { const d = num(e.currentTarget.value); if (d !== null) set(p.year, p.month, d); }} />

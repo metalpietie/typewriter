@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Select from '../lib/Select.svelte';
   import { db } from '../lib/db.svelte';
   import { openItem } from '../lib/nav.svelte';
   import { layoutFamily, setFamRole, FAM_ROLES, NODE_H, type FamRole } from '../lib/familytree';
@@ -103,17 +104,17 @@
 <div class="split">
   <aside class="side">
     <h3>Show</h3>
-    <select bind:value={focusId}>
+    <Select bind:value={focusId}>
       <option value={null}>Every family</option>
       {#each db.lists.character as c}<option value={c.id}>Family of {c.name}</option>{/each}
-    </select>
+    </Select>
 
     <h3 style="margin-top:1.2rem">New family link</h3>
-    <select bind:value={newA}><option value={null}>Person A…</option>{#each db.lists.character as c}<option value={c.id}>{c.name}</option>{/each}</select>
+    <Select bind:value={newA}><option value={null}>Person A…</option>{#each db.lists.character as c}<option value={c.id}>{c.name}</option>{/each}</Select>
     <div style="height:.4rem"></div>
-    <select bind:value={newRole}>{#each FAM_ROLES as r}<option value={r.role}>{r.label}</option>{/each}</select>
+    <Select bind:value={newRole}>{#each FAM_ROLES as r}<option value={r.role}>{r.label}</option>{/each}</Select>
     <div style="height:.4rem"></div>
-    <select bind:value={newB}><option value={null}>Person B…</option>{#each db.lists.character as c}<option value={c.id}>{c.name}</option>{/each}</select>
+    <Select bind:value={newB}><option value={null}>Person B…</option>{#each db.lists.character as c}<option value={c.id}>{c.name}</option>{/each}</Select>
     <button class="primary" style="width:100%;margin-top:.5rem" disabled={!newA || !newB || newA === newB} onclick={add}>Add link</button>
 
     {#if needRole.length}
@@ -122,10 +123,10 @@
       {#each needRole as r (r.id)}
         <div class="card">
           <strong>{db.name('character', r.a)}</strong> and <strong>{db.name('character', r.b)}</strong>
-          <select style="margin-top:.4rem" value="" onchange={(e) => changeRole(r, e.currentTarget.value as FamRole)}>
+          <Select style="margin-top:.4rem" value="" onchange={(e) => changeRole(r, e.currentTarget.value as FamRole)}>
             <option value="">Role…</option>
             {#each FAM_ROLES as x}<option value={x.role}>{x.label}</option>{/each}
-          </select>
+          </Select>
         </div>
       {/each}
     {/if}

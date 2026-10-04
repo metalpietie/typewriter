@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Select from '../lib/Select.svelte';
   import { forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide } from 'd3-force';
   import { untrack } from 'svelte';
   import { db, REL_TYPES } from '../lib/db.svelte';
@@ -164,11 +165,11 @@
 <div class="split">
   <aside class="side">
     <h3>New link</h3>
-    <select bind:value={newA}><option value={null}>Person A…</option>{#each db.lists.character as c}<option value={c.id}>{c.name}</option>{/each}</select>
+    <Select bind:value={newA}><option value={null}>Person A…</option>{#each db.lists.character as c}<option value={c.id}>{c.name}</option>{/each}</Select>
     <div style="height:.4rem"></div>
-    <select bind:value={newB}><option value={null}>Person B…</option>{#each db.lists.character as c}<option value={c.id}>{c.name}</option>{/each}</select>
+    <Select bind:value={newB}><option value={null}>Person B…</option>{#each db.lists.character as c}<option value={c.id}>{c.name}</option>{/each}</Select>
     <div class="row" style="margin-top:.4rem">
-      <select bind:value={newType}>{#each Object.keys(REL_TYPES) as t}<option>{t}</option>{/each}</select>
+      <Select bind:value={newType}>{#each Object.keys(REL_TYPES) as t}<option>{t}</option>{/each}</Select>
       <button class="primary" disabled={!newA || !newB || newA === newB} onclick={add}>Link</button>
     </div>
 
@@ -192,17 +193,17 @@
       <div class="card">
         <div class="head"><strong>Edit link</strong><ConfirmButton onconfirm={del} /></div>
         <label>Person A</label>
-        <select bind:value={rel.a} onchange={save}>{#each db.lists.character as c}<option value={c.id}>{c.name}</option>{/each}</select>
+        <Select bind:value={rel.a} onchange={save}>{#each db.lists.character as c}<option value={c.id}>{c.name}</option>{/each}</Select>
         <label>Person B</label>
-        <select bind:value={rel.b} onchange={save}>{#each db.lists.character as c}<option value={c.id}>{c.name}</option>{/each}</select>
+        <Select bind:value={rel.b} onchange={save}>{#each db.lists.character as c}<option value={c.id}>{c.name}</option>{/each}</Select>
         <label>Type</label>
-        <select bind:value={rel.type} onchange={save}>{#each Object.keys(REL_TYPES) as t}<option>{t}</option>{/each}</select>
+        <Select bind:value={rel.type} onchange={save}>{#each Object.keys(REL_TYPES) as t}<option>{t}</option>{/each}</Select>
         {#if rel.type === 'family'}
           <label>Family role (for the Family tree tab)</label>
-          <select value={rel.fam ?? ''} onchange={(e) => { setFamRole(rel, e.currentTarget.value as FamRole | ''); save(); }}>
+          <Select value={rel.fam ?? ''} onchange={(e) => { setFamRole(rel, e.currentTarget.value as FamRole | ''); save(); }}>
             <option value="">— not set —</option>
             {#each FAM_ROLES as x}<option value={x.role}>{x.label}</option>{/each}
-          </select>
+          </Select>
         {/if}
         <label>Label on graph (e.g. “sister”, “teacher of”)</label>
         <input bind:value={rel.label} oninput={save} />

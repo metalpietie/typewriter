@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Select from '../lib/Select.svelte';
   import { db } from '../lib/db.svelte';
   import { scenesOf, chapterCast, chapterHasPov } from '../lib/scenes';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
@@ -107,10 +108,10 @@
         </label>
       {/each}
       <label>Only this character</label>
-      <select bind:value={charFilter}>
+      <Select bind:value={charFilter}>
         <option value={null}>Everyone</option>
         {#each db.lists.character as c}<option value={c.id}>{c.name}</option>{/each}
-      </select>
+      </Select>
 
       {#if ev}
         <div class="card">
@@ -118,10 +119,10 @@
           <label>Title</label><input bind:value={ev.title} oninput={save} />
           <DateField bind:time={ev.time} bind:when={ev.when} onchange={save} placeholder="Year 312" timeLabel="Position (number)" />
           <label>Place</label>
-          <select bind:value={ev.location} onchange={save}>
+          <Select bind:value={ev.location} onchange={save}>
             <option value={null}>— none —</option>
             {#each db.lists.location as l}<option value={l.id}>{l.name}</option>{/each}
-          </select>
+          </Select>
           <label>Who is involved</label>
           {#each db.lists.character as c}
             <label style="display:flex;gap:.4rem;margin:.1rem 0;color:var(--text)">

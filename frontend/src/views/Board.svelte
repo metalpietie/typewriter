@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Select from '../lib/Select.svelte';
   import { flip } from 'svelte/animate';
   import { db } from '../lib/db.svelte';
   import { openScene } from '../lib/nav.svelte';
@@ -160,9 +161,9 @@
 <section class="pane boardpane">
   <div class="top">
     <h2 style="margin:0">Board</h2>
-    <select aria-label="Book" bind:value={pick}>
+    <Select aria-label="Book" bind:value={pick}>
       {#each books as b}<option value={b.id}>{b.order}. {b.title}</option>{/each}
-    </select>
+    </Select>
     <div class="seg">
       <button class:active={colour === 'status'} onclick={() => (colour = 'status')}>Colour by status</button>
       <button class:active={colour === 'pov'} onclick={() => (colour = 'pov')}>Colour by point of view</button>
@@ -202,7 +203,7 @@
                 </div>
                 <textarea rows="3" placeholder="What happens in this scene?" aria-label="Summary" bind:value={s.summary} oninput={() => saveScene(s)}></textarea>
                 <div class="foot muted">
-                  <select class="st" aria-label="Status" bind:value={s.status} onchange={() => saveScene(s)}>{#each STATUSES as t}<option>{t}</option>{/each}</select>
+                  <Select class="st" aria-label="Status" bind:value={s.status} onchange={() => saveScene(s)}>{#each STATUSES as t}<option>{t}</option>{/each}</Select>
                   {#if povOf(s)}<span class="tag" title="Point of view">{povOf(s)}</span>{/if}
                   {#if placeOf(s)}<span class="tag" title="Place">{placeOf(s)}</span>{/if}
                   <span class="fit">{sceneWords(s).toLocaleString()} words</span>
@@ -223,7 +224,7 @@
 <style>
   .boardpane { display: flex; flex-direction: column; min-height: 0; }
   .top { display: flex; gap: .8rem; align-items: center; flex-wrap: wrap; }
-  .top select { flex: 0 1 16rem; }
+  .top :global(.select) { flex: 0 1 16rem; }
   .board { flex: 1; min-height: 0; display: flex; gap: .8rem; overflow: auto; align-items: flex-start; padding-bottom: .8rem; }
   .board.sorting { user-select: none; -webkit-user-select: none; cursor: grabbing; }
   .board.sorting :global(*) { cursor: grabbing !important; }
@@ -244,7 +245,7 @@
   .idx .title:hover { text-decoration: underline; }
   .idx textarea { min-height: 3.6rem; margin: .3rem 0; font-size: .85rem; resize: vertical; background: var(--panel); }
   .foot { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; font-size: .75rem; }
-  .foot .st { width: auto; padding: .05rem .3rem; font-size: .75rem; }
+  .foot :global(.st) { width: auto; padding: .05rem .3rem; font-size: .75rem; }
   .foot .fit { margin-left: auto; }
   .tag { background: var(--panel); border: 1px solid var(--line); border-radius: 99px; padding: 0 .5rem; max-width: 7rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .addscene { align-self: flex-start; }

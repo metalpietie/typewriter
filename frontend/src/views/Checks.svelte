@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Select from '../lib/Select.svelte';
   import { db } from '../lib/db.svelte';
   import { openItem, openScene } from '../lib/nav.svelte';
   import { findConflicts, type Conflict, type Presence } from '../lib/plotholes';
@@ -123,10 +124,10 @@
     </p>
     <div class="row" style="justify-content:flex-start;margin-bottom:.6rem">
       <label for="rscope" style="margin:0">Look in</label>
-      <select id="rscope" style="flex:0 1 16rem" bind:value={rScope} onchange={() => (showAllCards = false)}>
+      <Select id="rscope" style="flex:0 1 16rem" bind:value={rScope} onchange={() => (showAllCards = false)}>
         <option value="all">All books</option>
         {#each [...db.lists.book].sort((a, b) => a.order - b.order) as b}<option value={b.id}>{b.title}</option>{/each}
-      </select>
+      </Select>
     </div>
     <div class="seg" style="margin-bottom:.8rem">
       <button class:active={rPart === 'close'} onclick={() => (rPart = 'close')}>Words close together · {openClose.length}</button>

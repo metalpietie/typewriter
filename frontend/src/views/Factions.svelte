@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Select from '../lib/Select.svelte';
   import { db, FACTION_TYPES, FACTION_REL } from '../lib/db.svelte';
   import { nav, openItem } from '../lib/nav.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
@@ -84,13 +85,13 @@
       <div class="grid2">
         <div><label>Name</label><input bind:value={sel.name} oninput={save} /></div>
         <div><label>Type</label>
-          <select bind:value={sel.type} onchange={save}>{#each FACTION_TYPES as t}<option>{t}</option>{/each}</select>
+          <Select bind:value={sel.type} onchange={save}>{#each FACTION_TYPES as t}<option>{t}</option>{/each}</Select>
         </div>
         <div><label>Headquarters</label>
-          <select bind:value={sel.hq} onchange={save}>
+          <Select bind:value={sel.hq} onchange={save}>
             <option value={null}>— none —</option>
             {#each db.lists.location as l}<option value={l.id}>{l.name}</option>{/each}
-          </select>
+          </Select>
         </div>
         <div><label>Colour</label><input type="color" bind:value={sel.color} oninput={save} /></div>
       </div>
@@ -112,10 +113,10 @@
           </div>
         {:else}<span class="muted">No members yet.</span>{/each}
         <div class="row" style="margin-top:.6rem">
-          <select bind:value={newMember}>
+          <Select bind:value={newMember}>
             <option value={null}>Add a character…</option>
             {#each candidates as c}<option value={c.id}>{c.name}</option>{/each}
-          </select>
+          </Select>
           <button class="primary" disabled={!newMember} onclick={addMember}>Add</button>
         </div>
       </div>
@@ -125,9 +126,9 @@
         {#each ties as r (r.id)}
           {@const other = r.a === sel.id ? r.b : r.a}
           <div class="row line">
-            <select bind:value={r.type} onchange={() => saveTie(r)} style:border-color={FACTION_REL[r.type]}>
+            <Select bind:value={r.type} onchange={() => saveTie(r)} style="border-color: {FACTION_REL[r.type]}">
               {#each Object.keys(FACTION_REL) as t}<option>{t}</option>{/each}
-            </select>
+            </Select>
             <button class="link" onclick={() => (selId = other)}>{db.name('faction', other)}</button>
             {#if r.type === 'rules'}<span class="muted fit">{r.a === sel.id ? 'rules them' : 'rules us'}</span>{/if}
             <button class="small" onclick={() => removeTie(r)}>✕</button>
@@ -135,11 +136,11 @@
         {:else}<span class="muted">No ties to other factions yet.</span>{/each}
         {#if others.length}
           <div class="row" style="margin-top:.6rem">
-            <select bind:value={newRel}>{#each Object.keys(FACTION_REL) as t}<option>{t}</option>{/each}</select>
-            <select bind:value={newOther}>
+            <Select bind:value={newRel}>{#each Object.keys(FACTION_REL) as t}<option>{t}</option>{/each}</Select>
+            <Select bind:value={newOther}>
               <option value={null}>Faction…</option>
               {#each others as f}<option value={f.id}>{f.name}</option>{/each}
-            </select>
+            </Select>
             <button class="primary" disabled={!newOther} onclick={addTie}>Add</button>
           </div>
           <p class="muted" style="margin:.4rem 0 0">“rules” means this faction rules the other one.</p>

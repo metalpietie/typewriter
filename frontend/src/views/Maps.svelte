@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Select from '../lib/Select.svelte';
   import { db, PLACE_TYPES, CHARACTER_COLORS } from '../lib/db.svelte';
   import { center, inside, nearestEdge, type Pt } from '../lib/regions';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
@@ -11,6 +12,7 @@
   import { rangeOn, statusAt, tracks, whereAt } from '../lib/tracks';
 
   let mapId = $state<number | null>(null);
+  let placeSel = $state(''); // the "Place an existing one" list; it goes back to the first line after a pick
   let mode = $state<'pan' | 'pin' | 'path' | 'measure' | 'region'>('pan');
   let pathChar = $state<number | null>(null);
   let hiddenChars = $state<number[]>([]);
@@ -358,10 +360,10 @@
 <div class="split wide">
   <aside class="side">
     <label style="margin-top:0">Map</label>
-    <select bind:value={mapId} onchange={() => (selPin = selPoint = null)}>
+    <Select bind:value={mapId} onchange={() => (selPin = selPoint = null)}>
       <option value={null}>— choose a map —</option>
       {#each db.lists.map as m}<option value={m.id}>{m.name}</option>{/each}
-    </select>
+    </Select>
     <div class="row" style="margin-top:.5rem">
       <label class="fit" style="margin:0"><span class="small primary" style="display:inline-block;padding:.35rem .75rem;border-radius:6px;background:var(--accent);color:var(--on-accent);font-weight:600;cursor:pointer">+ Image</span>
         <input type="file" accept="image/*" onchange={upload} style="display:none" /></label>
@@ -369,9 +371,9 @@
     </div>
     <div class="row" style="margin-top:.4rem">
       <button class="primary" onclick={drawNew}>✎ Draw a map</button>
-      <select bind:value={drawSize} style="flex:0 0 6.5rem" title="Size of the new map">
+      <Select bind:value={drawSize} style="flex:0 0 6.5rem" title="Size of the new map">
         <option value="1600x1000">Small</option><option value="2400x1500">Medium</option><option value="3200x2000">Large</option>
-      </select>
+      </Select>
     </div>
 
     {#if map}
@@ -551,9 +553,9 @@
           <input type="range" min={range.min} max={range.max} step={(range.max - range.min) / 1000 || 1} value={Tc}
             oninput={(e) => { playing = false; T = +e.currentTarget.value; }} aria-label="Story time" />
           <strong class="when">{timeLabel(Tc)}</strong>
-          <select bind:value={playSpeed} title="Play speed" style="width:auto">
+          <Select bind:value={playSpeed} title="Play speed" style="width:auto">
             <option value={0.5}>Slow</option><option value={1}>Normal</option><option value={2}>Fast</option><option value={4}>Very fast</option>
-          </select>
+          </Select>
           <label class="last"><input type="checkbox" bind:checked={showLast} />Show last seen</label>
         </div>
       {/if}
@@ -579,7 +581,7 @@
           <button class="small" onclick={unpin}>Unpin</button><ConfirmButton onconfirm={delPin} /></span></div>
         <label>Name</label><input bind:value={pin.name} oninput={savePin} />
         <label>Type</label>
-        <select bind:value={pin.type} onchange={savePin}>{#each PLACE_TYPES as t}<option>{t}</option>{/each}</select>
+        <Select bind:value={pin.type} onchange={savePin}>{#each PLACE_TYPES as t}<option>{t}</option>{/each}</Select>
         <label>Description</label><textarea bind:value={pin.description} oninput={savePin}></textarea>
         {#if regionsOf(pin).length}<p class="muted" style="margin:.5rem 0 0">In: {#each regionsOf(pin) as r, i}{i ? ', ' : ''}<button class="small" onclick={() => { selRegion = r.id; selPin = null; }}>{r.name || 'Region'}</button>{/each}</p>{/if}
       {:else if region}
@@ -599,22 +601,22 @@
         <label>What happens here</label><input bind:value={point.label} oninput={savePoint} placeholder="e.g. Leaves the village" />
         <DateField bind:time={point.time} bind:when={point.when} onchange={savePoint} placeholder="" />
         <label>Chapter</label>
-        <select bind:value={point.chapter} onchange={() => { point.scene = null; savePoint(); }}>
+        <Select bind:value={point.chapter} onchange={() => { point.scene = null; savePoint(); }}>
           <option value={null}>— none —</option>
           {#each chapters as c}<option value={c.id}>{db.name('book', c.book, 'title')} · {c.order}. {c.title}</option>{/each}
-        </select>
+        </Select>
         {#if point.chapter && scenesOf(point.chapter).length}
           <label>Scene</label>
-          <select bind:value={point.scene} onchange={savePoint}>
+          <Select bind:value={point.scene} onchange={savePoint}>
             <option value={null}>— none —</option>
             {#each scenesOf(point.chapter) as s, i}<option value={s.id}>{i + 1}. {s.title || 'Untitled'}</option>{/each}
-          </select>
+          </Select>
         {/if}
         <label>Place</label>
-        <select bind:value={point.location} onchange={savePoint}>
+        <Select bind:value={point.location} onchange={savePoint}>
           <option value={null}>— none —</option>
           {#each db.lists.location as l}<option value={l.id}>{l.name}</option>{/each}
-        </select>
+        </Select>
       {:else}
         <p class="muted">Click a pin, a path step or a region to edit it.</p>
       {/if}
@@ -632,7 +634,7 @@
         <h3 style="margin-top:1.4rem">{db.name('character', pathChar)}’s path on this map</h3>
         {#if scale && scale.modes.length}
           <label>Travel by</label>
-          <select bind:value={modeIdx}>{#each scale.modes as m, i}<option value={i}>{m.name}</option>{/each}</select>
+          <Select bind:value={modeIdx}>{#each scale.modes as m, i}<option value={i}>{m.name}</option>{/each}</Select>
         {/if}
         <div class="list">
           {#each myPoints as p, i (p.id)}
@@ -651,10 +653,10 @@
 
       {#if unplaced.length}
         <h3 style="margin-top:1.4rem">Places not on a map</h3>
-        <select onchange={(e) => { const v = +(e.target as HTMLSelectElement).value; if (v) { placing = v; mode = 'pin'; } (e.target as HTMLSelectElement).value = ''; }}>
+        <Select bind:value={placeSel} onchange={(e) => { const v = +e.currentTarget.value; if (v) { placing = v; mode = 'pin'; } setTimeout(() => (placeSel = '')); }}>
           <option value="">Place an existing one…</option>
           {#each unplaced as l}<option value={l.id}>{l.name}</option>{/each}
-        </select>
+        </Select>
       {/if}
     {/if}
   </aside>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Select from '../lib/Select.svelte';
   import { Exporter } from '../../bindings/typewriter';
   import { db } from '../lib/db.svelte';
   import Backup from '../lib/Backup.svelte';
@@ -50,10 +51,10 @@
     <label>Author name (on the title page and in the e-book)</label>
     <input bind:value={author} placeholder="Your name" />
     <label>Which book</label>
-    <select bind:value={bookId}>
+    <Select bind:value={bookId}>
       <option value={0}>All books (whole series)</option>
       {#each books as b}<option value={b.id}>{b.order}. {b.title}</option>{/each}
-    </select>
+    </Select>
   {/if}
 
   <h3 style="margin-top:1.2rem">File type</h3>
@@ -64,7 +65,7 @@
 
   {#if format === 'docx' || format === 'pdf'}
     <label>Page size</label>
-    <select bind:value={pageSize}>{#each SIZES as [key, name]}<option value={key}>{name}</option>{/each}</select>
+    <Select bind:value={pageSize}>{#each SIZES as [key, name]}<option value={key}>{name}</option>{/each}</Select>
   {/if}
   {#if format === 'pdf'}
     <label style="display:flex;gap:.5rem;color:var(--text);margin-top:.8rem"><input type="checkbox" style="width:auto" bind:checked={print} />

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Select from '../lib/Select.svelte';
   import { db, ITEM_TYPES } from '../lib/db.svelte';
   import { nav, openItem } from '../lib/nav.svelte';
   import { logsOf, nowOf } from '../lib/items';
@@ -78,7 +79,7 @@
       <div class="grid2">
         <div><label>Name</label><input bind:value={sel.name} oninput={save} /></div>
         <div><label>Type</label>
-          <select bind:value={sel.type} onchange={save}>{#each ITEM_TYPES as t}<option>{t}</option>{/each}</select>
+          <Select bind:value={sel.type} onchange={save}>{#each ITEM_TYPES as t}<option>{t}</option>{/each}</Select>
         </div>
       </div>
       <label>Tags (comma separated)</label><input bind:value={sel.tags} oninput={save} />
@@ -103,21 +104,21 @@
             <span class="num">{i + 1}</span>
             <div class="fields">
               <div class="row">
-                <select bind:value={l.character} onchange={() => saveStep(l)} title="Who has it">
+                <Select bind:value={l.character} onchange={() => saveStep(l)} title="Who has it">
                   <option value={null}>— nobody / unknown —</option>
                   {#each db.lists.character as c}<option value={c.id}>{c.name}</option>{/each}
-                </select>
-                <select bind:value={l.location} onchange={() => saveStep(l)} title="Where it is">
+                </Select>
+                <Select bind:value={l.location} onchange={() => saveStep(l)} title="Where it is">
                   <option value={null}>— no place —</option>
                   {#each db.lists.location as p}<option value={p.id}>{p.name}</option>{/each}
-                </select>
+                </Select>
               </div>
               <div class="row">
                 <input placeholder="When (e.g. Year 312)" bind:value={l.when} oninput={() => saveStep(l)} />
-                <select bind:value={l.scene} onchange={() => saveStep(l)} title="Scene where this happens">
+                <Select bind:value={l.scene} onchange={() => saveStep(l)} title="Scene where this happens">
                   <option value={null}>— no scene —</option>
                   {#each scenes as s}<option value={s.id}>{sceneLabel(s)}</option>{/each}
-                </select>
+                </Select>
               </div>
               <input placeholder="What happened (stolen, gift, lost…)" bind:value={l.note} oninput={() => saveStep(l)} />
             </div>
