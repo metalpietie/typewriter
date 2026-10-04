@@ -1,13 +1,13 @@
 [Desktop Entry]
 Version=1.0
-Name=My Product
-Comment=A typewriter application
+Name=Typewriter
+Comment=Write books. Track worlds, people and paths.
 # The Exec line includes %u to pass the URL to the application
-Exec=/usr/local/bin/typewriter.exe %u
+Exec=/usr/local/bin/typewriter %u
 Terminal=false
 Type=Application
-Icon=typewriter.exe
+Icon=typewriter
 Categories=Utility;
-StartupWMClass=typewriter.exe
+StartupWMClass=typewriter
 
  
