@@ -16,8 +16,9 @@ export const nav = $state<{ tab: Tab; pending: { kind: Kind; id: number } | null
 });
 
 export function openItem(kind: Kind, id: number) {
+  if (kind === 'scene') return openScene(id);
   nav.pending = { kind, id };
-  nav.tab = kind === 'character' ? 'characters' : kind === 'faction' ? 'factions' : kind === 'item' ? 'items' : kind === 'event' ? 'timeline' : kind === 'pathpoint' ? 'maps' : 'world';
+  nav.tab = kind === 'character' ? 'characters' : kind === 'faction' ? 'factions' : kind === 'item' ? 'items' : kind === 'event' ? 'timeline' : kind === 'pathpoint' ? 'maps' : kind === 'draft' ? 'draft' : kind === 'term' ? 'glossary' : kind === 'arc' ? 'arcs' : 'world';
   nav.searchOpen = false;
 }
 

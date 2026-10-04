@@ -4,10 +4,20 @@ Ideas for Typewriter. Nothing here is built yet. Move an item up when you want i
 
 These items are ideas for later. Pick one when you want it. Skip the items marked **not now**.
 
-Best next pick: none right now. Both open ideas are marked **not now**.
+Best next pick: **backup reminder**.
+
+## Contents
+
+- [Writing](#writing)
+- [World building](#world-building)
+- [Maps and paths](#maps-and-paths)
+- [Checks and tools](#checks-and-tools)
+- [Data and files](#data-and-files)
+- [Done](#done)
 
 ## Writing
 
+- [ ] Finish date: set a date and a word goal for a book, and see how many words to write each day to finish on time
 
 
 ## World building
@@ -20,14 +30,18 @@ Nothing open here.
 
 ## Checks and tools
 
+- [ ] Style check: how much of a chapter is dialogue, very long sentences, and weak words ("felt", "saw", words that end in -ly)
 
 ## Data and files
 
+- [ ] Backup reminder: show how long ago you last saved a copy outside the app, with a one-click copy to a file you choose
+- [ ] Table of contents in the Word, PDF and EPUB exports
 - [ ] Sync to a folder: copy the data to Dropbox or OneDrive for a second safe copy (**not now**: it needs an online connection, which you do not want. You upload the backups by hand when you need to)
 - [ ] Import a Word file as chapters (**not now**: you plan to write your own work, so there is no old draft to bring in. It could come back if you get Word files for feedback)
 
 ## Done
 
+- [x] Search everything: Ctrl+K also finds the text of your scenes, Draft pages, Glossary words and Story arcs
 - [x] Character age on any date: birth and death dates, "age 23" in scenes and events, and a check for dates that cannot be true
 - [x] Glossary of made-up words, with a warning when one is spelled two ways
 - [x] Story arcs: plot threads, tag scenes, an overview grid, and hints about loose ends and gaps

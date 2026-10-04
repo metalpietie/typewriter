@@ -26,7 +26,7 @@
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
   <div class="overlay" onclick={() => (nav.searchOpen = false)}>
     <div class="palette" onclick={(e) => e.stopPropagation()}>
-      <input bind:this={input} bind:value={query} onkeydown={key} placeholder="Search characters, places, lore, factions and items…" />
+      <input bind:this={input} bind:value={query} onkeydown={key} placeholder="Search your scenes, drafts, characters, places, lore, glossary and arcs…" />
       <div class="results" bind:this={list}>
         {#each hits as h, i (h.kind + h.id)}
           <button class="hit" class:on={i === active} onmouseenter={() => (active = i)} onclick={() => openItem(h.kind, h.id)}>

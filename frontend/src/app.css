@@ -56,7 +56,10 @@ button:disabled { opacity: .4; cursor: default; }
 .nav .count { margin-left: .4rem; background: var(--danger); color: #fff; border-radius: 99px; font-size: .7rem; padding: 0 .4rem; }
 .nav button.on { background: var(--panel-2); border-color: var(--line); color: var(--accent); }
 .nav > * { flex-shrink: 0; }
-.nav .group { font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: .6rem .7rem .1rem; }
+/* menu headings: accent colour with a thin line, and the items under a heading are moved in a little */
+.nav .group { display: flex; align-items: center; gap: .5rem; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--accent); padding: 1rem .7rem .3rem; }
+.nav .group::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.nav .group ~ button { padding-left: 1.2rem; }
 .nav .foot .ver { margin-top: .5rem; }
 .nav .foot .small { margin-top: .3rem; }
 .nav .foot { margin-top: auto; font-size: .7rem; color: var(--muted); word-break: break-all; padding: .5rem; }
@@ -111,6 +114,10 @@ button:disabled { opacity: .4; cursor: default; }
   color-scheme: light;
 }
 .nav .foot button { width: 100%; margin-bottom: .6rem; }
+/* the buttons at the bottom of the menu have an outline, so they look like buttons */
+.nav .foot button { border-color: var(--line); background: var(--panel-2); }
+.nav .foot button:hover { border-color: var(--accent); }
+.nav .foot button.danger { border-color: var(--danger); }
 
 .overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, .5); display: flex; justify-content: center; align-items: flex-start; padding-top: 12vh; z-index: 50; }
 .palette { width: min(640px, 92vw); background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: .7rem; box-shadow: 0 20px 60px rgba(0, 0, 0, .5); }

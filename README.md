@@ -101,7 +101,7 @@ The app saves as you type. There is no save button.
 
 ## Using the app
 
-Use the menu on the left to switch screens. Press **Ctrl+K** anywhere to search. The menu has headings (Story, People, Worldbuilding, Review) to keep the screens in groups. The button at the bottom of the menu switches between dark and light theme.
+Use the menu on the left to switch screens. Press **Ctrl+K** anywhere to search. The menu has headings (Story, People, Worldbuilding, Review) to keep the screens in groups. The outlined button at the bottom of the menu switches between dark and light theme.
 
 Most screens have a list on the left. Drag its right edge to make it wider or narrower. You can also click the edge and press the left or right arrow key. Double-click the edge to go back to the normal width. The app remembers the width.
 
@@ -462,7 +462,15 @@ How to read it:
 
 ### Search
 
-Press **Ctrl+K**. Type a few letters. Typos are fine: "aldrik" finds "Aldric". It searches characters, places, and lore. Use the arrow keys and **Enter** to open a result. **Esc** closes it.
+Press **Ctrl+K**. Type a few letters. Typos are fine: "aldrik" finds "Aldric". It searches everything:
+
+- the text and summaries of your **scenes** (a hit opens that scene in the Write tab),
+- your **Draft** pages,
+- characters, places, lore, factions and items,
+- **Glossary** words and their meanings,
+- **Story arcs** and their notes.
+
+Every result shows what kind it is. Typos are only allowed in short text such as names and titles. Inside the long text of a scene, a word must be spelled as it is written. Use the arrow keys and **Enter** to open a result. **Esc** closes it.
 
 ### Export & Backup
 

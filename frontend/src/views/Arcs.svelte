@@ -2,13 +2,19 @@
   import Select from '../lib/Select.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import { db } from '../lib/db.svelte';
-  import { openScene } from '../lib/nav.svelte';
+  import { nav, openScene } from '../lib/nav.svelte';
   import { scenesOf, sceneLabel, orderedScenes } from '../lib/scenes';
   import { BEATS, BEAT_LETTER, arcsSorted, arcLinks, arcWarnings, addArc, tagScene, untagScene, setBeat, linkFor, type Beat } from '../lib/arcs';
 
   let selId = $state<number | null>(null); // null shows the overview of all arcs
   const arcs = $derived(arcsSorted());
   const sel = $derived(db.get('arc', selId));
+
+  // Jump here when a search result is picked.
+  $effect(() => {
+    const p = nav.pending;
+    if (p?.kind === 'arc') { selId = p.id; nav.pending = null; }
+  });
 
   // the overview shows one book at a time; start on the book you were writing in
   const lastBook = () => {

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { db, wordCount } from '../lib/db.svelte';
+  import { nav } from '../lib/nav.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import RichEditor from '../lib/RichEditor.svelte';
 
@@ -9,6 +10,12 @@
   const pages = $derived([...db.lists.draft].sort((a, b) => (a.order ?? a.id) - (b.order ?? b.id)));
   const shown = $derived(pages.filter((p) => (p.title + ' ' + p.body).toLowerCase().includes(search.toLowerCase())));
   const sel = $derived(db.get('draft', selId));
+
+  // Jump here when a search result is picked.
+  $effect(() => {
+    const p = nav.pending;
+    if (p?.kind === 'draft') { search = ''; selId = p.id; nav.pending = null; }
+  });
 
   // Open the first page when the tab opens.
   $effect(() => { if (selId === null && pages.length) selId = pages[0].id; });

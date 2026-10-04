@@ -3,7 +3,7 @@
   import Select from '../lib/Select.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import { db, plainText } from '../lib/db.svelte';
-  import { openScene } from '../lib/nav.svelte';
+  import { nav, openScene } from '../lib/nav.svelte';
   import { orderedScenes, sceneLabel } from '../lib/scenes';
   import { findNameIssues, fixEverywhere, wordRe, type NameIssue } from '../lib/namespell';
 
@@ -15,6 +15,12 @@
   const terms = $derived([...db.lists.term].sort((a, b) => String(a.word).toLowerCase().localeCompare(String(b.word).toLowerCase())));
   const shown = $derived(terms.filter((t) => (t.word + ' ' + t.meaning + ' ' + (t.accepted ?? '')).toLowerCase().includes(search.toLowerCase())));
   const sel = $derived(db.get('term', selId));
+
+  // Jump here when a search result is picked.
+  $effect(() => {
+    const p = nav.pending;
+    if (p?.kind === 'term') { search = ''; selId = p.id; nav.pending = null; }
+  });
 
   // Reading the whole book is slow, so it runs when you open the tab, pick a word, or press the button.
   // It does not run on every key you type.
