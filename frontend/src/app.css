@@ -7,6 +7,21 @@
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
+
+/* Thin scrollbars that use the theme colors. The bar is 12 px wide so it is easy to grab.
+   The thumb looks 6 px wide, because the 3 px see-through border hides the rest. */
+::-webkit-scrollbar { width: 12px; height: 12px; background: transparent; }
+::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--muted) 35%, transparent);
+  border: 3px solid transparent; background-clip: padding-box; border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--muted) 65%, transparent); background-clip: padding-box; }
+::-webkit-scrollbar-thumb:active { background: var(--accent); background-clip: padding-box; }
+/* Browsers without the rules above use the standard ones. */
+@supports not selector(::-webkit-scrollbar) {
+  * { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted) 45%, transparent) transparent; }
+}
 html, body, #app { height: 100%; margin: 0; }
 body { background: var(--bg); color: var(--text); font-size: 14px; overflow: hidden; }
 h1, h2, h3 { margin: 0 0 .5rem; font-weight: 600; }
