@@ -153,6 +153,27 @@ Scenes also show up elsewhere: each scene is its own row on the **Timeline**, **
 
 When you export, the scenes of a chapter are joined with a scene break (`* * *`). The first paragraph of each scene has no indent.
 
+#### Look of the page
+
+Press **Look** above the editor to change how the text looks. The page changes while you click. The choice belongs to this computer, not to the project, so it is not in your backups.
+
+- **Font**: Serif, Book, Sans, or Typewriter.
+- **Text size** and **Line spacing**.
+- **Page width**: Narrow, Medium, or Wide. **Auto** is the old way: the whole page, and a narrow column in focus mode. The exports do not change.
+- **Typewriter mode**: the line you write on stays a little above the middle of the screen, and the page scrolls as you type. The first lines of a scene also sit in the middle.
+- **Focus line**: every paragraph but the one you write in is dimmed.
+- **Back to normal** puts all choices back.
+
+Focus mode uses the same choices.
+
+#### Tags on scenes
+
+In the **Scene** panel (right side of the Write tab), under the story time, type a tag and press **Enter** or **,** to add it. Examples: flashback, dream, fight. Tags are lower case. The tags you used on other scenes show below as small buttons: press one to add it here. Press **✕** on a tag to take it off.
+
+- When at least one scene has a tag, the left side of the Write tab shows **Show scenes tagged**. Pick a tag to list only those scenes. Chapters without such a scene are dimmed, and each chapter says how many scenes it has with the tag. Pick **All scenes** to see everything again.
+- The **Board** has the same list at the top, and each card shows its tags.
+- Tags are only for you. They do not print in exports.
+
 #### Focus mode
 
 Press **F11** (or **Ctrl+Shift+F**, or the **Focus mode** button) to hide every menu and panel. You see only the text. The window goes full screen. A small word count and save status sit in the corner. Press **Esc** to leave.
@@ -174,6 +195,10 @@ Press **History** to see old copies of the open scene. Click one to read it. **G
 - The app keeps a copy of the old text when you start writing, at most once every 10 minutes per scene. It keeps the last 40 of these.
 - **Save a copy now** makes a copy that you name. The app never removes these by itself.
 - Deleting a scene deletes its copies. If you press **Undo** on the delete message, they come back.
+- **What changed** (next to **Read**) shows the words that changed, word by word. Words in green with an underline were added. Words in red with a line through were cut.
+  - **This copy → now** compares the copy you picked with the scene as it is today.
+  - **Copy before → this copy** compares it with the copy just older than it. The oldest copy has nothing to compare with.
+  - A very large rewrite (more than about 1,500 changed words) shows all old words as cut and all new words as added.
 
 #### Comments
 

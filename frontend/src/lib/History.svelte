@@ -3,6 +3,8 @@
   import { toHtml, wordCount } from './db.svelte';
   import { listVersions, addVersion, deleteVersion, type Version } from './versions';
   import ConfirmButton from './ConfirmButton.svelte';
+  import { blockText } from './diff';
+  import { diffWords, countChanges, paragraphsOf } from './diff-core';
 
   let { sceneId, title, current, onrestore, onclose }: {
     sceneId: number;
@@ -28,6 +30,18 @@
   const when = (iso: string) => new Date(iso).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
   const nowWords = $derived(wordCount(current()));
   const delta = (v: Version) => { const d = v.words - nowWords; return d === 0 ? 'same length as now' : `${Math.abs(d).toLocaleString()} words ${d > 0 ? 'more' : 'fewer'} than now`; };
+
+  // What changed: the words added (green) and cut (red) between two texts.
+  let mode = $state<'read' | 'changes'>('read');
+  let against = $state<'now' | 'before'>('now'); // compare the picked copy with the scene now, or with the copy before it
+  const older = $derived(picked ? versions[versions.findIndex((v) => v.id === picked!.id) + 1] ?? null : null);
+  const pieces = $derived.by(() => {
+    if (!picked || mode !== 'changes') return null;
+    if (against === 'now') return diffWords(blockText(picked.body), blockText(current()));
+    return older ? diffWords(blockText(older.body), blockText(picked.body)) : null;
+  });
+  const counts = $derived(pieces ? countChanges(pieces) : null);
+  const plural = (n: number) => `${n.toLocaleString()} word${n === 1 ? '' : 's'}`;
 
   async function saveNow() {
     const body = current();
@@ -84,7 +98,33 @@
               <ConfirmButton onconfirm={() => remove(picked!)} />
             </span>
           </div>
-          <div class="preview">{@html toHtml(picked.body)}</div>
+          <div class="modes">
+            <button class:active={mode === 'read'} onclick={() => (mode = 'read')}>Read</button>
+            <button class:active={mode === 'changes'} onclick={() => (mode = 'changes')}>What changed</button>
+            {#if mode === 'changes'}
+              <span class="gap"></span>
+              <button class:active={against === 'now'} onclick={() => (against = 'now')}>This copy → now</button>
+              <button class:active={against === 'before'} onclick={() => (against = 'before')}>Copy before → this copy</button>
+            {/if}
+          </div>
+          {#if mode === 'read'}
+            <div class="preview">{@html toHtml(picked.body)}</div>
+          {:else if !pieces}
+            <p class="muted">This is the oldest copy. There is no copy before it to compare with.</p>
+          {:else}
+            <p class="muted legend">
+              {#if against === 'now'}Since this copy, you{:else}In this copy, you{/if}
+              <span class="add">added {plural(counts!.added)}</span> and <span class="del">cut {plural(counts!.cut)}</span>.
+            </p>
+            {#if !counts!.added && !counts!.cut}
+              <p class="muted">The words are the same.</p>
+            {/if}
+            <div class="preview diff">
+              {#each paragraphsOf(pieces) as para}
+                <p>{#each para as pc}<span class={pc.kind === 'same' ? '' : pc.kind}>{pc.text}</span>{' '}{/each}</p>
+              {/each}
+            </div>
+          {/if}
         {:else}
           <p class="muted">Pick a copy to read it.</p>
         {/if}
@@ -103,5 +143,11 @@
   .preview :global(p) { margin: 0 0 .8em; }
   .preview :global(hr)  { border: 0; text-align: center; }
   .preview :global(hr::after) { content: '* * *'; color: var(--muted); letter-spacing: .5em; }
+  .modes { display: flex; gap: .3rem; flex-wrap: wrap; align-items: center; margin: .5rem 0; }
+  .modes button { font-size: .8rem; padding: .2rem .6rem; }
+  .gap { width: 1px; height: 1.2rem; background: var(--line); margin: 0 .3rem; }
+  .legend { margin: .2rem 0 .6rem; }
+  .add { background: color-mix(in srgb, var(--ok) 28%, transparent); border-bottom: 2px solid var(--ok); border-radius: 3px; padding: 0 .15em; }
+  .del { background: color-mix(in srgb, var(--danger, #d9625b) 24%, transparent); text-decoration: line-through; border-radius: 3px; padding: 0 .15em; }
   .err { color: var(--danger, #d9625b); margin: .2rem 0; }
 </style>

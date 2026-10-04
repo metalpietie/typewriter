@@ -43,7 +43,7 @@ export async function addScene(chapter: Item, fields: Record<string, unknown> = 
   const n = scenesOf(chapter.id).length + 1;
   return db.save('scene', {
     chapter: chapter.id, book: chapter.book, order: n, title: `Scene ${n}`, body: '', summary: '',
-    status: 'draft', pov: null, location: null, characters: [], when: '', time: null, goal: null,
+    status: 'draft', tags: [], pov: null, location: null, characters: [], when: '', time: null, goal: null,
     ...fields,
   });
 }

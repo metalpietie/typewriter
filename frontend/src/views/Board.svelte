@@ -6,6 +6,7 @@
   import { STATUSES, scenesOf, sceneWords, chapterWords, addScene } from '../lib/scenes';
   import ProgressBar from '../lib/ProgressBar.svelte';
   import { arcsOfScene } from '../lib/arcs';
+  import { tagCounts, tagsOf, hasTag } from '../lib/tags-core';
 
   // start on the book you were writing in
   const lastBook = () => {
@@ -17,6 +18,11 @@
   const book = $derived(db.get('book', bookId));
   const chapters = $derived(db.lists.chapter.filter((c) => c.book === bookId).sort((a, b) => a.order - b.order));
   const total = $derived(chapters.reduce((n, c) => n + chapterWords(c), 0));
+
+  // show only the scenes with one tag
+  let tagFilter = $state('');
+  const bookTags = $derived(tagCounts(db.lists.scene.filter((s) => chapters.some((c) => c.id === s.chapter))));
+  const activeTag = $derived(bookTags.some(([t]) => t === tagFilter) ? tagFilter : '');
 
   let colour = $state<'status' | 'pov'>('status');
   const STATUS_COLOUR: Record<string, string> = { idea: 'var(--muted)', draft: 'var(--accent)', revised: 'var(--accent-2)', final: 'var(--ok)' };
@@ -165,6 +171,12 @@
     <Select aria-label="Book" bind:value={pick}>
       {#each books as b}<option value={b.id}>{b.order}. {b.title}</option>{/each}
     </Select>
+    {#if bookTags.length}
+      <Select aria-label="Show scenes with a tag" bind:value={tagFilter}>
+        <option value="">All scenes</option>
+        {#each bookTags as [t, n]}<option value={t}>Tag: {t} ({n})</option>{/each}
+      </Select>
+    {/if}
     <div class="seg">
       <button class:active={colour === 'status'} onclick={() => (colour = 'status')}>Colour by status</button>
       <button class:active={colour === 'pov'} onclick={() => (colour = 'pov')}>Colour by point of view</button>
@@ -180,7 +192,7 @@
   {:else}
     <div class="board" class:sorting={!!drag} bind:this={board}>
       {#each chapters as c (c.id)}
-        {@const scenes = scenesOf(c.id)}
+        {@const scenes = scenesOf(c.id).filter((s) => hasTag(s, activeTag))}
         {@const words = chapterWords(c)}
         <div class="col {dropClass('chapter', c.id)}" class:landed={landed === 'chapter' + c.id} class:dragging={drag?.type === 'chapter' && drag.id === c.id}
           data-col={c.id} animate:flip={{ duration: 220 }}>
@@ -205,6 +217,7 @@
                 <textarea rows="3" placeholder="What happens in this scene?" aria-label="Summary" bind:value={s.summary} oninput={() => saveScene(s)}></textarea>
                 <div class="foot muted">
                   <Select class="st" aria-label="Status" bind:value={s.status} onchange={() => saveScene(s)}>{#each STATUSES as t}<option>{t}</option>{/each}</Select>
+                  {#each tagsOf(s) as t (t)}<span class="tag hash" title="Tag">#{t}</span>{/each}
                   {#each arcsOfScene(s.id) as a (a.id)}<span class="adot" style:background={a.color} title="Arc: {a.name}"></span>{/each}
                   {#if povOf(s)}<span class="tag" title="Point of view">{povOf(s)}</span>{/if}
                   {#if placeOf(s)}<span class="tag" title="Place">{placeOf(s)}</span>{/if}
@@ -250,6 +263,7 @@
   .foot :global(.st) { width: auto; padding: .05rem .3rem; font-size: .75rem; }
   .foot .fit { margin-left: auto; }
   .tag { background: var(--panel); border: 1px solid var(--line); border-radius: 99px; padding: 0 .5rem; max-width: 7rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hash { color: var(--accent); }
   .adot { width: .6rem; height: .6rem; border-radius: 50%; flex: 0 0 auto; }
   .addscene { align-self: flex-start; }
   .dragging { opacity: .35; transform: scale(.97); }

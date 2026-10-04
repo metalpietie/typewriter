@@ -20,6 +20,9 @@
   import FindReplace from '../lib/FindReplace.svelte';
   import History from '../lib/History.svelte';
   import SaveIndicator from '../lib/SaveIndicator.svelte';
+  import LookButton from '../lib/LookButton.svelte';
+  import SceneTags from '../lib/SceneTags.svelte';
+  import { tagCounts, hasTag } from '../lib/tags-core';
 
   // Reopen what you were writing last, also after the app was closed.
   const LAST = 'typewriter.write';
@@ -108,6 +111,12 @@
   const chapters = $derived(db.lists.chapter.filter((c) => c.book === bookId).sort((a, b) => a.order - b.order));
   const chap = $derived(db.get('chapter', chapId));
   const scenes = $derived(scenesOf(chapId));
+  // Scene tags: the filter above the chapter list shows only the scenes with one tag.
+  let tagFilter = $state('');
+  const bookTags = $derived(tagCounts(db.lists.scene.filter((s) => chapters.some((c) => c.id === s.chapter))));
+  const activeTag = $derived(bookTags.some(([t]) => t === tagFilter) ? tagFilter : '');
+  const shown = $derived(scenes.filter((s) => hasTag(s, activeTag)));
+  const tagged = (cid: number) => scenesOf(cid).filter((s) => hasTag(s, activeTag)).length;
   const scene = $derived(db.get('scene', sceneId));
   const miss = $derived(scene ? missingCast(scene) : []);
   const goalOf = (c: any) => Number(c.goal) || Number(book?.chapterGoal) || 0;
@@ -304,26 +313,33 @@
         <div style="margin-top:.6rem"><ProgressBar value={total} goal={book.goal} /></div>
         <div class="muted" style="font-size:.8rem;margin-top:.2rem">{total.toLocaleString()} / {Number(book.goal).toLocaleString()} words{pctText(total, book.goal)}</div>
       {/if}
+      {#if bookTags.length}
+        <label for="tagfilter">Show scenes tagged</label>
+        <Select id="tagfilter" bind:value={tagFilter}>
+          <option value="">All scenes</option>
+          {#each bookTags as [t, n]}<option value={t}>{t} ({n})</option>{/each}
+        </Select>
+      {/if}
       <div class="head" style="margin-top:1rem"><h3 style="margin:0">Chapters · {total.toLocaleString()} words</h3>
         <button class="small primary" onclick={addChapter}>+ Chapter</button></div>
       <div class="list" class:sorting={!!drag}>
         {#each chapters as c (c.id)}
           {@const words = chapterWords(c)}
           <div class="chap" animate:flip={{ duration: 220 }}>
-          <button class="item {dropClass('chapter', c.id)}" class:landed={landed === 'chapter' + c.id} class:on={c.id === chapId} class:dragging={drag?.type === 'chapter' && drag.id === c.id}
+          <button class="item {dropClass('chapter', c.id)}" class:landed={landed === 'chapter' + c.id} class:on={c.id === chapId} class:nomatch={activeTag && !tagged(c.id)} class:dragging={drag?.type === 'chapter' && drag.id === c.id}
             data-chapter={c.id} onpointerdown={(e) => startDrag(e, { type: 'chapter', id: c.id, label: c.title || 'Chapter' })}
             onclick={() => { if (!suppressClick) pickChapter(c.id); }}>
-            <span class="ct">{c.order}. {c.title}</span><small class="cw">{words.toLocaleString()}{goalOf(c) ? ' / ' + goalOf(c).toLocaleString() : ''} words</small>
+            <span class="ct">{c.order}. {c.title}</span><small class="cw">{words.toLocaleString()}{goalOf(c) ? ' / ' + goalOf(c).toLocaleString() : ''} words{activeTag ? ' · ' + tagged(c.id) + ' tagged' : ''}</small>
             {#if goalOf(c)}<span style="flex-basis:100%"><ProgressBar value={words} goal={goalOf(c)} thin /></span>{/if}
           </button>
           {#if c.id === chapId}
             <div class="scenes">
-              {#each scenes as s, i (s.id)}
+              {#each shown as s (s.id)}
                 <button animate:flip={{ duration: 200 }} class="scene {dropClass('scene', s.id)}" class:landed={landed === 'scene' + s.id} class:on={s.id === sceneId} class:dragging={drag?.type === 'scene' && drag.id === s.id}
                   data-scene={s.id} onpointerdown={(e) => startDrag(e, { type: 'scene', id: s.id, label: s.title || 'Untitled scene' })}
                   onclick={() => { if (!suppressClick) sceneId = s.id; }}>
                   <span class="status {s.status}" title={s.status}></span>
-                  <span class="t">{i + 1}. {s.title || 'Untitled'}</span>
+                  <span class="t">{scenes.indexOf(s) + 1}. {s.title || 'Untitled'}</span>
                   {#if missingCast(s).length}<span class="badge" title="Names a character who is not in the cast">⚠</span>{/if}
                   {#if openComments(s.id)}<span class="badge" title="Open comments">💬{openComments(s.id)}</span>{/if}
                   <small>{sceneWords(s)}</small>
@@ -343,6 +359,7 @@
     {#if !nav.focus}
       <div class="tools">
         <button class="small" onclick={() => (showFind = true)}>Find &amp; replace <kbd>Ctrl+H</kbd></button>
+        <LookButton />
         {#if scene}<button class="small" onclick={() => (showHistory = true)}>History</button>{/if}
         <button class="small" onclick={() => setFocus(true)}>Focus mode <kbd>F11</kbd></button>
       </div>
@@ -399,6 +416,8 @@
         {#each db.lists.location as l}<option value={l.id}>{l.name}</option>{/each}
       </Select>
       <DateField bind:time={scene.time} bind:when={scene.when} onchange={saveScene} />
+      <label>Tags</label>
+      {#key scene.id}<SceneTags {scene} onchange={saveScene} />{/key}
       <label>Story arcs</label>
       {#each arcsSorted() as a (a.id)}
         {@const lk = linkFor(a.id, scene.id)}
@@ -485,6 +504,7 @@
   .list :global(.item small.cw) { flex: 1 1 100%; margin-left: 0; font-size: .75rem; }
   .scenes { margin: 0 0 .5rem 1rem; padding-left: .6rem; border-left: 2px solid var(--line); display: flex; flex-direction: column; gap: 2px; }
   .scene { display: flex; align-items: center; gap: .45rem; text-align: left; background: none; border: 1px solid transparent; padding: .25rem .5rem; font-size: .85rem; }
+  .list :global(.item.nomatch) { opacity: .45; }
   .scene.on { background: var(--panel-2); border-color: var(--line); }
   .scene .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .scene small { color: var(--muted); }

@@ -81,7 +81,7 @@ button:disabled { opacity: .4; cursor: default; }
 .split.focus, .split.wide.focus { grid-template-columns: minmax(0, 1fr); }
 .split.focus .side { display: none; }
 .split.focus .pane { padding: 6vh 1.6rem 0; }
-.split.focus .pane > *:not(.focus-hud) { max-width: 44rem; margin-left: auto; margin-right: auto; }
+.split.focus .pane > *:not(.focus-hud):not(.rich), .split.focus .pane > .rich.autowidth { max-width: 44rem; margin-left: auto; margin-right: auto; }
 .focus-hud { position: fixed; right: 1rem; bottom: .8rem; z-index: 20; display: flex; gap: .8rem; align-items: center; font-size: .8rem; color: var(--muted); opacity: .35; transition: opacity .2s; }
 .focus-hud:hover { opacity: 1; }
 .row { display: flex; gap: .5rem; align-items: center; }

@@ -1,11 +1,15 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Editor, Mark, mergeAttributes } from '@tiptap/core';
+  import { Editor, Extension, Mark, mergeAttributes } from '@tiptap/core';
+  import { Plugin, PluginKey } from '@tiptap/pm/state';
+  import { Decoration, DecorationSet } from '@tiptap/pm/view';
   import StarterKit from '@tiptap/starter-kit';
   import Placeholder from '@tiptap/extension-placeholder';
   import SaveIndicator from './SaveIndicator.svelte';
   import { db } from './db.svelte';
   import { LINK_KINDS, labelOf, type LinkKind } from './backlinks';
+  import { look } from './editorlook.svelte';
+  import { lookVars } from './editorlook-core';
 
   let { value, onchange, placeholder = 'Start writing…', bare = false, oncomment, onfocuscomment, onopenref }: {
     value: string;
@@ -47,6 +51,53 @@
     parseHTML() { return [{ tag: 'span[data-ref]' }]; },
     renderHTML({ HTMLAttributes }) { return ['span', mergeAttributes({ class: 'ref' }, HTMLAttributes), 0]; },
   });
+
+  // Focus line: every text block but the one with the cursor gets the class "dim". The page styles it only when the choice is on.
+  const FocusLine = Extension.create({
+    name: 'focusLine',
+    addProseMirrorPlugins() {
+      return [new Plugin({
+        key: new PluginKey('focusLine'),
+        props: {
+          decorations(state) {
+            if (!look.focusLine) return null;
+            const from = state.selection.$from;
+            const here = from.parent.isTextblock ? from.before() : -1;
+            const out: Decoration[] = [];
+            state.doc.descendants((node, pos) => {
+              if (!node.isTextblock) return true;
+              if (pos !== here) out.push(Decoration.node(pos, pos + node.nodeSize, { class: 'dim' }));
+              return false;
+            });
+            return DecorationSet.create(state.doc, out);
+          },
+        },
+      })];
+    },
+  });
+  // draw the dimming again when the choice is switched
+  $effect(() => { look.focusLine; if (editor) editor.view.dispatch(editor.state.tr); });
+
+  /** The box that scrolls the page: the nearest parent that can scroll. */
+  function scroller(el: HTMLElement | null): HTMLElement | null {
+    for (let p = el?.parentElement; p; p = p.parentElement) {
+      const o = getComputedStyle(p).overflowY;
+      if ((o === 'auto' || o === 'scroll') && p.scrollHeight > p.clientHeight) return p;
+    }
+    return null;
+  }
+  /** Typewriter mode: scroll so the line you write on is a little above the middle of the box. */
+  function keepCentred() {
+    if (!look.typewriter || !editor || !editor.state.selection.empty) return;
+    // the editor has already drawn the change, so the line can be measured now
+    const box = scroller(host);
+    if (!box) return;
+    const line = editor.view.coordsAtPos(editor.state.selection.head);
+    const r = box.getBoundingClientRect();
+    const delta = line.top - (r.top + r.height * 0.45);
+    if (Math.abs(delta) > 3) box.scrollTop += delta;
+  }
+  const NAV_KEYS = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End']);
 
   // The pop-up that opens when you type @.
   type Cand = { kind: LinkKind; id: number; label: string; word: string; also: string };
@@ -173,6 +224,7 @@
         Placeholder.configure({ placeholder }),
         Comment,
         Ref,
+        FocusLine,
       ],
       editorProps: {
         handleKeyDown: (_view, e) => onKeys(e),
@@ -186,19 +238,21 @@
           },
         },
       },
-      onUpdate: ({ editor }) => { tick++; onchange(editor.isEmpty ? '' : editor.getHTML()); checkSuggest(); },
+      onUpdate: ({ editor }) => { tick++; onchange(editor.isEmpty ? '' : editor.getHTML()); checkSuggest(); keepCentred(); },
       onSelectionUpdate: ({ editor }) => { tick++; onfocuscomment?.(editor.getAttributes('comment').id ?? null); checkSuggest(); },
       onBlur: () => setTimeout(() => (sug = null), 150),
     });
     window.addEventListener('scroll', follow, true); // capture: the page scrolls inside a panel
-    return () => { window.removeEventListener('scroll', follow, true); editor?.destroy(); };
+    const onKeyUp = (e: KeyboardEvent) => { if (NAV_KEYS.has(e.key)) keepCentred(); };
+    host.addEventListener('keyup', onKeyUp);
+    return () => { window.removeEventListener('scroll', follow, true); host.removeEventListener('keyup', onKeyUp); editor?.destroy(); };
   });
 
   const is = (name: string, attrs?: object) => { tick; return !!editor?.isActive(name, attrs); };
   const run = () => editor!.chain().focus();
 </script>
 
-<div class="rich">
+<div class="rich" class:autowidth={look.width === 'auto'} class:typewriter={look.typewriter} class:focusline={look.focusLine} style={lookVars(look)}>
   <div class="rich-bar" hidden={bare}>
     <button class:active={is('bold')} title="Bold (Ctrl+B)" onclick={() => run().toggleBold().run()}><b>B</b></button>
     <button class:active={is('italic')} title="Italic (Ctrl+I)" onclick={() => run().toggleItalic().run()}><i>I</i></button>
@@ -247,12 +301,16 @@
   .rich-bar button { padding: .2rem .55rem; min-width: 2rem; }
   .rich-save { margin-left: auto; }
   .sep { width: 1px; height: 1.4rem; background: var(--line); margin: 0 .3rem; }
-  .rich-page { flex: 1; }
+  .rich-page { flex: 1; width: 100%; max-width: var(--ed-width, none); margin: 0 auto; }
 
   .rich-page :global(.ProseMirror) {
     outline: none; min-height: 55vh; padding-bottom: 30vh;
-    font-family: Georgia, 'Times New Roman', serif; font-size: 1.1rem; line-height: 1.8;
+    font-family: var(--ed-font); font-size: var(--ed-size); line-height: var(--ed-lh);
   }
+  /* typewriter mode: room above and below, so the first and last lines can reach the middle */
+  .typewriter .rich-page :global(.ProseMirror) { padding-top: 30vh; padding-bottom: 50vh; }
+  .rich-page :global(.ProseMirror .dim) { transition: opacity .2s; }
+  .focusline .rich-page :global(.ProseMirror .dim) { opacity: .3; }
   .rich-page :global(.ProseMirror p) { margin: 0 0 .9em; }
   .rich-page :global(.ProseMirror h1) { font-size: 1.9rem; margin: 1.4em 0 .6em; }
   .rich-page :global(.ProseMirror h2) { font-size: 1.5rem; margin: 1.2em 0 .5em; }

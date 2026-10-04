@@ -8,7 +8,7 @@ Best next pick: none right now. Both open ideas are marked **not now**.
 
 ## Writing
 
-
+Nothing open here.
 
 ## World building
 
@@ -28,6 +28,9 @@ Nothing open here.
 
 ## Done
 
+- [x] Scene tags: your own tags on scenes, and a filter on the Board and the Write list
+- [x] What changed in a scene: History shows words added (green) and cut (red), against now or against the copy before
+- [x] Editor look and feel: font, text size, line spacing, page width, typewriter mode and focus line
 - [x] Backup reminder: shows how long ago you last saved a copy outside the app, with a one-click backup
 - [x] Style check: dialogue share for each chapter, very long sentences, and weak words (filter words, empty words, -ly words)
 - [x] Finish date: set a date and a word goal for a book, and see how many words to write each day to finish on time
