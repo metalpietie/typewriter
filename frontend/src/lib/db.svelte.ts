@@ -22,6 +22,7 @@ class Db {
   project = $state(''); // name of the open project
   version = $state(''); // the app version
   folderProblem = $state(''); // set when the chosen data folder could not be opened
+  lastBackup = $state(''); // when you last saved a copy with the Backup button, such as 2026-10-04T15:04:05Z. Empty: never
   private timers = new Map<string, { timer: ReturnType<typeof setTimeout>; kind: Kind; item: Item }>();
 
   // Save progress, shown by the save indicator.
@@ -44,6 +45,7 @@ class Db {
     this.dataPath = await Store.DataPath();
     this.version = await Store.Version();
     this.folderProblem = (await Store.DataFolder()).problem;
+    this.lastBackup = await Store.LastBackup().catch(() => '');
     this.project = ((await Store.Projects()) ?? []).find((p) => p.current)?.name ?? '';
     this.ready = true;
   }

@@ -5,6 +5,8 @@
   import { sceneLabel, sceneWords } from '../lib/scenes';
   import { dailyGoal, streak, wordsToday } from '../lib/progress';
   import FinishLine from '../lib/FinishLine.svelte';
+  import BackupReminder from '../lib/BackupReminder.svelte';
+  import { reminderDue } from '../lib/backupReminder';
   import { findConflicts, openConflicts } from '../lib/plotholes';
   import { findGaps, openGaps } from '../lib/consistency';
 
@@ -16,6 +18,9 @@
   const total = $derived(db.lists.scene.reduce((a, s) => a + sceneWords(s), 0));
   const holes = $derived(openConflicts(findConflicts().conflicts).length);
   const gaps = $derived(openGaps(findGaps()).length);
+  let hideBackup = $state(false); // set when you press "Remind me tomorrow" or "Close"
+  let keepBackup = $state(false); // set when you press "Back up now", so the card stays and can say it worked
+  const backupDue = $derived(!hideBackup && (keepBackup || reminderDue(total)));
   // books that have a finish date
   const finishBooks = $derived([...db.lists.book].filter((b) => b.finishBy).sort((a, b) => a.order - b.order));
 
@@ -93,6 +98,10 @@
       <p class="muted" style="margin:.5rem 0 0">Plot holes and unfinished things are on the Checks tab.</p>
     </div>
   </div>
+
+  {#if backupDue}
+    <div class="cols"><BackupReminder onhide={() => (hideBackup = true)} onkeep={() => (keepBackup = true)} /></div>
+  {/if}
 
   {#if finishBooks.length}
     <div class="cols">

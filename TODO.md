@@ -4,7 +4,7 @@ Ideas for Typewriter. Nothing here is built yet. Move an item up when you want i
 
 These items are ideas for later. Pick one when you want it. Skip the items marked **not now**.
 
-Best next pick: **backup reminder**.
+Best next pick: none right now. Both open ideas are marked **not now**.
 
 ## Writing
 
@@ -20,16 +20,16 @@ Nothing open here.
 
 ## Checks and tools
 
-- [ ] Style check: how much of a chapter is dialogue, very long sentences, and weak words ("felt", "saw", words that end in -ly)
 
 ## Data and files
 
-- [ ] Backup reminder: show how long ago you last saved a copy outside the app, with a one-click copy to a file you choose
 - [ ] Sync to a folder: copy the data to Dropbox or OneDrive for a second safe copy (**not now**: it needs an online connection, which you do not want. You upload the backups by hand when you need to)
 - [ ] Import a Word file as chapters (**not now**: you plan to write your own work, so there is no old draft to bring in. It could come back if you get Word files for feedback)
 
 ## Done
 
+- [x] Backup reminder: shows how long ago you last saved a copy outside the app, with a one-click backup
+- [x] Style check: dialogue share for each chapter, very long sentences, and weak words (filter words, empty words, -ly words)
 - [x] Finish date: set a date and a word goal for a book, and see how many words to write each day to finish on time
 - [x] Table of contents in the Word, PDF, EPUB and Markdown exports
 - [x] Search everything: Ctrl+K also finds the text of your scenes, Draft pages, Glossary words and Story arcs

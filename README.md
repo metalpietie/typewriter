@@ -413,6 +413,7 @@ Notes: there are no leap years. If you change the months later, numbers you alre
 The **Dashboard** is the first screen. It shows:
 
 - today's words, your daily goal, your streak, and a **Continue writing** button that opens the scene you changed last,
+- a **Time for a backup** card when your last backup is old (see *Backup reminder* below),
 - a **Finish line** card for each book that has a finish date (words a day, and whether you are on track),
 - what needs attention: open plot holes, unfinished things, and open comments (click to go to the Checks tab),
 - your 8 most recent changes (scenes, characters, places, lore notes, factions, items, events). Click one to open it,
@@ -431,7 +432,7 @@ Words are counted while you type in the Write tab. Each day keeps one tally. Cut
 
 ### Checks
 
-The **Checks** tab has four lists: **Plot holes**, **Unfinished**, **Names** and **Repeats**. A red number next to the tab name shows how many plot holes are open.
+The **Checks** tab has five lists: **Plot holes**, **Unfinished**, **Names**, **Repeats** and **Style**. A red number next to the tab name shows how many plot holes are open.
 
 **Unfinished** lists things that look incomplete: characters with no age (a birth date counts), description, backstory, relationships or scene; places on no map or with no description; scenes with no point of view, place, timeline number, summary or text; a scene or event dated before someone in it was born or after they died; factions with no members or headquarters; items with no description or journey; events with no number or place; empty lore notes. Click a row to open it. Press **Skip** if it is fine as it is. Skipped rows go to a list where you can bring them back.
 
@@ -450,6 +451,17 @@ The **Checks** tab has four lists: **Plot holes**, **Unfinished**, **Names** and
 - **Most used words:** the 20 words you use most, with a bar and a count per 1,000 words. A word used a lot is not always wrong. Look for words that surprise you. A word shows here after 5 uses.
 
 Everyday words (the, and, said, were, and so on) are left out. Names from your Characters, Places, Factions and Items are left out too. The word list is English. Click a row to open that scene. Press **Skip** if a repeat is on purpose. Skipped rows go to a list where you can bring them back.
+
+**Style** shows how your prose is built. It reads your scenes. Pick one book or all books, then pick a part:
+
+- **Dialogue:** the share of words that are inside quotation marks, for the whole text and for each chapter, with a bar. There is no right number. Click a chapter to open its first scene. Curly quotes (“ ”) and straight quotes (") both work. A quote that is not closed ends with its paragraph.
+- **Long sentences:** sentences longer than 30, 40, 50 or 60 words (you pick; the start is 40). The longest come first. Press **Skip** if a long sentence is on purpose. It stays skipped when you change other parts of the scene.
+- **Weak words:** three lists with a count and a number per 1,000 words. Click a word to see each place it is used.
+  - *Filter words* put a step between the reader and the scene: felt, saw, heard, noticed, realized, wondered, seemed, watched, knew, thought.
+  - *Empty words* add little: very, really, just, quite, rather, actually, basically, suddenly, literally, somewhat.
+  - *Words that end in -ly* are often adverbs. Words that are not adverbs, such as "only", "family" and "lonely", are left out.
+
+These are hints about style, not mistakes. The word lists are English. A sentence ends at a full stop, a question mark, an exclamation mark or "…" when a capital letter follows. "Mr." and "Dr." do not end a sentence.
 
 **Plot holes** is the next list.
 
@@ -529,6 +541,15 @@ Under the export options, the **Backup** section has two buttons.
 
 - **Back up my data…** saves one `.db` file with everything: books, characters, maps, and drawings. Pick where to save it. The file name has today's date. Keep copies on a USB drive or in cloud storage.
 - **Restore from backup…** replaces everything in the app with a backup file. It asks you to confirm first. Before it changes anything, it saves your current data to a safety copy in `%APPDATA%\typewriter\backups`. A file that is not a Typewriter backup is refused and nothing changes.
+
+#### Backup reminder
+
+The automatic copies stay in the app's folder. If the computer breaks, they are gone too. So the app reminds you to save a copy somewhere else, such as a USB drive.
+
+- The app remembers the last time you pressed **Back up my data…**. Each project has its own date. The Backup section shows it ("Last backup: 3 days ago").
+- When that was a week ago (or you never did, and you have written at least 100 words), the **Dashboard** shows a **Time for a backup** card. Press **Back up now…**, pick a place, and it is saved. The card says where. **Remind me tomorrow** hides the card for the rest of the day.
+- **Remind me to back up** (in the Backup section) sets how long to wait: 3 days, a week, 2 weeks, a month, or never. A week is the start.
+- Restoring a backup or moving the data folder does not reset the date. A new project has no date until you back it up.
 
 #### Automatic backups
 

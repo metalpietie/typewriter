@@ -44,6 +44,7 @@ func (s *Store) Backup() (string, error) {
 	if err := s.copyTo(path); err != nil {
 		return "", fmt.Errorf("could not write the backup: %w", err)
 	}
+	s.noteBackup(time.Now())
 	return path, nil
 }
 
@@ -116,4 +117,34 @@ func kindList() string {
 		q = append(q, "'"+k+"'")
 	}
 	return strings.Join(q, ",")
+}
+
+// lastBackupFile sits in the backup folder of the project. It says when you last saved a copy yourself.
+const lastBackupFile = "last-manual-backup.txt"
+
+// noteBackup records that you just saved a copy with the Backup button.
+func (s *Store) noteBackup(at time.Time) {
+	dir := s.backupDir()
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return
+	}
+	// a note that cannot be written only means the reminder asks again, so the error is not passed on
+	_ = os.WriteFile(filepath.Join(dir, lastBackupFile), []byte(at.UTC().Format(time.RFC3339)), 0o644)
+}
+
+// LastBackup tells when you last saved a copy with the Backup button, as a time such as
+// "2026-10-04T15:04:05Z". It is "" when you never did. Each project has its own.
+func (s *Store) LastBackup() (string, error) {
+	b, err := os.ReadFile(filepath.Join(s.backupDir(), lastBackupFile))
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "", nil
+		}
+		return "", err
+	}
+	t, err := time.Parse(time.RFC3339, strings.TrimSpace(string(b)))
+	if err != nil {
+		return "", nil // a damaged note counts as no note
+	}
+	return t.UTC().Format(time.RFC3339), nil
 }

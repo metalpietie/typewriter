@@ -6,10 +6,11 @@
   import { findGaps, GROUPS, type Gap } from '../lib/consistency';
   import { findNameIssues, fixEverywhere, type NameIssue } from '../lib/namespell';
   import { findRepeats } from '../lib/repeats';
+  import StyleCheck from '../lib/StyleCheck.svelte';
 
   let showDismissed = $state(false);
   let help = $state(false);
-  let tab = $state<'holes' | 'gaps' | 'names' | 'repeats'>('holes');
+  let tab = $state<'holes' | 'gaps' | 'names' | 'repeats' | 'style'>('holes');
   let showHiddenGaps = $state(false);
 
   const gaps = $derived(findGaps());
@@ -114,16 +115,19 @@
     <button class:active={tab === 'gaps'} onclick={() => (tab = 'gaps')}>Unfinished{openGapList.length ? ' · ' + openGapList.length : ''}</button>
     <button class:active={tab === 'names'} onclick={() => (tab = 'names')}>Names{tab === 'names' && openNames.length ? ' · ' + openNames.length : ''}</button>
     <button class:active={tab === 'repeats'} onclick={() => (tab = 'repeats')}>Repeats{tab === 'repeats' && openClose.length + openStarts.length ? ' · ' + (openClose.length + openStarts.length) : ''}</button>
+    <button class:active={tab === 'style'} onclick={() => (tab = 'style')}>Style</button>
   </div>
 
-  {#if tab === 'repeats'}
+  {#if tab === 'style'}
+    <StyleCheck />
+  {:else if tab === 'repeats'}
     <p class="muted">
       Finds words that come back too soon, sentences that start the same way, and the words you use most.
       It reads your scenes. Names from your Characters, Places, Factions and Items are left out, and so are everyday words.
       Press <b>Skip</b> if a repeat is on purpose.
     </p>
     <div class="row" style="justify-content:flex-start;margin-bottom:.6rem">
-      <label for="rscope" style="margin:0">Look in</label>
+      <label class="fit" for="rscope" style="margin:0">Look in</label>
       <Select id="rscope" style="flex:0 1 16rem" bind:value={rScope} onchange={() => (showAllCards = false)}>
         <option value="all">All books</option>
         {#each [...db.lists.book].sort((a, b) => a.order - b.order) as b}<option value={b.id}>{b.title}</option>{/each}

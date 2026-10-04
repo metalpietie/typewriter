@@ -63,6 +63,14 @@ export function InspectDataFolder(path: string): $CancellablePromise<$models.Fol
 }
 
 /**
+ * LastBackup tells when you last saved a copy with the Backup button, as a time such as
+ * "2026-10-04T15:04:05Z". It is "" when you never did. Each project has its own.
+ */
+export function LastBackup(): $CancellablePromise<string> {
+    return $Call.ByID(12228173);
+}
+
+/**
  * List returns every item of one kind.
  */
 export function List(kind: string): $CancellablePromise<$models.Doc[] | null> {
