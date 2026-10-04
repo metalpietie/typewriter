@@ -317,7 +317,7 @@ Words are counted while you type in the Write tab. Each day keeps one tally. Cut
 
 ### Checks
 
-The **Checks** tab has three lists: **Plot holes**, **Unfinished** and **Names**. A red number next to the tab name shows how many plot holes are open.
+The **Checks** tab has four lists: **Plot holes**, **Unfinished**, **Names** and **Repeats**. A red number next to the tab name shows how many plot holes are open.
 
 **Unfinished** lists things that look incomplete: characters with no age, description, backstory, relationships or scene; places on no map or with no description; scenes with no point of view, place, timeline number, summary or text; factions with no members or headquarters; items with no description or journey; events with no number or place; empty lore notes. Click a row to open it. Press **Skip** if it is fine as it is. Skipped rows go to a list where you can bring them back.
 
@@ -328,6 +328,14 @@ The **Checks** tab has three lists: **Plot holes**, **Unfinished** and **Names**
 - **Skip** hides a row that is fine, for example a different person with a close name. Skipped rows go to a list where you can bring them back.
 - Words that also appear in lower case in your text are left alone, so ordinary words at the start of a sentence are not flagged. Names with 3 letters or fewer are not checked. This is a guess from spelling, so a few rows may be wrong. Use **Skip** for those.
 - It does not check ordinary spelling. Use the spell check of the window for that.
+
+**Repeats** helps you tighten your prose. It reads your scenes. Pick one book or all books, then pick a part:
+
+- **Words close together:** a word of 4 or more letters used again within 20 words, for example "the cold wind … the cold hills". Each scene is one card. The repeated words are highlighted.
+- **Same sentence start:** 3 or more sentences in a row that begin with the same word ("He ran. He jumped. He fell.").
+- **Most used words:** the 20 words you use most, with a bar and a count per 1,000 words. A word used a lot is not always wrong. Look for words that surprise you. A word shows here after 5 uses.
+
+Everyday words (the, and, said, were, and so on) are left out. Names from your Characters, Places, Factions and Items are left out too. The word list is English. Click a row to open that scene. Press **Skip** if a repeat is on purpose. Skipped rows go to a list where you can bring them back.
 
 **Plot holes** is the next list.
 

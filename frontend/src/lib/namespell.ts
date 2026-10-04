@@ -14,7 +14,7 @@ export type NameIssue = Typo & {
 const wordRe = (w: string) => new RegExp(`(?<![\\p{L}\\p{N}_])${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}_])`, 'gu');
 
 /** Every name you have given a character, place, faction or item. */
-function worldNames(): string[] {
+export function worldNames(): string[] {
   const out: string[] = [];
   for (const c of db.lists.character) {
     out.push(String(c.name ?? ''));

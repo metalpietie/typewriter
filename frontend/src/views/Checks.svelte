@@ -4,10 +4,11 @@
   import { findConflicts, type Conflict, type Presence } from '../lib/plotholes';
   import { findGaps, GROUPS, type Gap } from '../lib/consistency';
   import { findNameIssues, fixEverywhere, type NameIssue } from '../lib/namespell';
+  import { findRepeats } from '../lib/repeats';
 
   let showDismissed = $state(false);
   let help = $state(false);
-  let tab = $state<'holes' | 'gaps' | 'names'>('holes');
+  let tab = $state<'holes' | 'gaps' | 'names' | 'repeats'>('holes');
   let showHiddenGaps = $state(false);
 
   const gaps = $derived(findGaps());
@@ -47,7 +48,35 @@
     const row = db.lists.plotignore.find((i) => i.key === n.key);
     if (row) db.remove('plotignore', row.id, false);
   };
-  const snip = (s: string) => { const [a, rest] = s.split('⟦'); const [m, b] = rest.split('⟧'); return { a, m, b }; };
+  /** Split a snippet at its marks: text between ⟦ and ⟧ is shown highlighted. */
+  const snip = (s: string) => s.split(/(⟦[^⟧]*⟧)/).filter(Boolean).map((t) => (t.startsWith('⟦') ? { t: t.slice(1, -1), hit: true } : { t, hit: false }));
+
+  // repeated words. Only worked out while that tab is open, because it reads the whole book.
+  let rScope = $state<number | 'all'>('all');
+  let rPart = $state<'close' | 'starts' | 'top'>('close');
+  let showHiddenReps = $state(false);
+  const reps = $derived(tab === 'repeats' ? findRepeats(rScope) : null);
+  const openClose = $derived((reps?.close ?? []).filter((r) => !hidden.has(r.key)));
+  const openStarts = $derived((reps?.starts ?? []).filter((r) => !hidden.has(r.key)));
+  const hiddenReps = $derived([...(reps?.close ?? []), ...(reps?.starts ?? [])].filter((r) => hidden.has(r.key)));
+  /** Rows grouped by scene, in reading order, so each scene is one card. */
+  function byScene<T extends { scene: { id: number }; label: string }>(rows: T[]) {
+    const out: { id: number; label: string; rows: T[] }[] = [];
+    for (const r of rows) {
+      const last = out[out.length - 1];
+      if (last && last.id === r.scene.id) last.rows.push(r); else out.push({ id: r.scene.id, label: r.label, rows: [r] });
+    }
+    return out;
+  }
+  const closeCards = $derived(byScene(openClose));
+  const startCards = $derived(byScene(openStarts));
+  let showAllCards = $state(false);
+  const CARD_LIMIT = 40;
+  const skipRep = (r: { key: string }) => db.save('plotignore', { key: r.key });
+  const backRep = (r: { key: string }) => {
+    const row = db.lists.plotignore.find((i) => i.key === r.key);
+    if (row) db.remove('plotignore', row.id, false);
+  };
 
   const result = $derived(findConflicts());
   const ignored = $derived(new Set(db.lists.plotignore.map((i) => i.key as string)));
@@ -83,9 +112,80 @@
     <button class:active={tab === 'holes'} onclick={() => (tab = 'holes')}>Plot holes{open.length ? ' · ' + open.length : ''}</button>
     <button class:active={tab === 'gaps'} onclick={() => (tab = 'gaps')}>Unfinished{openGapList.length ? ' · ' + openGapList.length : ''}</button>
     <button class:active={tab === 'names'} onclick={() => (tab = 'names')}>Names{tab === 'names' && openNames.length ? ' · ' + openNames.length : ''}</button>
+    <button class:active={tab === 'repeats'} onclick={() => (tab = 'repeats')}>Repeats{tab === 'repeats' && openClose.length + openStarts.length ? ' · ' + (openClose.length + openStarts.length) : ''}</button>
   </div>
 
-  {#if tab === 'names'}
+  {#if tab === 'repeats'}
+    <p class="muted">
+      Finds words that come back too soon, sentences that start the same way, and the words you use most.
+      It reads your scenes. Names from your Characters, Places, Factions and Items are left out, and so are everyday words.
+      Press <b>Skip</b> if a repeat is on purpose.
+    </p>
+    <div class="row" style="justify-content:flex-start;margin-bottom:.6rem">
+      <label for="rscope" style="margin:0">Look in</label>
+      <select id="rscope" style="flex:0 1 16rem" bind:value={rScope} onchange={() => (showAllCards = false)}>
+        <option value="all">All books</option>
+        {#each [...db.lists.book].sort((a, b) => a.order - b.order) as b}<option value={b.id}>{b.title}</option>{/each}
+      </select>
+    </div>
+    <div class="seg" style="margin-bottom:.8rem">
+      <button class:active={rPart === 'close'} onclick={() => (rPart = 'close')}>Words close together · {openClose.length}</button>
+      <button class:active={rPart === 'starts'} onclick={() => (rPart = 'starts')}>Same sentence start · {openStarts.length}</button>
+      <button class:active={rPart === 'top'} onclick={() => (rPart = 'top')}>Most used words</button>
+    </div>
+
+    {#if rPart === 'top'}
+      <p class="muted">The words used most, out of {reps?.words.toLocaleString() ?? 0} words in {reps?.scenes ?? 0} scene{reps?.scenes === 1 ? '' : 's'}. A word used a lot is not always wrong. Look for words that surprise you.</p>
+      {#each reps?.top ?? [] as t (t.word)}
+        <div class="topw"><b>{t.word}</b><span class="bar" style:width={Math.max(4, (t.count / (reps?.top[0].count || 1)) * 100) + '%'}></span><span class="muted">{t.count} · {t.per1000} per 1,000</span></div>
+      {:else}
+        <div class="empty">No word is used 5 times or more yet.</div>
+      {/each}
+    {:else}
+      {#if rPart === 'close'}
+        <p class="muted" style="margin-top:0">A word of 4 or more letters used again within 20 words.</p>
+      {:else}
+        <p class="muted" style="margin-top:0">3 or more sentences in a row that begin with the same word.</p>
+      {/if}
+      {@const cards = rPart === 'close' ? closeCards : startCards}
+      {#each showAllCards ? cards : cards.slice(0, CARD_LIMIT) as c (c.id)}
+        <div class="card">
+          <button class="row-link" onclick={() => openScene(c.id)} title="Open the scene"><span class="t"><b>{c.label}</b></span></button>
+          {#each c.rows as r (r.key)}
+            {@const x = snip(r.snippet)}
+            <div class="gap">
+              <button class="row-link" onclick={() => openScene(c.id)} title="Open the scene">
+                <span class="chip">{r.word}{'times' in r ? ' · ' + r.times + '×' : ' · ' + r.run + ' in a row'}</span>
+                <span class="t">{#each x as p}{#if p.hit}<mark>{p.t}</mark>{:else}{p.t}{/if}{/each}</span>
+              </button>
+              <button class="small" onclick={() => skipRep(r)}>Skip</button>
+            </div>
+          {/each}
+        </div>
+      {:else}
+        <div class="empty">{(reps?.scenes ?? 0) ? 'Nothing found. Nice.' : 'Nothing to check yet. Write some scenes first.'}</div>
+      {/each}
+      {#if !showAllCards && cards.length > CARD_LIMIT}
+        <button class="small" onclick={() => (showAllCards = true)}>Show the other {cards.length - CARD_LIMIT} scenes</button>
+      {/if}
+    {/if}
+
+    {#if hiddenReps.length}
+      <button class="small" style="margin-top:1rem" onclick={() => (showHiddenReps = !showHiddenReps)}>
+        {showHiddenReps ? 'Hide' : 'Show'} {hiddenReps.length} skipped
+      </button>
+      {#if showHiddenReps}
+        <div class="card">
+          {#each hiddenReps as r (r.key)}
+            <div class="gap done">
+              <span class="t"><b>{r.word}</b> · {r.label}</span>
+              <button class="small" onclick={() => backRep(r)}>Bring back</button>
+            </div>
+          {/each}
+        </div>
+      {/if}
+    {/if}
+  {:else if tab === 'names'}
     <p class="muted">
       Finds a name that is spelled two ways. It looks for a capitalised word that is almost a name from your Characters, Places, Factions or Items,
       and for a rare word that is almost a name you use often in the text. It reads your scenes only.
@@ -106,7 +206,7 @@
           {@const x = snip(p.snippet)}
           <button class="row-link" onclick={() => openScene(p.scene.id)} title="Open it">
             <span class="chip">{p.label}{p.times > 1 ? ' · ' + p.times + '×' : ''}</span>
-            <span class="t">{x.a}<mark>{x.m}</mark>{x.b}</span>
+            <span class="t">{#each x as p}{#if p.hit}<mark>{p.t}</mark>{:else}{p.t}{/if}{/each}</span>
           </button>
         {/each}
       </div>
@@ -238,6 +338,9 @@
   .row-link .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .row-btns { display: flex; gap: .4rem; }
   mark { background: color-mix(in srgb, var(--accent-2) 35%, transparent); color: inherit; border-radius: 3px; padding: 0 .1rem; }
+  .topw { display: flex; align-items: center; gap: .6rem; padding: .15rem 0; }
+  .topw b { width: 9rem; flex: 0 0 auto; overflow: hidden; text-overflow: ellipsis; }
+  .topw .bar { height: .6rem; border-radius: 3px; background: var(--accent); flex: 0 1 auto; max-width: 40%; opacity: .75; }
   .gap { display: flex; align-items: center; gap: .5rem; }
   .gap .row-link { flex: 1; width: auto; }
   .gap.done { opacity: .65; padding: .3rem .4rem; }
