@@ -317,11 +317,19 @@ Words are counted while you type in the Write tab. Each day keeps one tally. Cut
 
 ### Checks
 
-The **Checks** tab has two lists. A red number next to the tab name shows how many plot holes are open.
+The **Checks** tab has three lists: **Plot holes**, **Unfinished** and **Names**. A red number next to the tab name shows how many plot holes are open.
 
 **Unfinished** lists things that look incomplete: characters with no age, description, backstory, relationships or scene; places on no map or with no description; scenes with no point of view, place, timeline number, summary or text; factions with no members or headquarters; items with no description or journey; events with no number or place; empty lore notes. Click a row to open it. Press **Skip** if it is fine as it is. Skipped rows go to a list where you can bring them back.
 
-**Plot holes** is the second list.
+**Names** finds a name that is spelled two ways. It reads your scenes. It flags a capitalised word that is almost a name from your Characters (including "also called" names), Places, Factions or Items, for example "Aldrick" when you have "Aldric". It also flags a rare word that is almost a name you use often in the text, even if that name is not in your data.
+
+- Each row shows the word, the spelling it probably should be, and where it is. Click a place to open that scene.
+- **Change all to “…”** fixes it in every scene. Your bold, italic and other styles stay. The old text of each scene is saved, so **History** in that scene can bring it back.
+- **Skip** hides a row that is fine, for example a different person with a close name. Skipped rows go to a list where you can bring them back.
+- Words that also appear in lower case in your text are left alone, so ordinary words at the start of a sentence are not flagged. Names with 3 letters or fewer are not checked. This is a guess from spelling, so a few rows may be wrong. Use **Skip** for those.
+- It does not check ordinary spelling. Use the spell check of the window for that.
+
+**Plot holes** is the next list.
 
 **Plot holes** looks for one person in two places at the same moment of story time. It compares:
 

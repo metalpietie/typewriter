@@ -3,10 +3,11 @@
   import { openItem, openScene } from '../lib/nav.svelte';
   import { findConflicts, type Conflict, type Presence } from '../lib/plotholes';
   import { findGaps, GROUPS, type Gap } from '../lib/consistency';
+  import { findNameIssues, fixEverywhere, type NameIssue } from '../lib/namespell';
 
   let showDismissed = $state(false);
   let help = $state(false);
-  let tab = $state<'holes' | 'gaps'>('holes');
+  let tab = $state<'holes' | 'gaps' | 'names'>('holes');
   let showHiddenGaps = $state(false);
 
   const gaps = $derived(findGaps());
@@ -23,6 +24,30 @@
     const row = db.lists.plotignore.find((i) => i.key === g.key);
     if (row) db.remove('plotignore', row.id, false);
   };
+
+  // names spelled two ways. Only worked out while that tab is open, because it reads the whole book.
+  const nameIssues = $derived(tab === 'names' ? findNameIssues() : []);
+  const openNames = $derived(nameIssues.filter((n) => !hidden.has(n.key)));
+  const hiddenNames = $derived(nameIssues.filter((n) => hidden.has(n.key)));
+  let showHiddenNames = $state(false);
+  let nameMsg = $state('');
+  let fixing = $state(false);
+  async function fixName(n: NameIssue) {
+    if (fixing) return;
+    fixing = true; nameMsg = '';
+    try {
+      const c = await fixEverywhere(n);
+      nameMsg = `Changed “${n.word}” to “${n.suggest}” ${c} time${c === 1 ? '' : 's'}. To undo: open History in that scene.`;
+    } catch (e: any) {
+      nameMsg = 'Could not change it: ' + (e?.message ?? e);
+    } finally { fixing = false; }
+  }
+  const skipName = (n: NameIssue) => db.save('plotignore', { key: n.key });
+  const backName = (n: NameIssue) => {
+    const row = db.lists.plotignore.find((i) => i.key === n.key);
+    if (row) db.remove('plotignore', row.id, false);
+  };
+  const snip = (s: string) => { const [a, rest] = s.split('⟦'); const [m, b] = rest.split('⟧'); return { a, m, b }; };
 
   const result = $derived(findConflicts());
   const ignored = $derived(new Set(db.lists.plotignore.map((i) => i.key as string)));
@@ -57,9 +82,53 @@
   <div class="tabs">
     <button class:active={tab === 'holes'} onclick={() => (tab = 'holes')}>Plot holes{open.length ? ' · ' + open.length : ''}</button>
     <button class:active={tab === 'gaps'} onclick={() => (tab = 'gaps')}>Unfinished{openGapList.length ? ' · ' + openGapList.length : ''}</button>
+    <button class:active={tab === 'names'} onclick={() => (tab = 'names')}>Names{tab === 'names' && openNames.length ? ' · ' + openNames.length : ''}</button>
   </div>
 
-  {#if tab === 'gaps'}
+  {#if tab === 'names'}
+    <p class="muted">
+      Finds a name that is spelled two ways. It looks for a capitalised word that is almost a name from your Characters, Places, Factions or Items,
+      and for a rare word that is almost a name you use often in the text. It reads your scenes only.
+      Press <b>Skip</b> if the word is right (for example a different person with a close name).
+    </p>
+    {#if nameMsg}<p style="color:var(--ok)">{nameMsg}</p>{/if}
+    {#each openNames as n (n.key)}
+      <div class="card hole name">
+        <div class="head">
+          <strong>“{n.word}” → “{n.suggest}”</strong>
+          <span class="row-btns">
+            <button class="small primary" disabled={fixing} onclick={() => fixName(n)}>Change all to “{n.suggest}”</button>
+            <button class="small" onclick={() => skipName(n)}>Skip</button>
+          </span>
+        </div>
+        <div class="muted">Used {n.count} time{n.count === 1 ? '' : 's'}. It {n.reason}.</div>
+        {#each n.places as p (p.scene.id)}
+          {@const x = snip(p.snippet)}
+          <button class="row-link" onclick={() => openScene(p.scene.id)} title="Open it">
+            <span class="chip">{p.label}{p.times > 1 ? ' · ' + p.times + '×' : ''}</span>
+            <span class="t">{x.a}<mark>{x.m}</mark>{x.b}</span>
+          </button>
+        {/each}
+      </div>
+    {:else}
+      <div class="empty">{db.lists.scene.length ? 'No names look misspelled.' : 'Nothing to check yet. Write some scenes first.'}</div>
+    {/each}
+    {#if hiddenNames.length}
+      <button class="small" style="margin-top:1rem" onclick={() => (showHiddenNames = !showHiddenNames)}>
+        {showHiddenNames ? 'Hide' : 'Show'} {hiddenNames.length} skipped
+      </button>
+      {#if showHiddenNames}
+        <div class="card">
+          {#each hiddenNames as n (n.key)}
+            <div class="gap done">
+              <span class="t"><b>“{n.word}”</b> → “{n.suggest}”</span>
+              <button class="small" onclick={() => backName(n)}>Bring back</button>
+            </div>
+          {/each}
+        </div>
+      {/if}
+    {/if}
+  {:else if tab === 'gaps'}
     <p class="muted">Things that look unfinished. Open one to fix it. Press <b>Skip</b> if it is fine as it is (for example a character with no age on purpose).</p>
     {#each gapGroups as g (g.name)}
       <div class="card">
@@ -167,6 +236,8 @@
   .row-link { display: flex; align-items: center; gap: .5rem; width: 100%; text-align: left; background: none; border: 1px solid transparent; padding: .3rem .4rem; }
   .row-link:hover { background: var(--panel-2); border-color: var(--line); }
   .row-link .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row-btns { display: flex; gap: .4rem; }
+  mark { background: color-mix(in srgb, var(--accent-2) 35%, transparent); color: inherit; border-radius: 3px; padding: 0 .1rem; }
   .gap { display: flex; align-items: center; gap: .5rem; }
   .gap .row-link { flex: 1; width: auto; }
   .gap.done { opacity: .65; padding: .3rem .4rem; }

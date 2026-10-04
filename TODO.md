@@ -10,7 +10,6 @@ Best next pick: **story arcs**, then the **notes board**.
 
 - [ ] Notes board: an index card for each scene, and drag the cards to reorder the book
 - [ ] Repeated word check: words used too often, and sentences that start the same way
-- [ ] Spell check in the writing screen
 
 
 ## World building
@@ -34,6 +33,7 @@ Nothing open here.
 
 ## Done
 
+- [x] Name spelling check: finds a name spelled two ways, and fixes it in every scene
 - [x] Several projects: one data file per book or series, with a switcher in the menu
 - [x] Portrait for each character and a picture for each place (shrunk small before saving)
 - [x] Region shapes: draw a border around a kingdom, name it, and see which places lie inside
