@@ -1,0 +1,8 @@
+# Starter files from the Wails template for platforms this app does not build for.
+# GitHub leaves them out of the language bar.
+build/android/** linguist-vendored
+build/ios/** linguist-vendored
+build/darwin/** linguist-vendored
+
+# Made by the Wails tool. Do not edit.
+frontend/bindings/** linguist-generated
