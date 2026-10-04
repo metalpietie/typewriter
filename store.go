@@ -23,8 +23,11 @@ type Store struct {
 	mu   sync.RWMutex
 	db   *sql.DB
 	path string
-	dir  string // the app data folder, holding every project
+	base string // the default folder. It always holds datadir.json, which says where the data is.
+	dir  string // the data folder in use, holding every project
 	reg  registry
+	// problem is set when the chosen data folder could not be opened and the default one is used instead
+	problem string
 }
 
 var kinds = map[string]bool{
@@ -53,15 +56,16 @@ func OpenStore() (*Store, error) {
 	return OpenStoreIn(filepath.Join(dir, "typewriter"))
 }
 
-// OpenStoreIn does the same in a chosen folder (the tests use this).
-func OpenStoreIn(dir string) (*Store, error) {
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+// OpenStoreIn does the same with a chosen default folder (the tests use this).
+func OpenStoreIn(base string) (*Store, error) {
+	if err := os.MkdirAll(base, 0o755); err != nil {
 		return nil, err
 	}
-	s := &Store{dir: dir}
+	dir, problem := resolveDataDir(base)
+	s := &Store{base: base, dir: dir, problem: problem}
 	s.reg = loadRegistry(dir)
 	p, _ := s.reg.find(s.reg.Current)
-	db, path, err := s.openProject(p)
+	db, path, err := openProjectIn(dir, p)
 	if err != nil {
 		return nil, err
 	}

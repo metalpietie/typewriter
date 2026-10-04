@@ -67,6 +67,21 @@ Everything lives in one SQLite file:
 
 The path also shows at the bottom of the left menu. **Use the Backup buttons (see "Export & Backup" below) to protect your work.**
 
+### Where your data is kept
+
+The bottom of the left menu shows the data file in use and the app version, for example "Typewriter 1.0.0".
+
+To keep your data in another folder, press **Change folder…** under the data file. Then press **Choose another folder…** and pick a folder.
+
+- **A folder with no Typewriter data:** the app asks to **Copy and use**. It copies all your projects and backups there, then uses the copy. The old files stay where they are. Delete them yourself when you are sure the copy is good.
+- **A folder that already has Typewriter data:** the app asks to **Use that data**. It shows that data. Your current data stays where it is. Nothing is overwritten.
+- **Go back to the normal folder** (it shows when you use another folder) switches back. It uses whatever data is in the normal folder. If you copied your data away and then kept writing, the normal folder has the older copy.
+- The app reloads after a change.
+- Pick a normal folder on a local drive. Do not pick a folder that Dropbox, OneDrive or Google Drive keeps in sync while the app is open. They can damage the data file. Use the Backup buttons for a second copy.
+- If the folder is on a drive that is not plugged in when the app starts, the app opens the normal folder, and a red **Data folder problem** button shows in the menu. Plug the drive in and restart the app to go back to your folder.
+
+The choice is saved in `datadir.json` in the normal folder (`%APPDATA%\typewriter` on Windows, `~/.config/typewriter` on Linux). Delete that file to go back to the normal folder by hand.
+
 ### Projects
 
 A **project** is one book or one series. Each project has its own data file, so the characters, places, maps and text of one project never mix with another.
@@ -453,6 +468,13 @@ You do not have to press anything. The first time you open the app each day, it 
 - **Open the backup folder** shows the files. You can copy them to a USB drive or the cloud.
 - If the app has no data yet, it makes no copy. An empty copy never replaces a good one.
 
+## Making a release
+
+1. Change the version in two places: `Version` in `version.go`, and `version` in `build/config.yml`. A test fails if they differ.
+2. Run `wails3 task common:update:build-assets`, so the Windows and Linux files use the new version.
+3. Build: `wails3 build` (Windows) and `wails3 task linux:build` (Linux, needs Docker). Build Windows last, because the Linux build can remove `bin\typewriter.exe`.
+4. Commit, then tag and push: `git tag -a v1.0.1 -m "Typewriter 1.0.1"`, then `git push && git push origin v1.0.1`.
+
 ## Deleting things
 
 Delete buttons ask twice. The first click turns the button red and says "Sure?". Click again within three seconds to confirm.
@@ -475,6 +497,8 @@ Deleting removes the things that depend on it:
 | `main.go` | App start-up and window |
 | `store.go` | SQLite storage service |
 | `projects.go` | The list of projects, and switching the open data file |
+| `datafolder.go` | Moving the data folder, and the `datadir.json` pointer |
+| `version.go` | The app version shown in the menu |
 | `export.go` | Export: file dialog, Word, and the story bible and manuscript text |
 | `pdf.go`, `epub.go`, `markdown.go`, `pagesize.go` | The PDF, e-book and Markdown writers, and the page sizes |
 | `frontend/src/views/` | One Svelte file per screen |

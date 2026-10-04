@@ -30,6 +30,17 @@ export function Backup(): $CancellablePromise<string> {
 }
 
 /**
+ * ChooseDataFolder asks for a folder. It returns "" if you cancel.
+ */
+export function ChooseDataFolder(): $CancellablePromise<string> {
+    return $Call.ByID(3319771594);
+}
+
+export function DataFolder(): $CancellablePromise<$models.DataFolderInfo> {
+    return $Call.ByID(2009942011);
+}
+
+/**
  * DataPath returns where the database file of the open project lives.
  */
 export function DataPath(): $CancellablePromise<string> {
@@ -45,6 +56,13 @@ export function Delete(kind: string, id: number): $CancellablePromise<$models.Do
 }
 
 /**
+ * InspectDataFolder checks a folder before the data moves there.
+ */
+export function InspectDataFolder(path: string): $CancellablePromise<$models.FolderCheck> {
+    return $Call.ByID(762244449, path);
+}
+
+/**
  * List returns every item of one kind.
  */
 export function List(kind: string): $CancellablePromise<$models.Doc[] | null> {
@@ -57,6 +75,16 @@ export function List(kind: string): $CancellablePromise<$models.Doc[] | null> {
  */
 export function ListBy(kind: string, field: string, id: number): $CancellablePromise<$models.Doc[] | null> {
     return $Call.ByID(1503808682, kind, field, id);
+}
+
+/**
+ * MoveDataFolder changes where the data lives.
+ * mode "copy": copy all your data into the folder (it must not hold data yet), then use it.
+ * mode "use": use the data that is already in the folder.
+ * The old files are never deleted. You can remove them yourself when you are sure.
+ */
+export function MoveDataFolder(path: string, mode: string): $CancellablePromise<void> {
+    return $Call.ByID(2516657230, path, mode);
 }
 
 /**
@@ -136,4 +164,11 @@ export function StartAutoBackup(): $CancellablePromise<void> {
  */
 export function SwitchProject(id: string): $CancellablePromise<void> {
     return $Call.ByID(1504799540, id);
+}
+
+/**
+ * Version tells the screen which version is running.
+ */
+export function Version(): $CancellablePromise<string> {
+    return $Call.ByID(151763817);
 }

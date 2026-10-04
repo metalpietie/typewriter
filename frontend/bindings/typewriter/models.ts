@@ -19,6 +19,31 @@ export interface AutoBackup {
 }
 
 /**
+ * DataFolderInfo is what the screen shows about where your data lives.
+ */
+export interface DataFolderInfo {
+    /**
+     * the folder in use
+     */
+    "path": string;
+
+    /**
+     * the folder used when you have chosen none
+     */
+    "default": string;
+
+    /**
+     * true when the folder in use is the default one
+     */
+    "isDefault": boolean;
+
+    /**
+     * not empty when your chosen folder could not be opened
+     */
+    "problem": string;
+}
+
+/**
  * Doc is one saved item. Data holds JSON text, so new fields never need a migration.
  */
 export interface Doc {
@@ -46,6 +71,23 @@ export interface ExportOptions {
      * PDF only: mirrored margins, chapters on right-hand pages
      */
     "print": boolean;
+}
+
+/**
+ * FolderCheck is what a folder you picked holds.
+ */
+export interface FolderCheck {
+    "path": string;
+
+    /**
+     * it already holds Typewriter data
+     */
+    "hasData": boolean;
+
+    /**
+     * it is the folder in use already
+     */
+    "same": boolean;
 }
 
 /**

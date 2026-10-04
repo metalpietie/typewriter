@@ -10,8 +10,10 @@ export {
 
 export type {
     AutoBackup,
+    DataFolderInfo,
     Doc,
     ExportOptions,
+    FolderCheck,
     ProjectItem,
     RestoreResult
 } from "./models.js";

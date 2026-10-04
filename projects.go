@@ -80,8 +80,10 @@ func projectFile(dir, id string) string {
 	return filepath.Join(dir, "projects", id+".db")
 }
 
-func (s *Store) openProject(p Project) (*sql.DB, string, error) {
-	path := projectFile(s.dir, p.ID)
+func (s *Store) openProject(p Project) (*sql.DB, string, error) { return openProjectIn(s.dir, p) }
+
+func openProjectIn(dir string, p Project) (*sql.DB, string, error) {
+	path := projectFile(dir, p.ID)
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return nil, "", err
 	}
@@ -92,12 +94,12 @@ func (s *Store) openProject(p Project) (*sql.DB, string, error) {
 // Projects lists every project and says which one is open.
 func (s *Store) Projects() ([]ProjectItem, error) {
 	s.mu.RLock()
-	reg := s.reg
+	reg, dir := s.reg, s.dir
 	s.mu.RUnlock()
 	out := []ProjectItem{}
 	for _, p := range reg.Projects {
 		var size int64
-		if info, err := os.Stat(projectFile(s.dir, p.ID)); err == nil {
+		if info, err := os.Stat(projectFile(dir, p.ID)); err == nil {
 			size = info.Size()
 		}
 		out = append(out, ProjectItem{ID: p.ID, Name: p.Name, Size: size, Current: p.ID == reg.Current})

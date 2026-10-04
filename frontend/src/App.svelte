@@ -6,6 +6,7 @@
   import CalendarEditor from './lib/CalendarEditor.svelte';
   import NameGenerator from './lib/NameGenerator.svelte';
   import Projects from './lib/Projects.svelte';
+  import DataFolder from './lib/DataFolder.svelte';
   import UndoToast from './lib/UndoToast.svelte';
   import { migrateChapters } from './lib/scenes';
   import { currentTheme, setTheme, type Theme } from './lib/theme';
@@ -83,6 +84,7 @@
 {#if nav.calendar}<CalendarEditor />{/if}
 {#if nav.names}<NameGenerator />{/if}
 {#if nav.projects}<Projects />{/if}
+{#if nav.dataFolder}<DataFolder />{/if}
 
 <div class="app" class:focus={nav.focus}>
   <nav class="nav">
@@ -94,7 +96,10 @@
     {/each}
     <div class="foot">
       <button onclick={toggleTheme}>{theme === 'dark' ? '☀ Light theme' : '☾ Dark theme'}</button>
-      Data file:<br />{db.dataPath}</div>
+      Data file:<br />{db.dataPath}
+      {#if db.folderProblem}<div><button class="small danger" title={db.folderProblem} onclick={() => (nav.dataFolder = true)}>⚠ Data folder problem</button></div>{/if}
+      <div><button class="small" title="Keep your data in another folder" onclick={() => (nav.dataFolder = true)}>Change folder…</button></div>
+      <div class="ver">Typewriter {db.version}</div></div>
   </nav>
   <main class="main">
     {#if hasSide && !nav.focus && db.ready}
