@@ -1,6 +1,8 @@
 import { db, plainText, type Kind } from './db.svelte';
 import { sceneLabel } from './scenes';
 import { backlinks } from './backlinks';
+import { impossible, ageAt } from './ages';
+import { timeText } from './calendar';
 
 /** One thing that looks unfinished. */
 export type Gap = {
@@ -25,7 +27,7 @@ export function findGaps(): Gap[] {
 
   for (const c of db.lists.character) {
     const name = c.name || 'Unnamed';
-    if (blank(c.age)) add('Characters', 'character', c.id, 'age', name, 'has no age');
+    if (blank(c.age) && blank(c.born)) add('Characters', 'character', c.id, 'age', name, 'has no age');
     if (blank(c.description)) add('Characters', 'character', c.id, 'desc', name, 'has no description');
     if (blank(c.backstory) && blank(c.goals)) add('Characters', 'character', c.id, 'story', name, 'has no backstory and no goals');
     if (!related.has(c.id)) add('Characters', 'character', c.id, 'rel', name, 'has no relationships');
@@ -46,6 +48,22 @@ export function findGaps(): Gap[] {
     if (blank(s.time)) add('Scenes', 'scene', s.id, 'time', name, 'has no timeline number');
     if (blank(s.summary)) add('Scenes', 'scene', s.id, 'sum', name, 'has no summary');
     if (blank(plainText(s.body ?? ''))) add('Scenes', 'scene', s.id, 'body', name, 'has no text yet');
+  }
+
+  // a person in a scene or event dated before their birth or after their death
+  const when = (c: any, t: unknown) => (ageAt(c, t)?.state === 'unborn' ? `was not born yet (born ${timeText(c.born)})` : `had already died (died ${timeText(c.died)})`);
+  for (const s of db.lists.scene) {
+    const cast = new Set<number>([...(s.pov ? [s.pov] : []), ...(s.characters ?? [])]);
+    for (const id of cast) {
+      const c = db.get('character', id);
+      if (c && impossible(c, s.time)) add('Scenes', 'scene', s.id, 'age' + id, sceneLabel(s), `has ${c.name || 'someone'}, who ${when(c, s.time)} on ${timeText(s.time)}`);
+    }
+  }
+  for (const e of db.lists.event) {
+    for (const id of e.characters ?? []) {
+      const c = db.get('character', id);
+      if (c && impossible(c, e.time)) add('Events', 'event', e.id, 'age' + id, e.title || 'Untitled', `has ${c.name || 'someone'}, who ${when(c, e.time)} on ${timeText(e.time)}`);
+    }
   }
 
   const members = new Set<number>(db.lists.membership.map((m) => m.faction));

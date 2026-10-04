@@ -227,6 +227,15 @@ Press **+ New** to add a character. Fill in the role, looks, traits, backstory, 
 
 Press **Add portrait** to give a character a picture. The app cuts the middle square out of your picture and shrinks it to 480 px, so the data file stays small. The portrait shows in the character list. Use **Remove** to take it away.
 
+**Born** and **Died** are dates, picked with your own calendar if you set one up (or plain year numbers if not). They are the same timeline numbers that scenes and events use. With a birth date the app can tell how old a character is on any day:
+
+- Under **Age on a date**, pick a day to see the age. A character is "not born yet" before the birth date, and "dead" after the death date.
+- The same card lists the scenes and events the character is in, with the age at each one.
+- In the Write tab, the cast list of a scene shows each age ("age 23") when the scene has a date. The same goes for the people in a Timeline event.
+- A red note means the date cannot be true. The **Unfinished** list in the Checks tab also lists these: a scene or event that has someone in it before their birth or after their death.
+- The age is counted in whole years. It goes up on the birthday (the same month and day).
+- The old **Age** field is now only a note, for example "about thirty". A birth date counts as an age, so the Unfinished list stops asking for one.
+
 The bottom of each character shows their relationships, their chapters, and how many map steps they have.
 
 ### Name generator
@@ -413,7 +422,7 @@ Words are counted while you type in the Write tab. Each day keeps one tally. Cut
 
 The **Checks** tab has four lists: **Plot holes**, **Unfinished**, **Names** and **Repeats**. A red number next to the tab name shows how many plot holes are open.
 
-**Unfinished** lists things that look incomplete: characters with no age, description, backstory, relationships or scene; places on no map or with no description; scenes with no point of view, place, timeline number, summary or text; factions with no members or headquarters; items with no description or journey; events with no number or place; empty lore notes. Click a row to open it. Press **Skip** if it is fine as it is. Skipped rows go to a list where you can bring them back.
+**Unfinished** lists things that look incomplete: characters with no age (a birth date counts), description, backstory, relationships or scene; places on no map or with no description; scenes with no point of view, place, timeline number, summary or text; a scene or event dated before someone in it was born or after they died; factions with no members or headquarters; items with no description or journey; events with no number or place; empty lore notes. Click a row to open it. Press **Skip** if it is fine as it is. Skipped rows go to a list where you can bring them back.
 
 **Names** finds a name that is spelled two ways. It reads your scenes. It flags a capitalised word that is almost a name from your Characters (including "also called" names), Places, Factions or Items, for example "Aldrick" when you have "Aldric". It also flags a rare word that is almost a name you use often in the text, even if that name is not in your data. It also flags a word that is almost one of your Glossary words, for example "ketah" when you have "ketha".
 

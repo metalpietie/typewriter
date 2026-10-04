@@ -1,5 +1,6 @@
 <script lang="ts">
   import Select from '../lib/Select.svelte';
+  import { shortAge, impossible } from '../lib/ages';
   import { BEATS, arcsSorted, linkFor, tagScene, untagScene, setBeat, type Beat } from '../lib/arcs';
   import { onDestroy } from 'svelte';
   import { flip } from 'svelte/animate';
@@ -413,6 +414,7 @@
         <div><label style="display:flex;gap:.4rem;margin:.15rem 0;color:var(--text)">
           <input type="checkbox" style="width:auto" checked={(scene.characters ?? []).includes(c.id)} onchange={() => toggleChar(c.id)} />
           <span class="dot" style:background={c.color} style="margin-top:.2rem"></span>{c.name}
+          {#if shortAge(c, scene.time)}<small class="age" class:bad={impossible(c, scene.time)}>{shortAge(c, scene.time)}</small>{/if}
         </label></div>
       {/each}
       {#if miss.length}
@@ -521,6 +523,8 @@
   .scenetitle { margin-bottom: .6rem; font-size: .95rem; color: var(--muted); }
   .badge { font-size: .7rem; color: var(--muted); }
   .warn { border: 1px solid var(--accent-2); border-radius: 6px; padding: .5rem; margin-top: .6rem; font-size: .85rem; background: color-mix(in srgb, var(--accent-2) 10%, transparent); }
+  .age { margin-left: auto; color: var(--muted); }
+  .age.bad { color: var(--danger); }
   .arcrow { display: flex; align-items: center; gap: .4rem; margin: .15rem 0; }
   .arcchk { flex: 1; min-width: 0; display: flex; align-items: center; gap: .4rem; margin: 0; color: var(--text); }
   .arcname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

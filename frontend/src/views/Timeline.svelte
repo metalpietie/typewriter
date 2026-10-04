@@ -6,6 +6,7 @@
   import { nav } from '../lib/nav.svelte';
   import DateField from '../lib/DateField.svelte';
   import { timeText } from '../lib/calendar';
+  import { shortAge, impossible } from '../lib/ages';
 
   let mode = $state<'time' | 'lanes'>('time');
   let selId = $state<number | null>(null);
@@ -128,6 +129,7 @@
             <label style="display:flex;gap:.4rem;margin:.1rem 0;color:var(--text)">
               <input type="checkbox" style="width:auto" checked={(ev.characters ?? []).includes(c.id)} onchange={() => toggleChar(c.id)} />
               <span class="dot" style:background={c.color}></span>{c.name}
+              {#if shortAge(c, ev.time)}<small class="age" class:bad={impossible(c, ev.time)}>{shortAge(c, ev.time)}</small>{/if}
             </label>
           {/each}
           <label>What happened</label><textarea bind:value={ev.description} oninput={save}></textarea>
@@ -210,3 +212,8 @@
     {/if}
   </section>
 </div>
+
+<style>
+  .age { margin-left: auto; color: var(--muted); }
+  .age.bad { color: var(--danger); }
+</style>

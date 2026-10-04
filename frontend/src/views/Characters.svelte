@@ -4,7 +4,9 @@
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import Backlinks from '../lib/Backlinks.svelte';
   import Picture from '../lib/Picture.svelte';
-  import { nav, openItem } from '../lib/nav.svelte';
+  import DatePick from '../lib/DatePick.svelte';
+  import { ageAt, momentsOf } from '../lib/ages';
+  import { nav, openItem, openScene } from '../lib/nav.svelte';
   import { scenesOf, sceneLabel } from '../lib/scenes';
   import { itemsHeldBy, membershipsOf } from '../lib/items';
 
@@ -33,6 +35,10 @@
       .filter((c) => !scenesOf(c.id).length && (c.pov === selId || (c.characters ?? []).includes(selId)))
       .map((c) => ({ id: 'c' + c.id, title: c.title || 'Untitled' })),
   ]);
+  // the age tool: pick any date to see how old this character is then
+  let probe = $state<number | null>(null);
+  const probeAge = $derived(ageAt(sel, probe));
+  const moments = $derived(selId ? momentsOf(selId) : []);
   const pathCount = $derived(db.lists.pathpoint.filter((p) => p.character === selId).length);
 
   async function add() {
@@ -83,9 +89,34 @@
         <div><label>Role</label>
           <Select bind:value={sel.role} onchange={save}>{#each ROLES as r}<option>{r}</option>{/each}</Select>
         </div>
-        <div><label>Age / born / died</label><input bind:value={sel.age} oninput={save} /></div>
+        <div><label>Age (a note, optional)</label><input bind:value={sel.age} oninput={save} placeholder="e.g. about thirty" /></div>
         <div><label>Colour (used on graph and maps)</label><input type="color" bind:value={sel.color} oninput={save} /></div>
       </div>
+
+      <div class="grid2">
+        <DatePick label="Born" bind:value={sel.born} onchange={save} hint="Set a birth date to see ages in your scenes." />
+        <DatePick label="Died (leave empty if alive)" bind:value={sel.died} onchange={save} />
+      </div>
+
+      {#if sel.born !== null && sel.born !== undefined && sel.born !== ''}
+        <div class="card ages">
+          <strong>Age on a date</strong>
+          <DatePick label="Pick a date" bind:value={probe} onchange={() => {}} hint="Pick any day in your story." />
+          {#if probeAge}
+            <div class="result" class:bad={probeAge.state !== 'alive'}>{probeAge.state === 'alive' ? `${sel.name} is ${probeAge.years} years old.` : probeAge.state === 'unborn' ? `${sel.name} is not born yet.` : `${sel.name} is dead. ${sel.name} died aged ${probeAge.years}.`}</div>
+          {/if}
+          {#if moments.length}
+            <div class="muted" style="margin-top:.8rem">Age in your story</div>
+            {#each moments as m (m.key)}
+              <button class="moment" onclick={() => (m.open.kind === 'scene' ? openScene(m.open.id) : openItem('event', m.open.id))}>
+                <span class="age" class:bad={m.age.state !== 'alive'}>{m.age.state === 'alive' ? m.age.years : m.age.state === 'unborn' ? '—' : '†'}</span>
+                <span class="what">{m.what}</span>
+                <span class="when muted">{m.when}</span>
+              </button>
+            {/each}
+          {/if}
+        </div>
+      {/if}
 
       <label>Looks & description</label>
       <textarea bind:value={sel.description} oninput={save}></textarea>
@@ -146,3 +177,14 @@
     {/if}
   </section>
 </div>
+
+<style>
+  .result { margin-top: .6rem; font-weight: 600; color: var(--accent); }
+  .result.bad { color: var(--danger); }
+  .moment { display: flex; gap: .6rem; align-items: baseline; width: 100%; text-align: left; background: none; border: 0; border-top: 1px solid var(--line); border-radius: 0; padding: .35rem 0; }
+  .moment:hover { background: var(--panel-2); }
+  .moment .age { flex: 0 0 2rem; text-align: right; font-weight: 700; color: var(--accent); }
+  .moment .age.bad { color: var(--danger); }
+  .moment .what { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .moment .when { flex: 0 0 auto; font-size: .8rem; }
+</style>
