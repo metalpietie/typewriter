@@ -7,10 +7,11 @@
   import { findNameIssues, fixEverywhere, type NameIssue } from '../lib/namespell';
   import { findRepeats } from '../lib/repeats';
   import StyleCheck from '../lib/StyleCheck.svelte';
+  import LooseCharacters from '../lib/LooseCharacters.svelte';
 
   let showDismissed = $state(false);
   let help = $state(false);
-  let tab = $state<'holes' | 'gaps' | 'names' | 'repeats' | 'style'>('holes');
+  let tab = $state<'holes' | 'gaps' | 'names' | 'repeats' | 'style' | 'loose'>('holes');
   let showHiddenGaps = $state(false);
 
   const gaps = $derived(findGaps());
@@ -116,9 +117,12 @@
     <button class:active={tab === 'names'} onclick={() => (tab = 'names')}>Names{tab === 'names' && openNames.length ? ' · ' + openNames.length : ''}</button>
     <button class:active={tab === 'repeats'} onclick={() => (tab = 'repeats')}>Repeats{tab === 'repeats' && openClose.length + openStarts.length ? ' · ' + (openClose.length + openStarts.length) : ''}</button>
     <button class:active={tab === 'style'} onclick={() => (tab = 'style')}>Style</button>
+    <button class:active={tab === 'loose'} onclick={() => (tab = 'loose')}>Loose characters</button>
   </div>
 
-  {#if tab === 'style'}
+  {#if tab === 'loose'}
+    <LooseCharacters />
+  {:else if tab === 'style'}
     <StyleCheck />
   {:else if tab === 'repeats'}
     <p class="muted">

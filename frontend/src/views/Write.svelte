@@ -23,6 +23,9 @@
   import SaveIndicator from '../lib/SaveIndicator.svelte';
   import LookButton from '../lib/LookButton.svelte';
   import SceneTags from '../lib/SceneTags.svelte';
+  import RevisionPasses from '../lib/RevisionPasses.svelte';
+  import { passesOf, tick } from '../lib/passes';
+  import { isDone, summary as passSummary } from '../lib/passes-core';
   import { miniText } from '../lib/pomodoro.svelte';
   import { tagCounts, hasTag } from '../lib/tags-core';
 
@@ -114,6 +117,7 @@
   const chapters = $derived(db.lists.chapter.filter((c) => c.book === bookId).sort((a, b) => a.order - b.order));
   const chap = $derived(db.get('chapter', chapId));
   const scenes = $derived(scenesOf(chapId));
+  const bookPasses = $derived(passesOf(bookId));
   // Scene tags: the filter above the chapter list shows only the scenes with one tag.
   let tagFilter = $state('');
   const bookTags = $derived(tagCounts(db.lists.scene.filter((s) => chapters.some((c) => c.id === s.chapter))));
@@ -316,6 +320,7 @@
         <div style="margin-top:.6rem"><ProgressBar value={total} goal={book.goal} /></div>
         <div class="muted" style="font-size:.8rem;margin-top:.2rem">{total.toLocaleString()} / {Number(book.goal).toLocaleString()} words{pctText(total, book.goal)}</div>
       {/if}
+      <RevisionPasses bookId={book.id} />
       {#if bookTags.length}
         <label for="tagfilter">Show scenes tagged</label>
         <Select id="tagfilter" bind:value={tagFilter}>
@@ -422,6 +427,14 @@
       <DateField bind:time={scene.time} bind:when={scene.when} onchange={saveScene} />
       <label>Tags</label>
       {#key scene.id}<SceneTags {scene} onchange={saveScene} />{/key}
+      {#if bookPasses.length}
+        <label>Revision passes <small class="muted">{passSummary(scene, bookPasses).done}/{bookPasses.length} done</small></label>
+        {#each bookPasses as p (p.id)}
+          <div><label style="display:flex;gap:.4rem;margin:.15rem 0;color:var(--text)">
+            <input type="checkbox" style="width:auto" checked={isDone(scene, p.id)} onchange={() => tick(scene!, p.id)} />{p.name}
+          </label></div>
+        {/each}
+      {/if}
       <label>Story arcs</label>
       {#each arcsSorted() as a (a.id)}
         {@const lk = linkFor(a.id, scene.id)}

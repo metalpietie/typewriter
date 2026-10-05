@@ -63,3 +63,39 @@ func TestSnapshotsGoWithTheirBook(t *testing.T) {
 		t.Fatalf("Restore should bring the snapshots back, got %d", n)
 	}
 }
+
+// A revision pass belongs to one book. It goes with that book, and Restore brings it back.
+func TestPassesGoWithTheirBook(t *testing.T) {
+	s, err := OpenStoreIn(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(s.shut)
+
+	save := func(kind, data string) int64 {
+		d, err := s.Save(Doc{Kind: kind, Data: data})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return d.ID
+	}
+	b1 := save("book", `{"title":"One"}`)
+	b2 := save("book", `{"title":"Two"}`)
+	save("pass", fmt.Sprintf(`{"book":%d,"name":"Plot","order":1}`, b1))
+	save("pass", fmt.Sprintf(`{"book":%d,"name":"Dialogue","order":2}`, b1))
+	save("pass", fmt.Sprintf(`{"book":%d,"name":"Plot","order":1}`, b2))
+
+	removed, err := s.Delete("book", b1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n := countKind(t, s, "pass"); n != 1 {
+		t.Fatalf("only the other book's pass should stay, got %d", n)
+	}
+	if err := s.Restore(removed); err != nil {
+		t.Fatal(err)
+	}
+	if n := countKind(t, s, "pass"); n != 3 {
+		t.Fatalf("Restore should bring the passes back, got %d", n)
+	}
+}

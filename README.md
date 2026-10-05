@@ -174,6 +174,18 @@ In the **Scene** panel (right side of the Write tab), under the story time, type
 - The **Board** has the same list at the top, and each card shows its tags.
 - Tags are only for you. They do not print in exports.
 
+#### Revision passes
+
+A pass is one round of revising a book: plot, characters, dialogue, line edit, proofread. You tick each scene when a pass is done for it, so you see what is left.
+
+1. In the Write tab, pick a book and open **Revision passes** in the book panel (left side).
+2. Type a name and press **Enter**, or press **Add the usual passes** (Plot, Characters, Dialogue, Line edit, Proofread). Each book has its own passes.
+3. Click a name to rename it. **↑** and **↓** change the order. **✕** deletes the pass (press it twice). Next to each name you see how many scenes are done, for example **12/30**.
+4. Open a scene. In the **Scene** panel (right side), under **Tags**, tick the passes that are done for that scene.
+5. On the **Board**, pick **Pass: …** at the top. Each card gets a tick box. Cards that are done turn faint. Each chapter says how many scenes are still to do. **Hide scenes that are done** keeps only the work that is left. Without a pass picked, each card shows how many passes it has, for example **2/5 passes**.
+
+Deleting a pass takes its ticks off the scenes. Passes go with the book when you delete it.
+
 #### Focus mode
 
 Press **F11** (or **Ctrl+Shift+F**, or the **Focus mode** button) to hide every menu and panel. You see only the text. The window goes full screen. A small word count and save status sit in the corner. Press **Esc** to leave.
@@ -505,7 +517,7 @@ Words are counted while you type in the Write tab. Each day keeps one tally. Cut
 
 ### Checks
 
-The **Checks** tab has five lists: **Plot holes**, **Unfinished**, **Names**, **Repeats** and **Style**. A red number next to the tab name shows how many plot holes are open.
+The **Checks** tab has six lists: **Plot holes**, **Unfinished**, **Names**, **Repeats**, **Style** and **Loose characters**. A red number next to the tab name shows how many plot holes are open.
 
 **Unfinished** lists things that look incomplete: characters with no age (a birth date counts), description, backstory, relationships or scene; places on no map or with no description; scenes with no point of view, place, timeline number, summary or text; a scene or event dated before someone in it was born or after they died; factions with no members or headquarters; items with no description or journey; events with no number or place; empty lore notes. Click a row to open it. Press **Skip** if it is fine as it is. Skipped rows go to a list where you can bring them back.
 
@@ -535,6 +547,16 @@ Everyday words (the, and, said, were, and so on) are left out. Names from your C
   - *Words that end in -ly* are often adverbs. Words that are not adverbs, such as "only", "family" and "lonely", are left out.
 
 These are hints about style, not mistakes. The word lists are English. A sentence ends at a full stop, a question mark, an exclamation mark or "…" when a capital letter follows. "Mr." and "Dr." do not end a sentence.
+
+**Loose characters** finds characters who may be loose ends. It reads your scenes. Pick one book or all books, and pick how many chapters in a row is "quiet" (the start is 5).
+
+- **In no scene:** the character is not the point of view, not in any cast, and not named in any scene.
+- **In one scene only:** the character appears in just one scene. **Open scene** takes you there.
+- **Gone quiet:** the character appears in more scenes, but then is gone for the number of chapters you set. The row says where the quiet stretch is, for example "is in chapter 2, then not again until chapter 17: 14 chapters without them", or "was last seen in chapter 4. After that, 20 chapters without them".
+- A character is in a scene when they are its point of view, are in its cast, or are named in the text (the full name, the first name, an "also called" name, or an @ link).
+- A character who has a **death date** is not counted as quiet at the end of the book, because they cannot come back. A quiet stretch in the middle still counts.
+- Click a name to open the character. Press **It is fine** when it is on purpose, for example a name that is only mentioned. Those go to a list where you can bring them back.
+- With **All books**, the chapters of all books count in reading order, so a quiet stretch can run across books.
 
 **Plot holes** is the next list.
 

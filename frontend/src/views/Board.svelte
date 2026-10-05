@@ -7,6 +7,8 @@
   import ProgressBar from '../lib/ProgressBar.svelte';
   import { arcsOfScene } from '../lib/arcs';
   import { tagCounts, tagsOf, hasTag } from '../lib/tags-core';
+  import { passesOf, tick } from '../lib/passes';
+  import { isDone, summary as passSummary } from '../lib/passes-core';
 
   // start on the book you were writing in
   const lastBook = () => {
@@ -23,6 +25,13 @@
   let tagFilter = $state('');
   const bookTags = $derived(tagCounts(db.lists.scene.filter((s) => chapters.some((c) => c.id === s.chapter))));
   const activeTag = $derived(bookTags.some(([t]) => t === tagFilter) ? tagFilter : '');
+
+  // revision passes: pick one to see which scenes are done in it and which still need work
+  let passPick = $state<number | null>(null);
+  let hideDone = $state(false);
+  const bookPasses = $derived(passesOf(bookId));
+  const pass = $derived(bookPasses.find((p) => p.id === passPick) ?? null);
+  const showScene = (s: any) => hasTag(s, activeTag) && !(pass && hideDone && isDone(s, pass.id));
 
   let colour = $state<'status' | 'pov'>('status');
   const STATUS_COLOUR: Record<string, string> = { idea: 'var(--muted)', draft: 'var(--accent)', revised: 'var(--accent-2)', final: 'var(--ok)' };
@@ -177,6 +186,13 @@
         {#each bookTags as [t, n]}<option value={t}>Tag: {t} ({n})</option>{/each}
       </Select>
     {/if}
+    {#if bookPasses.length}
+      <Select aria-label="Revision pass" bind:value={passPick}>
+        <option value={null}>Revision pass: none</option>
+        {#each bookPasses as p}<option value={p.id}>Pass: {p.name}</option>{/each}
+      </Select>
+      {#if pass}<label class="hd"><input type="checkbox" bind:checked={hideDone} /> Hide scenes that are done</label>{/if}
+    {/if}
     <div class="seg">
       <button class:active={colour === 'status'} onclick={() => (colour = 'status')}>Colour by status</button>
       <button class:active={colour === 'pov'} onclick={() => (colour = 'pov')}>Colour by point of view</button>
@@ -192,7 +208,8 @@
   {:else}
     <div class="board" class:sorting={!!drag} bind:this={board}>
       {#each chapters as c (c.id)}
-        {@const scenes = scenesOf(c.id).filter((s) => hasTag(s, activeTag))}
+        {@const all = scenesOf(c.id)}
+        {@const scenes = all.filter(showScene)}
         {@const words = chapterWords(c)}
         <div class="col {dropClass('chapter', c.id)}" class:landed={landed === 'chapter' + c.id} class:dragging={drag?.type === 'chapter' && drag.id === c.id}
           data-col={c.id} animate:flip={{ duration: 220 }}>
@@ -202,14 +219,15 @@
                 onpointerdown={(e) => startDrag(e, { type: 'chapter', id: c.id, label: c.title || 'Chapter' })}>⠿</span>
               <input class="ctitle" aria-label="Chapter title" bind:value={c.title} oninput={() => saveChap(c)} />
             </div>
-            <div class="muted small">{c.order}. {scenes.length} scene{scenes.length === 1 ? '' : 's'} · {words.toLocaleString()}{goalOf(c) ? ' / ' + goalOf(c).toLocaleString() : ''} words</div>
+            <div class="muted small">{c.order}. {scenes.length} scene{scenes.length === 1 ? '' : 's'}{pass ? ' (' + all.filter((s) => !isDone(s, pass.id)).length + ' to do)' : ''} · {words.toLocaleString()}{goalOf(c) ? ' / ' + goalOf(c).toLocaleString() : ''} words</div>
             {#if goalOf(c)}<div style="margin-top:.2rem"><ProgressBar value={words} goal={goalOf(c)} thin /></div>{/if}
           </div>
           <div class="cards">
             {#each scenes as s (s.id)}
-              <div class="card idx {dropClass('scene', s.id)}" class:landed={landed === 'scene' + s.id} class:dragging={drag?.type === 'scene' && drag.id === s.id}
+              <div class="card idx {dropClass('scene', s.id)}" class:passdone={pass && isDone(s, pass.id)} class:landed={landed === 'scene' + s.id} class:dragging={drag?.type === 'scene' && drag.id === s.id}
                 style:border-left-color={barColour(s)} data-scene={s.id} animate:flip={{ duration: 200 }}>
                 <div class="hrow">
+                  {#if pass}<input class="pk" type="checkbox" checked={isDone(s, pass.id)} title="Done in the pass: {pass.name}" aria-label="Done in the pass {pass.name}" onchange={() => tick(s, pass.id)} />{/if}
                   <button class="title" title="Write this scene" onclick={() => { if (!suppressClick) openScene(s.id); }}>{s.title || 'Untitled scene'}</button>
                   <span class="grip" role="button" tabindex="-1" title="Drag to move this scene" aria-label="Drag to move this scene"
                     onpointerdown={(e) => startDrag(e, { type: 'scene', id: s.id, label: s.title || 'Untitled scene' })}>⠿</span>
@@ -217,6 +235,7 @@
                 <textarea rows="3" placeholder="What happens in this scene?" aria-label="Summary" bind:value={s.summary} oninput={() => saveScene(s)}></textarea>
                 <div class="foot muted">
                   <Select class="st" aria-label="Status" bind:value={s.status} onchange={() => saveScene(s)}>{#each STATUSES as t}<option>{t}</option>{/each}</Select>
+                  {#if bookPasses.length && !pass}<span class="tag" title="Revision passes done">{passSummary(s, bookPasses).done}/{bookPasses.length} passes</span>{/if}
                   {#each tagsOf(s) as t (t)}<span class="tag hash" title="Tag">#{t}</span>{/each}
                   {#each arcsOfScene(s.id) as a (a.id)}<span class="adot" style:background={a.color} title="Arc: {a.name}"></span>{/each}
                   {#if povOf(s)}<span class="tag" title="Point of view">{povOf(s)}</span>{/if}
@@ -263,6 +282,11 @@
   .foot :global(.st) { width: auto; padding: .05rem .3rem; font-size: .75rem; }
   .foot .fit { margin-left: auto; }
   .tag { background: var(--panel); border: 1px solid var(--line); border-radius: 99px; padding: 0 .5rem; max-width: 7rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hd { display: flex; gap: .35rem; align-items: center; font-size: .85rem; margin: 0; color: var(--text); }
+  .hd input { width: auto; }
+  .pk { width: auto; flex: 0 0 auto; margin: 0 .2rem 0 0; }
+  .passdone { opacity: .55; }
+  .passdone:hover { opacity: 1; }
   .hash { color: var(--accent); }
   .adot { width: .6rem; height: .6rem; border-radius: 50%; flex: 0 0 auto; }
   .addscene { align-self: flex-start; }

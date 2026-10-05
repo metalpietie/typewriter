@@ -4,14 +4,15 @@ Ideas for Typewriter. Nothing here is built yet. Move an item up when you want i
 
 These items are ideas for later. Pick one when you want it. Skip the items marked **not now**.
 
-Best next pick: **Revision passes**.
+Best next pick: none right now. Both open ideas are marked **not now**.
 
 ## Writing
 
-- [ ] Revision passes: make a checklist of passes (plot, dialogue, line edit). Tick each scene when a pass is done for it. The Board shows which scenes still need work
+Nothing open here.
 
 ## World building
 
+Nothing open here.
 
 ## Maps and paths
 
@@ -20,8 +21,7 @@ Nothing open here.
 
 ## Checks and tools
 
-- [ ] Loose characters: one list of characters who are in no scene, appear in only one scene, or have not appeared for many chapters
-
+Nothing open here.
 
 ## Data and files
 
@@ -30,6 +30,8 @@ Nothing open here.
 
 ## Done
 
+- [x] Revision passes: your own checklist of passes for each book, ticked per scene, and the Board shows what is left
+- [x] Loose characters: characters in no scene, in one scene, or gone quiet for many chapters
 - [x] Book snapshots: save the whole book with a name, and later see which scenes changed, with words added and cut, and put back old text
 - [x] Pomodoro timer: work rounds, short and long breaks, all lengths and the number of rounds can be changed, counts the words of each round
 - [x] Scene tags: your own tags on scenes, and a filter on the Board and the Write list
