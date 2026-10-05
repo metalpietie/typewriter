@@ -62,7 +62,7 @@ button:disabled { opacity: .4; cursor: default; }
 .nav .group ~ button { padding-left: 1.2rem; }
 .nav .foot .ver { margin-top: .5rem; }
 .nav .foot .small { margin-top: .3rem; }
-.nav .foot { margin-top: auto; font-size: .7rem; color: var(--muted); word-break: break-all; padding: .5rem; }
+.nav .foot { order: 10; margin-top: auto; font-size: .7rem; color: var(--muted); word-break: break-all; padding: .5rem; }
 .main { min-width: 0; min-height: 0; overflow: hidden; position: relative; }
 .resizer { position: absolute; top: 0; bottom: 0; left: calc(var(--side-w, 260px) - 4px); width: 8px; cursor: col-resize; z-index: 5; touch-action: none; }
 .resizer::after { content: ''; position: absolute; top: 0; bottom: 0; left: 3px; width: 2px; background: transparent; transition: background .15s; }

@@ -4,11 +4,12 @@ Ideas for Typewriter. Nothing here is built yet. Move an item up when you want i
 
 These items are ideas for later. Pick one when you want it. Skip the items marked **not now**.
 
-Best next pick: none right now. Both open ideas are marked **not now**.
+Best next pick: **Revision passes**.
 
 ## Writing
 
-Nothing open here.
+- [ ] Revision passes: make a checklist of passes (plot, dialogue, line edit). Tick each scene when a pass is done for it. The Board shows which scenes still need work
+- [ ] Book snapshots: save the whole book as it is today with a name such as "after beta readers". Later, see how each scene changed since then
 
 ## World building
 
@@ -20,6 +21,8 @@ Nothing open here.
 
 ## Checks and tools
 
+- [ ] Loose characters: one list of characters who are in no scene, appear in only one scene, or have not appeared for many chapters
+
 
 ## Data and files
 
@@ -28,6 +31,7 @@ Nothing open here.
 
 ## Done
 
+- [x] Pomodoro timer: work rounds, short and long breaks, all lengths and the number of rounds can be changed, counts the words of each round
 - [x] Scene tags: your own tags on scenes, and a filter on the Board and the Write list
 - [x] What changed in a scene: History shows words added (green) and cut (red), against now or against the copy before
 - [x] Editor look and feel: font, text size, line spacing, page width, typewriter mode and focus line

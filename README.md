@@ -444,6 +444,35 @@ The **Dashboard** is the first screen. It shows:
 - your 8 most recent changes (scenes, characters, places, lore notes, factions, items, events). Click one to open it,
 - a **to-do** list. Type a task and press Enter. Tick it when done. **Clear done** removes the ticked ones.
 
+### Pomodoro timer
+
+Work in short rounds with breaks. Press **Pomodoro timer** in the menu (above the data file) to open it. The timer keeps running when you change tabs.
+
+- While it runs, a card shows **above Search** in the menu. It has the part, the time left, a bar, and **Pause** and **Skip** buttons. Click the part name on the card to open the full panel. When the timer is off, the plain button goes back above the data file.
+- In focus mode the time shows in the corner.
+
+- **Start**, **Pause** (then **Continue**), **Skip** (end this part now and go to the next), and **Reset** (stop and go back to round 1).
+- The order is: work, short break, work, short break, and so on. After the set number of rounds comes the long break, then it starts again at round 1.
+- When a part ends, the app rings three soft beeps, and it shows you in three ways, so you notice without headphones:
+  - The edge of the window glows and pulses. This also works in focus mode and on every tab.
+  - A message appears at the top: "Round done. You wrote 212 words. Time for a short break." It has **Start short break** and **Dismiss**. It stays until you answer it. When the next part starts by itself, it has only **OK** and goes away after 10 seconds.
+  - The card in the menu flashes, and the window title in the task bar says what happened.
+  After a work round, the message says how many words you wrote in it. It counts the words you add while the timer runs a work round. Cut words count as less.
+- **Today** lists the rounds you finished today: how many, how many words, and how many minutes. **Clear** empties it. The list restarts each day.
+- A round you end with **Skip** counts if you wrote something or worked for at least a minute.
+
+Open **Settings** in the panel to make it your own:
+
+- **Work**: 1 to 180 minutes (start: 25).
+- **Short break**: 1 to 60 minutes (start: 5).
+- **Long break**: 1 to 120 minutes (start: 15).
+- **Rounds before the long break**: 2 to 12 (start: 4).
+- **Start the next part by itself**: no need to press Start after each part. Skip always waits.
+- **Ring when a part ends**: switch the beeps off if you like.
+- **Show a message and flash the screen when a part ends**: switch the visual alert off if you like.
+
+A new length counts from the next part. The part that runs now keeps its end time. A number that is too small or too large is put right when you leave the box. The settings and today's list stay on this computer. They are not in the project data or the backups.
+
 ### Statistics and daily goal
 
 The **Statistics** tab shows your progress.

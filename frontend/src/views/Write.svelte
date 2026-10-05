@@ -22,6 +22,7 @@
   import SaveIndicator from '../lib/SaveIndicator.svelte';
   import LookButton from '../lib/LookButton.svelte';
   import SceneTags from '../lib/SceneTags.svelte';
+  import { miniText } from '../lib/pomodoro.svelte';
   import { tagCounts, hasTag } from '../lib/tags-core';
 
   // Reopen what you were writing last, also after the app was closed.
@@ -375,7 +376,7 @@
       {/key}
       {@const words = sceneWords(scene)}
       {#if nav.focus}
-        <div class="focus-hud">{words.toLocaleString()} words · today {wordsToday().toLocaleString()}{dailyGoal() ? ' / ' + dailyGoal().toLocaleString() : ''} <SaveIndicator /> <span>Esc to leave</span></div>
+        <div class="focus-hud">{#if miniText()}<span>{miniText()}</span>{/if}{words.toLocaleString()} words · today {wordsToday().toLocaleString()}{dailyGoal() ? ' / ' + dailyGoal().toLocaleString() : ''} <SaveIndicator /> <span>Esc to leave</span></div>
       {:else}
         {#if Number(scene.goal) > 0}<div style="margin-top:.6rem"><ProgressBar value={words} goal={Number(scene.goal)} /></div>{/if}
         <p class="muted">

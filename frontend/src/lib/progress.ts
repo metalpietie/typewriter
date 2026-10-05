@@ -1,4 +1,5 @@
 import { db, type Item } from './db.svelte';
+import { noteWords } from './pomodoro.svelte';
 
 /** "2026-10-03" for a date, in local time. */
 export const dayKey = (d: Date = new Date()): string =>
@@ -24,6 +25,7 @@ async function todayRow(): Promise<Item> {
 /** Add to today's count (a negative number when words were cut). Called while you type. */
 export async function addWords(delta: number) {
   if (!delta) return;
+  noteWords(delta); // the Pomodoro round counts it too
   const row = await todayRow();
   row.words = (row.words ?? 0) + delta;
   db.queue('wordday', row);

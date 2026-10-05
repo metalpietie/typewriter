@@ -8,6 +8,8 @@
   import Projects from './lib/Projects.svelte';
   import DataFolder from './lib/DataFolder.svelte';
   import UndoToast from './lib/UndoToast.svelte';
+  import PomodoroTimer from './lib/PomodoroTimer.svelte';
+  import PomodoroAlert from './lib/PomodoroAlert.svelte';
   import { migrateChapters } from './lib/scenes';
   import { currentTheme, setTheme, type Theme } from './lib/theme';
   import Dashboard from './views/Dashboard.svelte';
@@ -76,6 +78,7 @@
 <svelte:window onbeforeunload={() => db.flush()} onpagehide={() => db.flush()} onkeydown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); nav.searchOpen = !nav.searchOpen; } }} />
 <Search />
 <UndoToast />
+<PomodoroAlert />
 {#if nav.calendar}<CalendarEditor />{/if}
 {#if nav.names}<NameGenerator />{/if}
 {#if nav.projects}<Projects />{/if}
@@ -85,6 +88,7 @@
   <nav class="nav">
     <div class="brand"><img src="/logo.svg" alt="" />Typewriter</div>
     <button class="project-btn" title="Switch or add a project (a book or series)" onclick={() => (nav.projects = true)}>▾ {db.project || 'Projects'}</button>
+    <PomodoroTimer />
     <button class="search-btn" onclick={() => (nav.searchOpen = true)}>Search <kbd>Ctrl+K</kbd></button>
     {#each menu as group}
       {#if 'title' in group}<div class="group">{group.title}</div>{/if}
