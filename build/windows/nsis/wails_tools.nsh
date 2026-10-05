@@ -14,7 +14,7 @@
     !define INFO_PRODUCTNAME "Typewriter"
 !endif
 !ifndef INFO_PRODUCTVERSION
-    !define INFO_PRODUCTVERSION "1.0.9"
+    !define INFO_PRODUCTVERSION "1.1.0"
 !endif
 !ifndef INFO_COPYRIGHT
     !define INFO_COPYRIGHT "(c) 2025, My Company"
