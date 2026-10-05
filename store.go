@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -135,16 +136,25 @@ func (s *Store) Save(d Doc) (Doc, error) {
 	if !kinds[d.Kind] {
 		return d, fmt.Errorf("unknown kind %q", d.Kind)
 	}
+	if !json.Valid([]byte(d.Data)) { // one broken item would make every later search of its kind fail
+		return d, fmt.Errorf("the data of this %s is not valid JSON, so it was not saved", d.Kind)
+	}
 	if d.ID == 0 {
 		res, err := s.d().Exec(`INSERT INTO docs(kind, data) VALUES(?, ?)`, d.Kind, d.Data)
 		if err != nil {
 			return d, err
 		}
 		d.ID, _ = res.LastInsertId()
-	} else if _, err := s.d().Exec(
-		`UPDATE docs SET data = ?, updated_at = datetime('now') WHERE id = ? AND kind = ?`,
-		d.Data, d.ID, d.Kind); err != nil {
-		return d, err
+	} else {
+		res, err := s.d().Exec(
+			`UPDATE docs SET data = ?, updated_at = datetime('now') WHERE id = ? AND kind = ?`,
+			d.Data, d.ID, d.Kind)
+		if err != nil {
+			return d, err
+		}
+		if n, _ := res.RowsAffected(); n == 0 { // a missing item, or the wrong kind: say so, do not pretend it was saved
+			return d, fmt.Errorf("could not save: this %s no longer exists", d.Kind)
+		}
 	}
 	err := s.d().QueryRow(`SELECT updated_at FROM docs WHERE id = ?`, d.ID).Scan(&d.UpdatedAt)
 	return d, err

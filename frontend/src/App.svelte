@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { Events } from '@wailsio/runtime';
+  import { settle } from './lib/backupReminder';
   import { db } from './lib/db.svelte';
   import { nav } from './lib/nav.svelte';
   import Search from './lib/Search.svelte';
@@ -72,6 +74,8 @@
   let theme = $state<Theme>(currentTheme());
   function toggleTheme() { theme = theme === 'dark' ? 'light' : 'dark'; setTheme(theme); }
 
+  // The window is closing: save what is waiting, then tell the app that it may close.
+  onMount(() => Events.On('typewriter:flush', async () => { try { await settle(); } finally { Events.Emit('typewriter:flushed'); } }));
   onMount(() => { db.load().then(migrateChapters).catch((e) => (error = String(e))); });
 </script>
 

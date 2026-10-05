@@ -6,7 +6,7 @@
   import { onDestroy } from 'svelte';
   import { flip } from 'svelte/animate';
   import { Window } from '@wailsio/runtime';
-  import { db, toHtml, wordCount } from '../lib/db.svelte';
+  import { db, toHtml, wordCount, type Item } from '../lib/db.svelte';
   import { nav, openItem } from '../lib/nav.svelte';
   import { STATUSES, scenesOf, sceneWords, chapterWords, chapterCast, addScene } from '../lib/scenes';
   import { maybeAutoVersion, addVersion } from '../lib/versions';
@@ -125,7 +125,17 @@
   const shown = $derived(scenes.filter((s) => hasTag(s, activeTag)));
   const tagged = (cid: number) => scenesOf(cid).filter((s) => hasTag(s, activeTag)).length;
   const scene = $derived(db.get('scene', sceneId));
-  const miss = $derived(scene ? missingCast(scene) : []);
+  // Who is named in the text but not in the cast. It reads the text and every character, so it waits 0.3 seconds while you type.
+  let miss = $state<Item[]>([]);
+  let missFor = -1;
+  $effect(() => {
+    const s = scene;
+    void [s?.body, s?.pov, JSON.stringify(s?.characters), JSON.stringify(s?.ignoreMentions), db.lists.character.map((c) => c.name + '|' + c.aliases).join('~')];
+    const run = () => { miss = s ? missingCast(s) : []; };
+    if ((s?.id ?? -1) !== missFor) { missFor = s?.id ?? -1; run(); return; }
+    const t = setTimeout(run, 300);
+    return () => clearTimeout(t);
+  });
   const goalOf = (c: any) => Number(c.goal) || Number(book?.chapterGoal) || 0;
   const pctText = (n: number, goal: number) => (goal > 0 ? ` (${Math.round((n / goal) * 100)}%)` : '');
   const total = $derived(chapters.reduce((n, c) => n + chapterWords(c), 0));

@@ -159,15 +159,32 @@ export function toHtml(body: string): string {
     .join('');
 }
 
+// Reading the text of a scene is slow for a long scene, and every key you type asks again for every scene of the book.
+// So the answer is kept for each text. A scene that did not change costs almost nothing. The cache is emptied when it grows large.
+const MAX_CACHE = 3000;
+const textCache = new Map<string, string>();
+const countCache = new Map<string, number>();
+
 /** Plain text of a chapter, for counting words. */
 export function plainText(body: string): string {
   if (!looksLikeHtml(body)) return body ?? '';
+  const hit = textCache.get(body);
+  if (hit !== undefined) return hit;
   const spaced = body.replace(/<\/(p|h[1-6]|li|blockquote)>|<br\s*\/?>|<hr\s*\/?>/gi, ' ');
-  return new DOMParser().parseFromString(spaced, 'text/html').body.textContent ?? '';
+  const text = new DOMParser().parseFromString(spaced, 'text/html').body.textContent ?? '';
+  if (textCache.size >= MAX_CACHE) textCache.clear();
+  textCache.set(body, text);
+  return text;
 }
 
 export function wordCount(body: string) {
-  return (plainText(body).match(/\S+/g) ?? []).length;
+  const text = body ?? '';
+  const hit = countCache.get(text);
+  if (hit !== undefined) return hit;
+  const n = (plainText(text).match(/\S+/g) ?? []).length;
+  if (countCache.size >= MAX_CACHE) countCache.clear();
+  countCache.set(text, n);
+  return n;
 }
 
 export const FACTION_TYPES = ['kingdom', 'empire', 'house', 'guild', 'order', 'army', 'cult', 'company', 'gang', 'other'];

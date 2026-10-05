@@ -129,10 +129,10 @@ func (e *Exporter) Export(what string, bookID int64, format string, opts ExportO
 	if err != nil {
 		return "", err
 	}
-	return path, os.WriteFile(path, data, 0o644)
+	return path, writeFileAtomic(path, data)
 }
 
-var badName = regexp.MustCompile(`[^\w\- ]+`)
+var badName = regexp.MustCompile(`[^\p{L}\p{N}_\- ]+`)
 
 func safeName(s string) string {
 	s = strings.TrimSpace(badName.ReplaceAllString(s, ""))
@@ -564,7 +564,7 @@ func (e *Exporter) SaveImage(name, dataURL string) (string, error) {
 	if !strings.HasSuffix(strings.ToLower(path), ".png") {
 		path += ".png"
 	}
-	return path, os.WriteFile(path, raw, 0o644)
+	return path, writeFileAtomic(path, raw)
 }
 
 // chapterText is the text of one chapter. A chapter with scenes is its scenes in order, with a
@@ -603,4 +603,18 @@ func flushFirst(body []block) []block {
 		}
 	}
 	return body
+}
+
+// writeFileAtomic writes to a temporary file first, then renames it. A disk error then never leaves a half-written file, and an old file stays whole.
+func writeFileAtomic(path string, data []byte) error {
+	tmp := path + ".tmp"
+	if err := os.WriteFile(tmp, data, 0o644); err != nil {
+		os.Remove(tmp)
+		return err
+	}
+	if err := os.Rename(tmp, path); err != nil {
+		os.Remove(tmp)
+		return err
+	}
+	return nil
 }

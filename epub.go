@@ -12,7 +12,8 @@ import (
 // xhtmlEsc makes text safe for XML. It also drops characters XML does not allow.
 func xhtmlEsc(s string) string {
 	s = strings.Map(func(r rune) rune {
-		if r < 0x20 && r != '\t' && r != '\n' && r != '\r' {
+		// XML does not allow most control characters, U+FFFE, U+FFFF or lone surrogates
+		if (r < 0x20 && r != '\t' && r != '\n' && r != '\r') || r == 0xFFFE || r == 0xFFFF || (r >= 0xD800 && r <= 0xDFFF) {
 			return -1
 		}
 		return r
