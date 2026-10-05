@@ -200,6 +200,25 @@ Press **History** to see old copies of the open scene. Click one to read it. **G
   - **Copy before → this copy** compares it with the copy just older than it. The oldest copy has nothing to compare with.
   - A very large rewrite (more than about 1,500 changed words) shows all old words as cut and all new words as added.
 
+#### Snapshots
+
+A snapshot is a copy of the **whole book** at one moment. Use it before something big: after beta readers, before a big rewrite, when you finish a draft. History keeps old copies of one scene. A snapshot keeps every scene of the book together.
+
+1. In the Write tab, pick the book and press **Snapshots**.
+2. Type a name, for example **after beta readers**, and press **Save a snapshot now**. With no name, the app uses the date.
+3. Later, open **Snapshots** and click a snapshot. The app shows how the book changed since then:
+   - how many words the book had then and has now, and how many words you added and cut,
+   - how many scenes changed, are new, were removed, or moved to another chapter,
+   - a list of those scenes, with the words added (+) and cut (−) in each. **Show only what changed** hides the scenes that are the same.
+4. Click a scene to see its words that changed, in green (added) and red with a line through (cut), as in History.
+
+- **Put back the old text** gives a scene its text from the snapshot. The text you had just before is saved in the History of that scene first, so you can undo it.
+- A scene you removed since the snapshot shows its old text, so you can copy from it. The app does not bring the scene back by itself.
+- A change of only spaces or line breaks does not count as a change. A word with a full stop and the same word without it are two different words.
+- To rename a snapshot, click its name at the top of the comparison, type the new name, and press **Enter**. **Esc** puts the old name back. The copy of the book stays as it was.
+- **Delete** next to the snapshot name removes that snapshot. Snapshots stay until you delete them. They go away when you delete the whole book, and **Undo** brings them back with it.
+- Snapshots are part of your data, so they are in backups. They can be large for a long book, because each one holds all the text.
+
 #### Comments
 
 Select some text in a scene and press **💬** in the toolbar. The text is marked, and a note card opens in the **Comments** panel at the top of the right side. Type your note.

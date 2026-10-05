@@ -9,7 +9,8 @@
   import { db, toHtml, wordCount } from '../lib/db.svelte';
   import { nav, openItem } from '../lib/nav.svelte';
   import { STATUSES, scenesOf, sceneWords, chapterWords, chapterCast, addScene } from '../lib/scenes';
-  import { maybeAutoVersion } from '../lib/versions';
+  import { maybeAutoVersion, addVersion } from '../lib/versions';
+  import Snapshots from '../lib/Snapshots.svelte';
   import DateField from '../lib/DateField.svelte';
   import { addWords, dailyGoal, wordsToday } from '../lib/progress';
   import { missingCast } from '../lib/mentions';
@@ -55,6 +56,7 @@
 
   let showFind = $state(false);
   let showHistory = $state(false);
+  let showSnaps = $state(false);
   let rich = $state<any>(); // the open editor, to point at a comment
   let activeComment = $state<number | null>(null);
   let rev = $state(0); // bump to reload the editor after the text was changed from outside it
@@ -71,7 +73,7 @@
     if (ctrl && e.key.toLowerCase() === 'h') { e.preventDefault(); showFind = true; }
     else if (e.key === 'F11' || (ctrl && e.shiftKey && e.key.toLowerCase() === 'f')) { e.preventDefault(); setFocus(!nav.focus); }
     // the find and history windows are still open when this runs, so Esc closes them first
-    else if (e.key === 'Escape' && nav.focus && !showFind && !showHistory && !nav.searchOpen) setFocus(false);
+    else if (e.key === 'Escape' && nav.focus && !showFind && !showHistory && !showSnaps && !nav.searchOpen) setFocus(false);
   }
 
   async function newComment(quote: string): Promise<number | null> {
@@ -362,6 +364,7 @@
         <button class="small" onclick={() => (showFind = true)}>Find &amp; replace <kbd>Ctrl+H</kbd></button>
         <LookButton />
         {#if scene}<button class="small" onclick={() => (showHistory = true)}>History</button>{/if}
+        {#if book}<button class="small" title="Save a copy of the whole book, and see later what changed" onclick={() => (showSnaps = true)}>Snapshots</button>{/if}
         <button class="small" onclick={() => setFocus(true)}>Focus mode <kbd>F11</kbd></button>
       </div>
     {/if}
@@ -490,6 +493,17 @@
 
 {#if showFind}
   <FindReplace {bookId} onjump={jumpToScene} onchanged={() => rev++} onclose={() => (showFind = false)} />
+{/if}
+{#if showSnaps && book}
+  <Snapshots bookId={book.id}
+    onrestore={async (id, body) => {
+      const s = db.get('scene', id);
+      if (!s) return;
+      const now = s.body ?? '';
+      if (now.trim() && now !== body) await addVersion(id, now, 'Before going back to a snapshot');
+      s.body = body; await db.save('scene', s); rev++;
+    }}
+    onclose={() => (showSnaps = false)} />
 {/if}
 {#if showHistory && scene}
   <History sceneId={scene.id} title={scene.title} current={() => scene.body ?? ''}
