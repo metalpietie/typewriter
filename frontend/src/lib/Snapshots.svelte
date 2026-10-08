@@ -213,6 +213,7 @@
   .nums { min-width: 5.5rem; text-align: right; white-space: nowrap; }
   .preview { font-family: Georgia, 'Times New Roman', serif; line-height: 1.7; }
   .preview :global(p) { margin: 0 0 .8em; }
+  .preview :global(li > p) { margin: 0; }
   .preview :global(hr) { border: 0; text-align: center; }
   .preview :global(hr::after) { content: '* * *'; color: var(--muted); letter-spacing: .5em; }
   .legend { margin: .2rem 0 .6rem; }

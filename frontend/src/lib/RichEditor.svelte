@@ -319,6 +319,9 @@
     margin: 1em 0; padding-left: 1rem; border-left: 3px solid var(--accent); color: var(--muted); font-style: italic;
   }
   .rich-page :global(.ProseMirror ul), .rich-page :global(.ProseMirror ol) { padding-left: 1.6rem; margin: 0 0 .9em; }
+  /* the editor puts a paragraph inside each list item, so it must not keep the paragraph gap */
+  .rich-page :global(.ProseMirror li > p) { margin: 0; }
+  .rich-page :global(.ProseMirror li + li) { margin-top: .25em; }
   .rich-page :global(.ProseMirror hr) { border: 0; text-align: center; margin: 1.5em 0; }
   .rich-page :global(.ProseMirror hr::after) { content: '* * *'; color: var(--muted); letter-spacing: .5em; }
   .rich-page :global(.ProseMirror .cmt) { background: color-mix(in srgb, var(--accent-2) 28%, transparent); border-bottom: 2px solid var(--accent-2); cursor: pointer; }

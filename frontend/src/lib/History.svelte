@@ -141,6 +141,7 @@
   .view { overflow: auto; border-left: 1px solid var(--line); padding-left: .8rem; }
   .preview { font-family: Georgia, 'Times New Roman', serif; line-height: 1.7; }
   .preview :global(p) { margin: 0 0 .8em; }
+  .preview :global(li > p) { margin: 0; }
   .preview :global(hr)  { border: 0; text-align: center; }
   .preview :global(hr::after) { content: '* * *'; color: var(--muted); letter-spacing: .5em; }
   .modes { display: flex; gap: .3rem; flex-wrap: wrap; align-items: center; margin: .5rem 0; }
