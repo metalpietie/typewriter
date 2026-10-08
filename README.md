@@ -105,15 +105,15 @@ Use the menu on the left to switch screens. Press **Ctrl+K** anywhere to search.
 
 Most screens have a list on the left. Drag its right edge to make it wider or narrower. You can also click the edge and press the left or right arrow key. Double-click the edge to go back to the normal width. The app remembers the width.
 
-### Draft
+### Notes
 
-The **Draft** tab is a rough notepad for your story idea. Nothing here is part of the book.
+The **Notes** tab is a rough notepad for your story ideas and thoughts. It has no link to the scene status "draft". Nothing here is part of the book.
 
 - Press **+ New** to add a page. Give it a title, such as "Idea", "Ending" or "What if".
 - Write in the same editor as the Write tab: bold, italic, headings, lists, and `@` links.
 - Use the **↑** and **↓** buttons to put the pages in order.
 - The search box above the list looks at the title and the text of every page.
-- Draft pages are not counted in your word counts, checks or exports.
+- Notes pages are not counted in your word counts, checks or exports.
 
 
 ### Write
@@ -583,7 +583,7 @@ How to read it:
 Press **Ctrl+K**. Type a few letters. Typos are fine: "aldrik" finds "Aldric". It searches everything:
 
 - the text and summaries of your **scenes** (a hit opens that scene in the Write tab),
-- your **Draft** pages,
+- your **Notes** pages,
 - characters, places, lore, factions and items,
 - **Glossary** words and their meanings,
 - **Story arcs** and their notes.

@@ -36,7 +36,7 @@
   // The menu: first a tab with no heading, then groups. Each group has a heading.
   const menu = [
     { items: [['home', 'Dashboard']] },
-    { title: 'Story', items: [['draft', 'Draft'], ['write', 'Write'], ['board', 'Board'], ['arcs', 'Story arcs']] },
+    { title: 'Story', items: [['draft', 'Notes'], ['write', 'Write'], ['board', 'Board'], ['arcs', 'Story arcs']] },
     { title: 'People', items: [['characters', 'Characters'], ['relationships', 'Relationships'], ['family', 'Family tree'], ['factions', 'Factions']] },
     { title: 'Worldbuilding', items: [['world', 'World'], ['glossary', 'Glossary'], ['items', 'Items'], ['maps', 'Maps & Paths'], ['timeline', 'Timeline']] },
     { title: 'Review', items: [['checks', 'Checks'], ['stats', 'Statistics'], ['export', 'Export & Backup']] },

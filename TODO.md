@@ -41,11 +41,11 @@ Nothing open here.
 - [x] Style check: dialogue share for each chapter, very long sentences, and weak words (filter words, empty words, -ly words)
 - [x] Finish date: set a date and a word goal for a book, and see how many words to write each day to finish on time
 - [x] Table of contents in the Word, PDF, EPUB and Markdown exports
-- [x] Search everything: Ctrl+K also finds the text of your scenes, Draft pages, Glossary words and Story arcs
+- [x] Search everything: Ctrl+K also finds the text of your scenes, Notes pages, Glossary words and Story arcs
 - [x] Character age on any date: birth and death dates, "age 23" in scenes and events, and a check for dates that cannot be true
 - [x] Glossary of made-up words, with a warning when one is spelled two ways
 - [x] Story arcs: plot threads, tag scenes, an overview grid, and hints about loose ends and gaps
-- [x] Draft tab: a rough notepad for story ideas, and a menu with headings
+- [x] Notes tab (it was called Draft): a rough notepad for story ideas, and a menu with headings
 - [x] Notes board: an index card for each scene, and drag the cards to reorder the book
 - [x] Repeated word check: words close together, sentences that start the same way, and the most used words
 - [x] Name spelling check: finds a name spelled two ways, and fixes it in every scene

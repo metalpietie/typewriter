@@ -95,7 +95,7 @@ function subOf(kind: Kind, it: Item) {
   if (kind === 'faction') return `faction · ${it.type ?? ''}`;
   if (kind === 'item') return `item · ${it.type ?? ''}`;
   if (kind === 'scene') return `scene · ${sceneLabel(it).split(':')[0]}`;
-  if (kind === 'draft') return 'draft page';
+  if (kind === 'draft') return 'notes page';
   if (kind === 'term') return `glossary · ${it.type ?? 'word'}`;
   if (kind === 'arc') return 'story arc';
   return `lore · ${it.category}`;

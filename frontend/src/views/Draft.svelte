@@ -71,7 +71,7 @@
         <button class="small" title="Move down in the list" disabled={pages.indexOf(sel) === pages.length - 1} onclick={() => move(1)}>↓</button>
         <ConfirmButton onconfirm={del} />
       </div>
-      <div class="muted count">{wordCount(sel.body)} words · a rough page. It is not counted in your book.</div>
+      <div class="muted count">{wordCount(sel.body)} words · a page of notes. It is not counted in your book.</div>
       {#key sel.id}
         <RichEditor value={sel.body} onchange={change} placeholder="Write anything. Who is it about? What goes wrong? How does it end?" />
       {/key}
