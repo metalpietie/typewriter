@@ -21,9 +21,9 @@
   let box: HTMLInputElement;
 
   onMount(() => {
-    box.focus();
-    // start with the text that is selected in the editor, if any
+    // start with the text that is selected in the editor, if any. Read it first: focusing the box clears the selection.
     const sel = window.getSelection()?.toString().trim();
+    box.focus();
     if (sel && sel.length < 80 && !sel.includes('\n')) { query = sel; box.select(); }
   });
 

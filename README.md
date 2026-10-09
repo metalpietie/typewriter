@@ -231,6 +231,18 @@ A snapshot is a copy of the **whole book** at one moment. Use it before somethin
 - **Delete** next to the snapshot name removes that snapshot. Snapshots stay until you delete them. They go away when you delete the whole book, and **Undo** brings them back with it.
 - Snapshots are part of your data, so they are in backups. They can be large for a long book, because each one holds all the text.
 
+#### Quick actions on selected text
+
+Select some text in a scene. A small menu opens above it. It stays while the selection stays.
+
+- **B**, **I**, **U** make the text bold, italic or underlined.
+- **💬 Comment** does the same as the 💬 button in the toolbar (see Comments below).
+- **@ Link** links the text to a character, place, lore note, faction or item. The box starts with the selected text, so a name finds its match at once. Pick one and the text becomes an @ link. If the text is a link already, the list also has **Remove the link**.
+- **📝 To a note** copies the selected text to a new note. Choose **A page in Notes** (the Notes tab, with the full editor) or **A lore note** (World tab, category Other). The note gets a title from the first words and a last line that says where the text came from. Then press **Open it** to go and edit the note, or **Stay here**. The text in your scene is not changed.
+- **＋ Make new** makes a new character, place, item or faction. The name is the selected text. The text also becomes a link to it. Press **Open it** to fill in the details.
+- **🔍 Find** opens Find & replace and starts with the selected text.
+- **Esc** closes the menu. It also closes when you click outside the text. It works in focus mode too.
+
 #### Comments
 
 Select some text in a scene and press **💬** in the toolbar. The text is marked, and a note card opens in the **Comments** panel at the top of the right side. Type your note.

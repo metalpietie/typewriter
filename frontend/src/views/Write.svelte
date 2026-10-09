@@ -8,7 +8,7 @@
   import { Window } from '@wailsio/runtime';
   import { db, toHtml, wordCount, type Item } from '../lib/db.svelte';
   import { nav, openItem } from '../lib/nav.svelte';
-  import { STATUSES, scenesOf, sceneWords, chapterWords, chapterCast, addScene } from '../lib/scenes';
+  import { STATUSES, scenesOf, sceneWords, chapterWords, chapterCast, addScene, sceneLabel } from '../lib/scenes';
   import { maybeAutoVersion, addVersion } from '../lib/versions';
   import Snapshots from '../lib/Snapshots.svelte';
   import DateField from '../lib/DateField.svelte';
@@ -389,13 +389,14 @@
         <input class="scenetitle" bind:value={scene.title} oninput={saveScene} placeholder="Scene title (only you see this)" />
       {/if}
       {#key scene.id + ':' + rev}
-        <RichEditor bind:this={rich} bare={nav.focus} onopenref={(k, id) => { db.flush(); openItem(k, id); }} oncomment={newComment} onfocuscomment={(id) => { if (id) activeComment = id; }} value={toHtml(scene.body ?? '')}
+        <RichEditor bind:this={rich} bare={nav.focus} onfind={() => (showFind = true)} source={[book?.title, sceneLabel(scene)].filter(Boolean).join(', ')} onopenref={(k, id) => { db.flush(); openItem(k, id); }} oncomment={newComment} onfocuscomment={(id) => { if (id) activeComment = id; }} value={toHtml(scene.body ?? '')}
           onchange={(html) => { const before = scene.body ?? ''; scene.body = html; saveScene(); maybeAutoVersion(scene.id, before); addWords(wordCount(html) - wordCount(before)); }} />
       {/key}
       {@const words = sceneWords(scene)}
       {#if nav.focus}
         <div class="focus-hud">{#if miniText()}<span>{miniText()}</span>{/if}{words.toLocaleString()} words · today {wordsToday().toLocaleString()}{dailyGoal() ? ' / ' + dailyGoal().toLocaleString() : ''} <SaveIndicator /> <span>Esc to leave</span></div>
       {:else}
+        <div class="statusbar">
         {#if Number(scene.goal) > 0}<div style="margin-top:.6rem"><ProgressBar value={words} goal={Number(scene.goal)} /></div>{/if}
         <p class="muted">
           Scene: {words.toLocaleString()}{Number(scene.goal) ? ' / ' + Number(scene.goal).toLocaleString() : ''} words{pctText(words, Number(scene.goal))}
@@ -403,6 +404,7 @@
           · Chapter: {chapWords.toLocaleString()}{goalOf(chap) ? ' / ' + goalOf(chap).toLocaleString() : ''} words{pctText(chapWords, goalOf(chap))}
           {#if goalOf(chap) && chapWords >= goalOf(chap)} · chapter goal reached{/if}
         </p>
+        </div>
       {/if}
     {:else if chap}
       <input class="editor" style="font-size:1.4rem;min-height:0;margin-bottom:.8rem" bind:value={chap.title} oninput={saveChap} />
@@ -549,6 +551,9 @@
   .scenes > button.small { align-self: flex-start; margin-top: .2rem; }
   .status { width: .55rem; height: .55rem; border-radius: 50%; flex: 0 0 auto; background: var(--muted); }
   .status.draft { background: var(--accent); }
+  /* the counts stay at the bottom of the pane while you scroll or type */
+  .statusbar { position: sticky; bottom: -1.2rem; z-index: 5; margin: 0 -1.6rem -1.2rem; padding: .1rem 1.6rem .5rem; background: var(--bg); border-top: 1px solid var(--line); }
+  .statusbar p { margin: .4rem 0 0; }
   .status.revised { background: var(--accent-2); }
   .status.final { background: var(--ok); }
   .list.sorting { user-select: none; -webkit-user-select: none; cursor: grabbing; }

@@ -7,15 +7,21 @@
   import Placeholder from '@tiptap/extension-placeholder';
   import SaveIndicator from './SaveIndicator.svelte';
   import { db } from './db.svelte';
-  import { LINK_KINDS, labelOf, type LinkKind } from './backlinks';
+  import { type LinkKind } from './backlinks';
+  import { linkTargets, type Cand } from './linktargets';
+  import SelectionMenu from './SelectionMenu.svelte';
   import { look } from './editorlook.svelte';
   import { lookVars } from './editorlook-core';
 
-  let { value, onchange, placeholder = 'Start writing…', bare = false, oncomment, onfocuscomment, onopenref }: {
+  let { value, onchange, placeholder = 'Start writing…', bare = false, source = '', onfind, oncomment, onfocuscomment, onopenref }: {
     value: string;
     onchange: (html: string) => void;
     placeholder?: string;
     bare?: boolean; // hide the toolbar (focus mode)
+    /** Where this text is from, for notes made from selected text. */
+    source?: string;
+    /** Called to open Find & replace for the selected text. */
+    onfind?: () => void;
     /** Called with the selected text. Returns the id of the new comment, or null to cancel. */
     oncomment?: (quote: string) => Promise<number | null>;
     /** Called when the cursor moves into or out of commented text. */
@@ -25,7 +31,7 @@
   } = $props();
 
   let host: HTMLElement;
-  let editor: Editor | undefined;
+  let editor = $state.raw<Editor | undefined>();
   // Bumped on every editor change so the toolbar buttons redraw their active state.
   let tick = $state(0);
 
@@ -100,7 +106,6 @@
   const NAV_KEYS = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End']);
 
   // The pop-up that opens when you type @.
-  type Cand = { kind: LinkKind; id: number; label: string; word: string; also: string };
   let sug = $state<{ from: number; to: number; x: number; top?: number; bottom?: number; items: Cand[]; at: number } | null>(null);
 
   /** Where the pop-up goes: under the cursor, or above it when there is no room below. */
@@ -121,25 +126,7 @@
     if (sug && editor) Object.assign(sug, place(editor.state.selection.from, sug.items.length));
   }
 
-  function candidates(q: string): Cand[] {
-    const query = q.toLowerCase();
-    const all: Cand[] = [];
-    for (const { kind, word } of LINK_KINDS) {
-      for (const it of db.lists[kind]) {
-        const label = labelOf(kind, it);
-        if (label) all.push({ kind, id: it.id, label, word, also: String(it.aliases ?? '').toLowerCase() });
-      }
-    }
-    if (!query) return all.slice(0, 8);
-    const score = (c: Cand) => {
-      const l = c.label.toLowerCase();
-      if (l.startsWith(query)) return 0;
-      if (l.split(/\s+/).some((w) => w.startsWith(query))) return 1;
-      if (c.also.includes(query)) return 2;
-      return l.includes(query) ? 3 : -1;
-    };
-    return all.map((c) => [score(c), c] as const).filter(([n]) => n >= 0).sort((a, b) => a[0] - b[0]).slice(0, 8).map(([, c]) => c);
-  }
+  const candidates = (q: string): Cand[] => linkTargets(q);
 
   /** Open, move or close the pop-up, depending on the text before the cursor. */
   function checkSuggest() {
@@ -279,6 +266,10 @@
   </div>
   <div class="rich-page" bind:this={host}></div>
 </div>
+
+{#if editor}
+  <SelectionMenu {editor} redraw={tick} {source} {onfind} oncomment={oncomment ? addComment : undefined} />
+{/if}
 
 {#if sug}
   <div class="sug" style:left="{sug.x}px" style:top={sug.top != null ? sug.top + 'px' : null} style:bottom={sug.bottom != null ? sug.bottom + 'px' : null}>
