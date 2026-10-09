@@ -34,18 +34,19 @@ type Store struct {
 var kinds = map[string]bool{
 	"book": true, "chapter": true, "character": true, "relationship": true,
 	"location": true, "map": true, "pathpoint": true, "note": true, "event": true, "mapdoc": true, "scene": true, "version": true, "comment": true,
-	"faction": true, "membership": true, "factionrel": true, "item": true, "itemlog": true, "plotignore": true, "wordday": true, "todo": true, "setting": true, "region": true, "draft": true, "arc": true, "arcscene": true, "term": true, "snapshot": true, "pass": true,
+	"faction": true, "membership": true, "factionrel": true, "item": true, "itemlog": true, "plotignore": true, "wordday": true, "todo": true, "setting": true, "region": true, "draft": true, "arc": true, "arcscene": true, "term": true, "snapshot": true, "pass": true, "mood": true,
 }
 
 // cascades lists, per kind, the JSON links that must go when that item is deleted.
 var cascades = map[string][][2]string{
-	"character": {{"relationship", "a"}, {"relationship", "b"}, {"pathpoint", "character"}, {"membership", "character"}, {"itemlog", "character"}},
+	"character": {{"relationship", "a"}, {"relationship", "b"}, {"pathpoint", "character"}, {"membership", "character"}, {"itemlog", "character"}, {"mood", "owner"}},
+	"location":  {{"mood", "owner"}},
 	"faction":   {{"membership", "faction"}, {"factionrel", "a"}, {"factionrel", "b"}},
 	"item":      {{"itemlog", "item"}},
 	"map":       {{"pathpoint", "map"}, {"mapdoc", "map"}, {"region", "map"}},
 	"book":      {{"chapter", "book"}, {"scene", "book"}, {"snapshot", "book"}, {"pass", "book"}},
 	"chapter":   {{"scene", "chapter"}},
-	"scene":     {{"version", "scene"}, {"comment", "scene"}, {"arcscene", "scene"}},
+	"scene":     {{"version", "scene"}, {"comment", "scene"}, {"arcscene", "scene"}, {"mood", "owner"}},
 	"arc":       {{"arcscene", "arc"}},
 }
 
@@ -246,7 +247,9 @@ func (s *Store) Delete(kind string, id int64) ([]Doc, error) {
 		}
 	}
 	if kind == "book" || kind == "chapter" { // versions, comments and arc links of the scenes that just went
-		const orphans = `kind IN ('version', 'comment', 'arcscene') AND json_extract(data, '$.scene') NOT IN (SELECT id FROM docs WHERE kind = 'scene')`
+		// versions, comments, arc links and mood pictures of the scenes that just went
+		const orphans = `(kind IN ('version', 'comment', 'arcscene') AND json_extract(data, '$.scene') NOT IN (SELECT id FROM docs WHERE kind = 'scene'))
+			OR (kind = 'mood' AND json_extract(data, '$.owner') NOT IN (SELECT id FROM docs))`
 		rows, err := tx.Query(`SELECT id, kind, data, updated_at FROM docs WHERE ` + orphans)
 		if err != nil {
 			return nil, err

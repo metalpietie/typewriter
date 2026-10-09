@@ -17,12 +17,14 @@
   import Comments from '../lib/Comments.svelte';
   import RichEditor from '../lib/RichEditor.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
+  import { splitScene, mergeWithNext, sceneAfter } from '../lib/scenesplit';
   import ProgressBar from '../lib/ProgressBar.svelte';
   import FindReplace from '../lib/FindReplace.svelte';
   import History from '../lib/History.svelte';
   import SaveIndicator from '../lib/SaveIndicator.svelte';
   import LookButton from '../lib/LookButton.svelte';
   import SceneTags from '../lib/SceneTags.svelte';
+  import MoodBoard from '../lib/MoodBoard.svelte';
   import RevisionPasses from '../lib/RevisionPasses.svelte';
   import { passesOf, tick } from '../lib/passes';
   import { isDone, summary as passSummary } from '../lib/passes-core';
@@ -294,6 +296,28 @@
   }
   async function delBook() { if (bookId) { await db.remove('book', bookId); bookId = null; pickChapter(null); } }
   async function delChap() { if (chapId) { await db.remove('chapter', chapId); pickChapter(null); } }
+  // Split the open scene at the cursor, or join it to the next scene.
+  let sceneMsg = $state('');
+  let msgTimer: ReturnType<typeof setTimeout> | undefined;
+  function say(text: string) { sceneMsg = text; clearTimeout(msgTimer); msgTimer = setTimeout(() => (sceneMsg = ''), 6000); }
+  async function splitHere() {
+    if (!scene) return;
+    const parts = rich?.splitAtCursor();
+    if (!parts) return;
+    db.flush();
+    const made = await splitScene(scene, parts.before, parts.after);
+    if (typeof made === 'string') { say(made); return; }
+    say('Split. The text after the cursor is now the next scene. The old text is saved in History.');
+    sceneId = made.id; // the editor opens the new scene, with the cursor at its start
+  }
+  async function mergeNext() {
+    if (!scene) return;
+    db.flush();
+    const err = await mergeWithNext(scene);
+    if (err) { say(err); return; }
+    rev++; // show the joined text
+    say('Merged. The text of the next scene now follows this text. The old text is saved in History.');
+  }
   async function delScene() {
     if (!sceneId) return;
     const left = scenes.filter((s) => s.id !== sceneId);
@@ -375,10 +399,13 @@
 
   <section class="pane">
     {#if !nav.focus}
+      {#if sceneMsg}<div class="chip scenemsg" role="status">{sceneMsg}</div>{/if}
       <div class="tools">
         <button class="small" onclick={() => (showFind = true)}>Find &amp; replace <kbd>Ctrl+H</kbd></button>
         <LookButton />
         {#if scene}<button class="small" onclick={() => (showHistory = true)}>History</button>{/if}
+        {#if scene}<button class="small" title="Split this scene in two at the cursor" onclick={splitHere}>Split here</button>{/if}
+        {#if scene && sceneAfter(scene)}<ConfirmButton label="Merge with next" onconfirm={mergeNext} />{/if}
         {#if book}<button class="small" title="Save a copy of the whole book, and see later what changed" onclick={() => (showSnaps = true)}>Snapshots</button>{/if}
         <button class="small" onclick={() => setFocus(true)}>Focus mode <kbd>F11</kbd></button>
       </div>
@@ -439,6 +466,7 @@
       <DateField bind:time={scene.time} bind:when={scene.when} onchange={saveScene} />
       <label>Tags</label>
       {#key scene.id}<SceneTags {scene} onchange={saveScene} />{/key}
+      {#key scene.id}<MoodBoard owner={scene.id} />{/key}
       {#if bookPasses.length}
         <label>Revision passes <small class="muted">{passSummary(scene, bookPasses).done}/{bookPasses.length} done</small></label>
         {#each bookPasses as p (p.id)}
@@ -599,6 +627,7 @@
   .arcchk { flex: 1; min-width: 0; display: flex; align-items: center; gap: .4rem; margin: 0; color: var(--text); }
   .arcname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .mrow { display: flex; align-items: center; justify-content: space-between; gap: .4rem; margin-top: .3rem; }
-  .tools { display: flex; gap: .4rem; margin-bottom: .6rem; }
+  .tools { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .6rem; }
+  .scenemsg { margin-bottom: .5rem; }
   .tools kbd { font-size: .7rem; color: var(--muted); margin-left: .3rem; }
 </style>

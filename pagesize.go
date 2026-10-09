@@ -8,6 +8,14 @@ type ExportOptions struct {
 	PageSize string `json:"pageSize"` // a key from pageSizes (Word and PDF)
 	Print    bool   `json:"print"`    // PDF only: mirrored margins, chapters on right-hand pages
 	Contents bool   `json:"contents"` // add a table of contents after the title page
+
+	// Pages and style of a manuscript. An empty text means no such page.
+	Copyright    string `json:"copyright"`    // copyright page, after the title page
+	Dedication   string `json:"dedication"`   // dedication page, after the copyright page
+	Thanks       string `json:"thanks"`       // acknowledgments, after the last chapter
+	About        string `json:"about"`        // about the author, at the very end
+	SceneBreak   string `json:"sceneBreak"`   // "stars" (the default), "hash", "dashes" or "blank"
+	ChapterStyle string `json:"chapterStyle"` // "full" (the default), "title", "number" or "plain"
 }
 
 // pageSize is a paper size in millimetres.

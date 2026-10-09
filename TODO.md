@@ -30,6 +30,10 @@ Nothing open here.
 
 ## Done
 
+- [x] Split a scene at the cursor, and merge a scene with the next one
+- [x] Export pages and style: copyright page, dedication, acknowledgments, about the author, the mark between scenes, chapter heading style
+- [x] Reading time and reading level for each chapter and book
+- [x] Mood board: pictures and short notes for each character, place and scene
 - [x] Quick actions menu above selected text: bold, italic, underline, comment, link to a character or place, copy the text to a new note, make a new character or place from it, and find it in the book
 - [x] Revision passes: your own checklist of passes for each book, ticked per scene, and the Board shows what is left
 - [x] Loose characters: characters in no scene, in one scene, or gone quiet for many chapters

@@ -186,10 +186,26 @@ func renderPDF(blocks []block, opts ExportOptions, pages map[string]int) ([]byte
 			pdf.MultiCell(0, 8, tr(spansText(spansOf(b))), "", "L", false)
 			pdf.Ln(1)
 		case "rule":
+			mark := b.text
+			if mark == "" {
+				mark = "*   *   *"
+			}
 			pdf.Ln(3)
 			pdf.SetFont("Times", "", look.font)
-			pdf.CellFormat(0, 7, "*   *   *", "", 1, "C", false, 0, "")
+			pdf.CellFormat(0, 7, tr(mark), "", 1, "C", false, 0, "")
 			pdf.Ln(3)
+		case "center":
+			// a centered paragraph of a front page, such as the dedication
+			if b.level > 0 {
+				pdf.Ln(float64(b.level) * 8)
+			}
+			style := ""
+			if sp := spansOf(b); len(sp) > 0 && sp[0].italic {
+				style = "I"
+			}
+			pdf.SetFont("Times", style, look.font)
+			pdf.MultiCell(0, look.line, tr(spansText(spansOf(b))), "", "C", false)
+			pdf.Ln(look.gap)
 		case "quote", "li":
 			indent := 10.0
 			if b.kind == "li" {

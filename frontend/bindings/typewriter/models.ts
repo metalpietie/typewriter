@@ -76,6 +76,37 @@ export interface ExportOptions {
      * add a table of contents after the title page
      */
     "contents": boolean;
+
+    /**
+     * Pages and style of a manuscript. An empty text means no such page.
+     * copyright page, after the title page
+     */
+    "copyright": string;
+
+    /**
+     * dedication page, after the copyright page
+     */
+    "dedication": string;
+
+    /**
+     * acknowledgments, after the last chapter
+     */
+    "thanks": string;
+
+    /**
+     * about the author, at the very end
+     */
+    "about": string;
+
+    /**
+     * "stars" (the default), "hash", "dashes" or "blank"
+     */
+    "sceneBreak": string;
+
+    /**
+     * "full" (the default), "title", "number" or "plain"
+     */
+    "chapterStyle": string;
 }
 
 /**

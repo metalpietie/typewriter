@@ -3,6 +3,7 @@
   import { Editor, Extension, Mark, mergeAttributes } from '@tiptap/core';
   import { Plugin, PluginKey } from '@tiptap/pm/state';
   import { Decoration, DecorationSet } from '@tiptap/pm/view';
+  import { DOMSerializer } from '@tiptap/pm/model';
   import StarterKit from '@tiptap/starter-kit';
   import Placeholder from '@tiptap/extension-placeholder';
   import SaveIndicator from './SaveIndicator.svelte';
@@ -190,6 +191,15 @@
     if (!r || !editor) return;
     const { state, view } = editor;
     view.dispatch(state.tr.removeMark(r.from, r.to, state.schema.marks.comment.create({ id })));
+  }
+
+  /** The text before the cursor and the text after it, as HTML. Used to split a scene in two. */
+  export function splitAtCursor(): { before: string; after: string } | null {
+    if (!editor) return null;
+    const { doc, selection, schema } = editor.state;
+    const ser = DOMSerializer.fromSchema(schema);
+    const html = (node: typeof doc) => { const div = document.createElement('div'); div.appendChild(ser.serializeFragment(node.content)); return div.innerHTML; };
+    return { before: html(doc.cut(0, selection.from)), after: html(doc.cut(selection.from)) };
   }
 
   const noSelection = () => { tick; return !editor || editor.state.selection.empty; };

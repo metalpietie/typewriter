@@ -60,6 +60,7 @@ p.toc { text-indent: 0; margin: .5em 0; }
 p.toc.l1 { margin-left: 1.5em; }
 p.toc a { text-decoration: none; color: inherit; }
 p.rule { text-align: center; text-indent: 0; margin: 1.2em 0; }
+p.center { text-align: center; text-indent: 0; margin: 0 0 .6em; }
 blockquote { margin: .8em 1.5em; font-style: italic; }
 blockquote p { text-indent: 0; }
 .u { text-decoration: underline; }
@@ -77,10 +78,18 @@ func buildEPUB(blocks []block, title, author string) ([]byte, error) {
 	anchorFile := map[string]string{} // heading anchor -> the page file it starts
 	var tocPart *epubPart
 	var tocItems []block
+	afterBreak := false // the last block was a page break
 	for _, b := range blocks {
+		newPage := afterBreak
+		afterBreak = b.kind == "pagebreak"
 		switch b.kind {
 		case "pagebreak":
 			continue
+		case "center":
+			// a front page, such as the dedication, is a page file of its own
+			if newPage && b.front {
+				start(b.label)
+			}
 		case "title":
 			p := start(b.text)
 			p.body.WriteString(`<h1 class="title">` + xhtmlEsc(b.text) + "</h1>\n")
@@ -119,7 +128,17 @@ func buildEPUB(blocks []block, title, author string) ([]byte, error) {
 		case "kv":
 			w.WriteString(`<p class="kv"><strong>` + xhtmlEsc(b.label) + ":</strong> " + strings.ReplaceAll(xhtmlEsc(b.text), "\n", "<br/>") + "</p>\n")
 		case "rule":
-			w.WriteString(`<p class="rule">*&#160;&#160;&#160;*&#160;&#160;&#160;*</p>` + "\n")
+			mark := `*&#160;&#160;&#160;*&#160;&#160;&#160;*`
+			if b.text != "" {
+				mark = strings.ReplaceAll(xhtmlEsc(b.text), "   ", "&#160;&#160;&#160;")
+			}
+			w.WriteString(`<p class="rule">` + mark + "</p>\n")
+		case "center":
+			style := ""
+			if b.level > 0 {
+				style = fmt.Sprintf(` style="margin-top:%dem"`, b.level)
+			}
+			w.WriteString(`<p class="center"` + style + ">" + xhtmlSpans(spansOf(b)) + "</p>\n")
 		case "quote":
 			w.WriteString("<blockquote><p>" + xhtmlSpans(spansOf(b)) + "</p></blockquote>\n")
 		case "li":

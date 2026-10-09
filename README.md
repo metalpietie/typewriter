@@ -153,6 +153,15 @@ Scenes also show up elsewhere: each scene is its own row on the **Timeline**, **
 
 When you export, the scenes of a chapter are joined with a scene break (`* * *`). The first paragraph of each scene has no indent.
 
+#### Split and merge scenes
+
+Two buttons above the text, next to **History**, change how a chapter is cut into scenes.
+
+- **Split here** cuts the open scene in two at the cursor. The text before the cursor stays. The text after it becomes a new scene right after this one, and the new scene opens. The new scene copies the status, point of view, place, time, cast and tags. A comment on text that moved goes with the text. Put the cursor inside the text, with words before it and after it.
+- **Merge with next** joins the open scene to the next scene of the same chapter. Press it twice (it asks "Sure?"). The text of the second scene goes after the first. Cast and tags are joined. A pass counts as done only when it was done for both. The comments, arcs, item steps and History of the second scene move to the joined scene. A merge does not add a scene break. Press **―** in the toolbar if you want one.
+- Both buttons first save the old text in **History** ("Before splitting", "Before merging"), so you can go back.
+- In a PDF, Word file or e-book, the scenes of a chapter are always joined with a scene break. You can choose its look in the Export tab (see **Pages and style**). The **―** button in the toolbar puts a scene break inside the text of one scene.
+
 #### Look of the page
 
 Press **Look** above the editor to change how the text looks. The page changes while you click. The choice belongs to this computer, not to the project, so it is not in your backups.
@@ -315,6 +324,15 @@ Press **Add portrait** to give a character a picture. The app cuts the middle sq
 - The old **Age** field is now only a note, for example "about thirty". A birth date counts as an age, so the Unfinished list stops asking for one.
 
 The bottom of each character shows their relationships, their chapters, and how many map steps they have.
+
+### Mood board
+
+A mood board is a set of pictures and short notes. Each **character**, each **place** (World tab) and each **scene** (the Scene panel in the Write tab) has one, under **Mood board**.
+
+- Drop pictures on it, paste a picture (Ctrl+V), or press **+ Pictures**. Press **+ Note** for a card with only words.
+- Each card has a short note under the picture. Click a picture to see it larger. Press **Esc** or click to close it.
+- Pictures are made smaller before they are saved, so the data file stays small. A board holds up to 60 cards.
+- Cards go with their character, place or scene when you delete it, and **Undo** brings them back. They are part of your data, so they are in backups. They are not in the Word, PDF or e-book export.
 
 ### Name generator
 
@@ -524,6 +542,7 @@ The **Statistics** tab shows your progress.
 - **Words per day:** a bar chart for 14, 30 or 90 days. Green bars reached the goal.
 - **Words per chapter** and **words per character** (all scenes they are in, and scenes told through them).
 - **Scenes by stage:** idea, draft, revised, final.
+- **Reading time and level:** for each chapter and book, how long the words take to read, and a reading level. You can change the reading speed (the start is 230 words a minute). The level is the Flesch reading ease and the Flesch-Kincaid school grade, worked out from sentence length and word length. It is a rough guide and it is made for English. Chapters with a lot of dialogue read as easy. A chapter that is 2 or more grades harder or easier than the rest of its book is marked. A chapter under 300 words is not judged.
 
 Words are counted while you type in the Write tab. Each day keeps one tally. Cut words are taken off that day, but a day never shows less than 0. Text you paste in counts as written. The Write tab shows today's count under the text and in focus mode.
 
@@ -641,6 +660,16 @@ PDF uses standard fonts. Letters outside Western languages may show as `?`. Use 
 - **Word:** each line is a link to the chapter. Word does not tell the app which page a chapter lands on, so the lines have no page numbers.
 - **E-book:** a Contents page with a link for each chapter.
 - **Markdown:** a list of links to the chapter headings.
+
+#### Pages and style
+
+Open **Pages and style** on the Export screen (manuscripts only). Your choices are saved with the project.
+
+- **Copyright page** and **Dedication:** each one is a page after the title page. An empty box means no page. Click the empty copyright box to fill in a start, from your author name.
+- **Acknowledgments** and **About the author:** pages after the last chapter. They are listed in the table of contents.
+- **Between scenes:** the mark between scenes: three stars (the start), a hash mark, three dashes, or an empty line.
+- **Chapter headings:** "Chapter 3: The title", only the title, only "Chapter 3", or "3. The title".
+- The table of contents comes after the copyright and dedication pages. In an e-book, each front page has its own page file. These choices work in Word, PDF, e-book and Markdown.
 
 #### Backup and restore
 

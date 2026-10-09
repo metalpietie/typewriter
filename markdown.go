@@ -91,7 +91,18 @@ func buildMarkdown(blocks []block) []byte {
 		case "kv":
 			put("**" + mdInline([]span{{text: b.label}}) + ":** " + mdInline([]span{{text: b.text}}))
 		case "rule":
-			put("* * *")
+			switch b.text {
+			case "":
+				put("* * *")
+			case "#":
+				put("\\#") // a # at the start of a line would make a heading
+			case "\u00a0":
+				put("&nbsp;")
+			default:
+				put(mdInline([]span{{text: b.text}}))
+			}
+		case "center":
+			put(mdInline(spansOf(b)))
 		case "quote":
 			put("> " + strings.ReplaceAll(mdInline(spansOf(b)), "\n", "\n> "))
 		case "li":

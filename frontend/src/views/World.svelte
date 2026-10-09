@@ -3,6 +3,7 @@
   import { db, NOTE_CATEGORIES, PLACE_TYPES } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import Backlinks from '../lib/Backlinks.svelte';
+  import MoodBoard from '../lib/MoodBoard.svelte';
   import Picture from '../lib/Picture.svelte';
   import { nav } from '../lib/nav.svelte';
 
@@ -94,6 +95,7 @@
       <p class="muted">
         {#if sel.map}Pinned on map “{db.name('map', sel.map)}”.{:else}Not on a map yet. Place it in the Maps tab.{/if}
       </p>
+      {#key sel.id}<MoodBoard owner={sel.id} />{/key}
       <Backlinks kind="location" id={sel.id} />
     {:else}
       <div class="empty">Pick an item, or press “+ New”.</div>

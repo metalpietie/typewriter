@@ -1,6 +1,7 @@
 <script lang="ts">
   import { db } from '../lib/db.svelte';
   import ProgressBar from '../lib/ProgressBar.svelte';
+  import Readability from '../lib/Readability.svelte';
   import { chapterWords, sceneWords, scenesOf, STATUSES } from '../lib/scenes';
   import { dailyGoal, lastDays, setDailyGoal, streak, wordsToday } from '../lib/progress';
 
@@ -117,6 +118,8 @@
       Scenes by stage: {#each status as x, i}{i ? ' · ' : ''}{x.s} {x.n}{/each}
     </p>
   </div>
+
+  <Readability />
 
   <div class="card">
     <h3>Words per character</h3>

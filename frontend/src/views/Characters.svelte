@@ -3,6 +3,7 @@
   import { db, ROLES, REL_TYPES, CHARACTER_COLORS as PALETTE } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import Backlinks from '../lib/Backlinks.svelte';
+  import MoodBoard from '../lib/MoodBoard.svelte';
   import Picture from '../lib/Picture.svelte';
   import DatePick from '../lib/DatePick.svelte';
   import { ageAt, momentsOf } from '../lib/ages';
@@ -164,6 +165,7 @@
           {/if}
         </div>
       {/if}
+      {#key sel.id}<MoodBoard owner={sel.id} />{/key}
       <Backlinks kind="character" id={sel.id} />
       <div class="card">
         <strong>{scenes.length}</strong> scene{scenes.length === 1 ? '' : 's'} ·

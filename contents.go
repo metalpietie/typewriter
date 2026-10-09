@@ -50,7 +50,7 @@ func withContents(blocks []block) []block {
 	}
 
 	at := 0 // the cover: the title, the author and the subtitle of the first book
-	for at < len(out) && (out[at].kind == "title" || out[at].kind == "author" || out[at].kind == "subtitle") {
+	for at < len(out) && isCover(out, at) {
 		at++
 	}
 	res := make([]block, 0, len(out)+len(items)+2)

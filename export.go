@@ -27,7 +27,8 @@ type block struct {
 	spans  []span // styled text; when empty, text is used
 	flush  bool   // no first-line indent (first paragraph of a chapter)
 	anchor string // set on a heading that the table of contents points to
-	level  int    // tocitem: 0 for a chapter (or a book title), 1 for a chapter in a series
+	level  int    // tocitem: 0 for a chapter (or a book title), 1 for a chapter in a series. center: how far down the page it starts
+	front  bool   // part of the cover or the front pages, so the table of contents comes after it
 }
 
 type rec = map[string]any
@@ -90,7 +91,7 @@ func (e *Exporter) Export(what string, bookID int64, format string, opts ExportO
 	name := "Story bible"
 	switch what {
 	case "manuscript":
-		blocks, name = e.manuscript(bookID, opts.Author)
+		blocks, name = e.manuscript(bookID, opts)
 		if len(blocks) == 0 {
 			return "", fmt.Errorf("nothing to export yet: add a book and chapters first")
 		}
@@ -111,6 +112,9 @@ func (e *Exporter) Export(what string, bookID int64, format string, opts ExportO
 		path += "." + format
 	}
 
+	if what == "manuscript" {
+		blocks = withBreakStyle(blocks, opts.SceneBreak)
+	}
 	if opts.Contents {
 		blocks = withContents(blocks)
 	}
@@ -153,7 +157,8 @@ func paragraphs(s string) []string {
 	return out
 }
 
-func (e *Exporter) manuscript(bookID int64, author string) ([]block, string) {
+func (e *Exporter) manuscript(bookID int64, opts ExportOptions) ([]block, string) {
+	author := opts.Author
 	books, chapters, scenes := e.load("book"), e.load("chapter"), e.load("scene")
 	byOrder(books, "order")
 	var out []block
@@ -186,17 +191,22 @@ func (e *Exporter) manuscript(bookID int64, author string) ([]block, string) {
 		}
 		for _, c := range chs {
 			out = append(out, block{kind: "pagebreak"})
-			h := fmt.Sprintf("Chapter %d", int(num(c, "order")))
-			if t := str(c, "title"); t != "" {
-				h += ": " + t
-			}
-			out = append(out, block{kind: "h1", text: h})
+			out = append(out, block{kind: "h1", text: chapterHeading(int(num(c, "order")), str(c, "title"), opts.ChapterStyle)})
 			out = append(out, chapterText(c, scenes)...)
 		}
 		title = str(b, "title")
 	}
 	if bookID == 0 && count > 1 {
 		title = "Complete series"
+	}
+	if count > 0 {
+		// the front pages go after the cover of the first book, the back pages after the last chapter
+		at := 0
+		for at < len(out) && isCover(out, at) {
+			at++
+		}
+		out = append(out[:at:at], append(frontPages(opts), out[at:]...)...)
+		out = append(out, backPages(opts)...)
 	}
 	return out, title
 }
@@ -485,7 +495,13 @@ func buildDocx(blocks []block, opts ExportOptions) ([]byte, error) {
 		case "li":
 			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="ListItem"/></w:pPr>` + runsOf(b) + `</w:p>`)
 		case "rule":
-			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Plain"/><w:spacing w:before="240" w:after="240"/><w:jc w:val="center"/></w:pPr>` + run("*   *   *", false) + `</w:p>`)
+			mark := b.text
+			if mark == "" {
+				mark = "*   *   *"
+			}
+			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Plain"/><w:spacing w:before="240" w:after="240"/><w:jc w:val="center"/></w:pPr>` + run(mark, false) + `</w:p>`)
+		case "center":
+			body.WriteString(fmt.Sprintf(`<w:p><w:pPr><w:pStyle w:val="Plain"/><w:spacing w:before="%d"/><w:ind w:firstLine="0"/><w:jc w:val="center"/></w:pPr>`, b.level*1000) + runsOf(b) + `</w:p>`)
 		default:
 			props := ""
 			if b.flush {

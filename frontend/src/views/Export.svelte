@@ -3,6 +3,7 @@
   import { Exporter } from '../../bindings/typewriter';
   import { db } from '../lib/db.svelte';
   import Backup from '../lib/Backup.svelte';
+  import { cleanPages, copyrightStarter, SCENE_BREAKS, CHAPTER_STYLES } from '../lib/exportpages-core';
 
   let what = $state<'manuscript' | 'bible'>('manuscript');
   let bookId = $state<number>(0);
@@ -11,6 +12,13 @@
   let print = $state(false);
   let contents = $state(saved('typewriter.contents') !== 'no'); // on, until you turn it off
   let author = $state(saved('typewriter.author'));
+  // The pages and style of a manuscript are kept with the project, so they are in backups too.
+  const row = $derived(db.lists.setting.find((r) => r.key === 'exportPages'));
+  let pages = $state(cleanPages(null));
+  let loaded = false;
+  $effect(() => { if (!loaded && db.ready) { loaded = true; pages = cleanPages(row?.value); } });
+  async function keepPages() { await db.save('setting', { ...(row ?? {}), key: 'exportPages', value: { ...pages } }); }
+  const fillCopyright = () => { if (!pages.copyright.trim()) { pages.copyright = copyrightStarter(author); keepPages(); } };
   let busy = $state(false);
   let message = $state('');
   let failed = $state(false);
@@ -32,7 +40,8 @@
       localStorage.setItem('typewriter.contents', contents ? 'yes' : 'no');
     } catch { /* these are only conveniences */ }
     try {
-      const path = await Exporter.Export(what, what === 'manuscript' ? bookId : 0, format, { author: author.trim(), pageSize, print: format === 'pdf' && print, contents });
+      await keepPages();
+      const path = await Exporter.Export(what, what === 'manuscript' ? bookId : 0, format, { author: author.trim(), pageSize, print: format === 'pdf' && print, contents, ...pages });
       message = path ? `Saved: ${path}` : 'Cancelled.';
     } catch (e: any) {
       failed = true; message = e?.message ?? String(e);
@@ -59,6 +68,25 @@
       <option value={0}>All books (whole series)</option>
       {#each books as b}<option value={b.id}>{b.order}. {b.title}</option>{/each}
     </Select>
+  {/if}
+
+  {#if what === 'manuscript'}
+    <details class="pages" style="margin-top:1rem">
+      <summary><b>Pages and style</b> <span class="muted">(optional)</span></summary>
+      <p class="muted" style="margin:.4rem 0">An empty box means that page is left out. Each page gets its own page. Your text is saved with the project.</p>
+      <label for="px-copy">Copyright page (after the title page)</label>
+      <textarea id="px-copy" rows="3" bind:value={pages.copyright} onfocus={fillCopyright} onchange={keepPages} placeholder="© 2026 Your name. All rights reserved."></textarea>
+      <label for="px-ded">Dedication</label>
+      <textarea id="px-ded" rows="2" bind:value={pages.dedication} onchange={keepPages} placeholder="For …"></textarea>
+      <label for="px-thanks">Acknowledgments (after the last chapter)</label>
+      <textarea id="px-thanks" rows="4" bind:value={pages.thanks} onchange={keepPages}></textarea>
+      <label for="px-about">About the author (at the end)</label>
+      <textarea id="px-about" rows="4" bind:value={pages.about} onchange={keepPages}></textarea>
+      <label for="px-break">Between scenes</label>
+      <Select id="px-break" bind:value={pages.sceneBreak} onchange={keepPages}>{#each SCENE_BREAKS as [key, name]}<option value={key}>{name}</option>{/each}</Select>
+      <label for="px-chap">Chapter headings</label>
+      <Select id="px-chap" bind:value={pages.chapterStyle} onchange={keepPages}>{#each CHAPTER_STYLES as [key, name]}<option value={key}>{name}</option>{/each}</Select>
+    </details>
   {/if}
 
   <h3 style="margin-top:1.2rem">File type</h3>
