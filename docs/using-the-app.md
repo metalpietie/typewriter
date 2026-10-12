@@ -284,13 +284,26 @@ A mood board is a set of pictures and short notes. Each **character**, each **pl
 
 ## Name generator
 
-Press **Name generator…** on the **Characters** screen (people) or on the **Places** list in the **World** screen (places).
+Press **Name generator…** on the **Characters** screen (people) or on the **Places** list in the **World** screen (places). Pick **People** or **Places** at the top.
 
-- Pick a **style**: Elvish, Dwarvish, Norse, Old English, Desert, or Harsh. Each style builds names from its own sound pieces. Places get endings such as "-ford", "-heim" or "-hold".
-- **My own words** builds names from words you give it, for example `frost, ember, hollow, stone` gives "Emberfrost" and "Stonefrost". Your words are saved.
+**Style.** There are 12: Elvish, Dwarvish, Norse, Old English, Celtic, Slavic, Roman, Greek, Desert, Halfling (cosy), Fae, and Harsh (orcs, raiders). Each style has its own sounds. **My own words** builds names from words you give it, for example `frost, ember, hollow, stone`. Your words are saved.
+
+**For people:**
+
+- **Gender:** Any, Female or Male. Every style has its own female and male endings, so a name sounds right for its gender. A ♀ or ♂ shows before each name. **Any** gives a mix.
+- **Name:** *First name only*; *First and family name*; *First name and a byname* ("Aerin the Grey", "Ulf Bloodaxe"); or *First name and a home* ("Aerin of Silvervale"). Family names follow the style: Elvish and Dwarvish join two words (Silvermoon, Ironforge). Norse uses the father's name (Sigurdsson, Helgasdottir). Slavic, Roman and Greek change the ending for each gender (Volkov and Volkova). Desert uses *ibn* and *bint*. Celtic uses Mac, Mc, O' for men and Nic for women.
+- **First name:** any length, short (up to 6 letters) or long (8 or more).
+- **Starts with:** one letter. The list only shows letters that this style can start with.
+
+**For places:** pick the **kind of place**: a town or village; a kingdom or land ("Kingdom of Ildell", "The Bardeep Marches"); a wild place ("Mount Lordor", "Greywold"); or an inn or tavern ("The Silver Tankard", "The Stag and Barrel"). **Starts with** works here too.
+
+**Using the names:**
+
 - The panel shows 12 names. Press **Generate again** for more. Click a name to copy it.
-- **＋ Character** or **＋ Place** makes a new item with that name and opens it.
-- Names already used by a character (or its aliases), place, faction, or item are left out.
+- **☆** keeps a name in your **Favourites** (saved with the project). **★** takes it out. Favourites sit at the bottom of the panel, where you can copy them, make a character or place from them, or remove them.
+- **＋ Character** or **＋ Place** makes a new item with that name and opens it. A character made from a female or male name also gets a custom field **Gender**.
+- Names already used by a character (or its aliases), place, faction, or item are left out. A first name that a character already has is left out too.
+- The panel remembers your choices (style, gender, name, length, letter and kind of place) on this computer.
 
 The names are made up from rules. Some sound odd, so press **Generate again**.
 

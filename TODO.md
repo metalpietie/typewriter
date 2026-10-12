@@ -30,6 +30,7 @@ Nothing open here.
 
 ## Done
 
+- [x] A better name generator: 12 styles, female and male names, family names, bynames and homes, kinds of places (town, kingdom, wild place, inn), a starting letter, and favourites
 - [x] Animations: button ripples, menus and windows that animate in and out, page transitions, a sliding menu highlight, count-up numbers, and an Off / Calm / Smooth / Lively choice
 - [x] Split a scene at the cursor, and merge a scene with the next one
 - [x] Export pages and style: copyright page, dedication, acknowledgments, about the author, the mark between scenes, chapter heading style
