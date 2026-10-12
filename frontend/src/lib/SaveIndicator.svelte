@@ -6,7 +6,7 @@
 </script>
 
 <span class="save" class:saving={state === 'saving'} class:error={state === 'error'} role="status" aria-live="polite">
-  <span class="dot"></span>
+  {#key db.lastSaved}<span class="dot ping"></span>{/key}
   {#if state === 'saving'}Saving…
   {:else if state === 'error'}Not saved
     <button class="small" onclick={() => db.retry()}>Retry</button>
@@ -19,5 +19,7 @@
   .saving .dot { background: var(--accent); animation: pulse 1s ease-in-out infinite; }
   .error { color: var(--danger); }
   .error .dot { background: var(--danger); }
+  .save:not(.saving):not(.error) .ping { animation: ping calc(var(--m-dur) * 3) var(--m-ease); }
+  @keyframes ping { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 55%, transparent); } to { box-shadow: 0 0 0 .55rem transparent; } }
   @keyframes pulse { 50% { opacity: .3; } }
 </style>

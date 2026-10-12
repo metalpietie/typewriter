@@ -54,7 +54,7 @@ button:disabled { opacity: .4; cursor: default; }
 .nav .brand { font-size: 1.2rem; font-weight: 700; color: var(--accent); padding: 0 .5rem 1rem; }
 .nav button { text-align: left; background: none; border: 1px solid transparent; padding: .55rem .7rem; }
 .nav .count { margin-left: .4rem; background: var(--danger); color: #fff; border-radius: 99px; font-size: .7rem; padding: 0 .4rem; }
-.nav button.on { background: var(--panel-2); border-color: var(--line); color: var(--accent); }
+.nav button.on { color: var(--accent); } /* the sliding highlight (.navpill) draws the background */
 .nav > * { flex-shrink: 0; }
 /* menu headings: accent colour with a thin line, and the items under a heading are moved in a little */
 .nav .group { display: flex; align-items: center; gap: .5rem; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--accent); padding: 1rem .7rem .3rem; }
@@ -130,3 +130,16 @@ button:disabled { opacity: .4; cursor: default; }
 .nav .project-btn { text-align: left; border-color: var(--line); margin-bottom: .4rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nav .search-btn { display: flex; justify-content: space-between; color: var(--muted); border-color: var(--line); margin-bottom: .6rem; }
 .nav .search-btn kbd { font: inherit; font-size: .7rem; border: 1px solid var(--line); border-radius: 4px; padding: 0 .3rem; }
+
+/* ---- Motion. The numbers come from the level in Settings > Animations (the button at the bottom of the menu). Off makes them all 0. ---- */
+:root { --m-dur: 200ms; --m-ease: cubic-bezier(.2, .8, .2, 1); --m-travel: 10px; --m-stagger: 28ms; }
+.nav { position: relative; }
+.nav button { position: relative; z-index: 1; }
+.navpill { position: absolute; top: 0; left: .6rem; right: .6rem; z-index: 0; background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; opacity: 0; pointer-events: none; }
+.navpill.show { opacity: 1; }
+.navpill.glide { transition: transform var(--m-dur) var(--m-ease), height var(--m-dur) var(--m-ease); }
+button { transition: background-color var(--m-dur) var(--m-ease), border-color var(--m-dur) var(--m-ease), transform var(--m-dur) var(--m-ease), opacity var(--m-dur) var(--m-ease); }
+button:active:not(:disabled) { transform: scale(.98); }
+input, select, textarea { transition: border-color var(--m-dur) var(--m-ease), box-shadow var(--m-dur) var(--m-ease); }
+input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+

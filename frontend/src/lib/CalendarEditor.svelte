@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { veil, dialog } from './motion.svelte';
   import Select from './Select.svelte';
   import { onMount } from 'svelte';
   import { db, type Item } from './db.svelte';
@@ -47,8 +48,8 @@
 
 <svelte:window onkeydown={(e) => { if (e.key === 'Escape') close(); }} />
 
-<div class="overlay" role="presentation" onmousedown={(e) => { if (e.target === e.currentTarget) close(); }}>
-  <div class="palette box" role="dialog" aria-label="Calendar">
+<div class="overlay" transition:veil|global role="presentation" onmousedown={(e) => { if (e.target === e.currentTarget) close(); }}>
+  <div transition:dialog|global class="palette box" role="dialog" aria-label="Calendar">
     <div class="head"><h2 style="margin:0">Your calendar</h2><button class="small" onclick={close}>Close</button></div>
     {#if !row}
       <p class="muted">Loading…</p>

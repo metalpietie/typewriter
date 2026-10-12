@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, tick, type Snippet } from 'svelte';
+  import { pop } from './motion.svelte';
   import type { HTMLSelectAttributes } from 'svelte/elements';
 
   // A drop-down that looks like the app. Use it like a <select>: put <option> tags inside,
@@ -140,7 +141,7 @@
 {#if open}
   <!-- the button keeps the focus, so the keys work. Pressing in the menu must not take it away. -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div class="menu" role="listbox" tabindex="-1" use:portal bind:this={menu} onmousedown={(e) => e.preventDefault()}
+  <div class="menu" role="listbox" tabindex="-1" transition:pop use:portal bind:this={menu} onmousedown={(e) => e.preventDefault()}
     style:left="{pos.left}px" style:min-width="{pos.minWidth}px" style:max-height="{pos.maxHeight}px"
     style:top={pos.top != null ? pos.top + 'px' : null} style:bottom={pos.bottom != null ? pos.bottom + 'px' : null}>
     {#each items as it, n (it.i)}
@@ -163,9 +164,9 @@
     background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: .4rem .55rem;
   }
   .select:hover:not(:disabled) { border-color: color-mix(in srgb, var(--accent) 60%, var(--line)); }
-  .select:focus-visible, .select[aria-expanded='true'] { outline: 1px solid var(--accent); border-color: var(--accent); }
+  .select:focus-visible, .select[aria-expanded='true'] { outline: 1px solid var(--accent); border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
   .txt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .car { flex: 0 0 auto; width: .6rem; height: .4rem; color: var(--muted); transition: transform .12s; }
+  .car { flex: 0 0 auto; width: .6rem; height: .4rem; color: var(--muted); transition: transform var(--m-dur) var(--m-ease); }
   .select[aria-expanded='true'] .car { transform: rotate(180deg); color: var(--accent); }
 
   .menu {

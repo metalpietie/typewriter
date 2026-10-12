@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { veil, dialog } from './motion.svelte';
   import { onMount } from 'svelte';
   import { db, toHtml } from './db.svelte';
   import { listSnapshots, takeSnapshot, deleteSnapshot, renameSnapshot, defaultName, currentBook, snapshotItems, type Snapshot } from './snapshots';
@@ -93,8 +94,8 @@
 <svelte:window onkeydown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); if (open != null) open = null; else onclose(); } }} />
 
 <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-<div class="overlay" onclick={(e) => { if (e.target === e.currentTarget) onclose(); }}>
-  <div class="palette snaps">
+<div class="overlay" transition:veil|global onclick={(e) => { if (e.target === e.currentTarget) onclose(); }}>
+  <div transition:dialog|global class="palette snaps">
     <div class="head"><strong>Snapshots: {book?.title || 'this book'}</strong><button class="small" onclick={onclose}>Close</button></div>
     <div class="row">
       <input bind:value={name} placeholder={defaultName() + ' (name it, for example: after beta readers)'} onkeydown={(e) => { if (e.key === 'Enter') save(); }} />

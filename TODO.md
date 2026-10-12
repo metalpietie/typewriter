@@ -30,6 +30,7 @@ Nothing open here.
 
 ## Done
 
+- [x] Animations: button ripples, menus and windows that animate in and out, page transitions, a sliding menu highlight, count-up numbers, and an Off / Calm / Smooth / Lively choice
 - [x] Split a scene at the cursor, and merge a scene with the next one
 - [x] Export pages and style: copyright page, dedication, acknowledgments, about the author, the mark between scenes, chapter heading style
 - [x] Reading time and reading level for each chapter and book

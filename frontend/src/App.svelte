@@ -1,9 +1,11 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { Events } from '@wailsio/runtime';
   import { settle } from './lib/backupReminder';
   import { db } from './lib/db.svelte';
   import { nav } from './lib/nav.svelte';
+  import { motion, applyMotion, cycleLevel, installRipple, animatePage, fadeWindow } from './lib/motion.svelte';
+  import { LABEL } from './lib/motion-core';
   import Search from './lib/Search.svelte';
   import CalendarEditor from './lib/CalendarEditor.svelte';
   import NameGenerator from './lib/NameGenerator.svelte';
@@ -70,6 +72,36 @@
     else if (e.key === 'ArrowRight') { sideW = clampSide(sideW + 20); e.preventDefault(); }
   }
 
+  // Motion: ripples on buttons, a menu highlight that glides, pages that arrive, a fade for focus mode.
+  applyMotion();
+  onMount(() => installRipple());
+  let navEl = $state<HTMLElement>();
+  let mainEl = $state<HTMLElement>();
+  let appEl = $state<HTMLElement>();
+  let pill = $state({ y: 0, h: 0, show: false, glide: false });
+  function placePill() {
+    const on = navEl?.querySelector<HTMLElement>('button.on');
+    if (!on) { pill.show = false; return; }
+    const y = on.offsetTop, h = on.offsetHeight;
+    if (!pill.show || y !== pill.y || h !== pill.h) pill = { y, h, show: true, glide: pill.show }; // the first place is set without gliding
+  }
+  $effect(() => { nav.tab; db.ready; tick().then(placePill); });
+  onMount(() => {
+    const watch = new MutationObserver(placePill); // something above moved the items, for example the timer card
+    if (navEl) watch.observe(navEl, { childList: true, subtree: true });
+    window.addEventListener('resize', placePill);
+    return () => { watch.disconnect(); window.removeEventListener('resize', placePill); };
+  });
+  let shownTab = '';
+  $effect(() => {
+    const t = nav.tab;
+    if (!db.ready || t === shownTab) return;
+    shownTab = t;
+    tick().then(() => animatePage(mainEl ?? null));
+  });
+  let seenFocus = nav.focus;
+  $effect(() => { const f = nav.focus; if (f !== seenFocus) { seenFocus = f; tick().then(() => fadeWindow(appEl ?? null)); } });
+
   let error = $state('');
   let theme = $state<Theme>(currentTheme());
   function toggleTheme() { theme = theme === 'dark' ? 'light' : 'dark'; setTheme(theme); }
@@ -88,8 +120,9 @@
 {#if nav.projects}<Projects />{/if}
 {#if nav.dataFolder}<DataFolder />{/if}
 
-<div class="app" class:focus={nav.focus}>
-  <nav class="nav">
+<div class="app" class:focus={nav.focus} bind:this={appEl}>
+  <nav class="nav" bind:this={navEl}>
+    <span class="navpill" class:show={pill.show} class:glide={pill.glide} style:transform="translateY({pill.y}px)" style:height="{pill.h}px" aria-hidden="true"></span>
     <div class="brand"><img src="/logo.svg" alt="" />Typewriter</div>
     <button class="project-btn" title="Switch or add a project (a book or series)" onclick={() => (nav.projects = true)}>▾ {db.project || 'Projects'}</button>
     <PomodoroTimer />
@@ -102,12 +135,13 @@
     {/each}
     <div class="foot">
       <button onclick={toggleTheme}>{theme === 'dark' ? '☀ Light theme' : '☾ Dark theme'}</button>
+      <button class="small" title="How much the screen moves: Off, Calm, Smooth or Lively. Click to change." onclick={cycleLevel}>Animations: {LABEL[motion.level]}</button>
       Data file:<br />{db.dataPath}
       {#if db.folderProblem}<div><button class="small danger" title={db.folderProblem} onclick={() => (nav.dataFolder = true)}>⚠ Data folder problem</button></div>{/if}
       <div><button class="small" title="Keep your data in another folder" onclick={() => (nav.dataFolder = true)}>Change folder…</button></div>
       <div class="ver">Typewriter {db.version}</div></div>
   </nav>
-  <main class="main">
+  <main class="main" bind:this={mainEl}>
     {#if hasSide && !nav.focus && db.ready}
       <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
       <div class="resizer" class:drag={dragging} role="separator" aria-orientation="vertical" aria-label="Resize the list on the left. Drag, or use the left and right arrow keys. Double-click to reset."

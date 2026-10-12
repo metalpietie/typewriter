@@ -2,6 +2,7 @@
   import { db, type Kind } from '../lib/db.svelte';
   import { nav, openItem, openScene } from '../lib/nav.svelte';
   import ProgressBar from '../lib/ProgressBar.svelte';
+  import CountUp from '../lib/CountUp.svelte';
   import { sceneLabel, sceneWords } from '../lib/scenes';
   import { dailyGoal, streak, wordsToday } from '../lib/progress';
   import FinishLine from '../lib/FinishLine.svelte';
@@ -70,10 +71,10 @@
   <div class="cols">
     <div class="card">
       <h3>Today</h3>
-      <p style="margin:.2rem 0 .4rem"><b>{n(today)}</b>{goal ? ` / ${n(goal)} words` : ' words written'}{goal && today >= goal ? ' · goal reached' : ''}</p>
+      <p style="margin:.2rem 0 .4rem"><b><CountUp value={today} /></b>{goal ? ` / ${n(goal)} words` : ' words written'}{goal && today >= goal ? ' · goal reached' : ''}</p>
       <ProgressBar value={today} {goal} />
       {#if !goal}<p class="muted" style="margin:.4rem 0 0">No daily goal yet. <button class="link" onclick={() => (nav.tab = 'stats')}>Set one</button></p>{/if}
-      <p class="muted" style="margin:.6rem 0 0">Streak: <b>{run.current}</b> day{run.current === 1 ? '' : 's'} · Best: <b>{run.best}</b> · All text: <b>{n(total)}</b> words</p>
+      <p class="muted" style="margin:.6rem 0 0">Streak: <b><CountUp value={run.current} /></b> day{run.current === 1 ? '' : 's'} · Best: <b><CountUp value={run.best} /></b> · All text: <b><CountUp value={total} /></b> words</p>
       <div style="margin-top:.8rem">
         {#if last}
           <button class="primary" onclick={() => openScene(last.id)}>Continue writing</button>

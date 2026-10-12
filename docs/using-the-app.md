@@ -37,6 +37,23 @@ Most screens have a list on the left. Drag its right edge to make it wider or na
 
 Where your data is kept, and how to use more than one project, are explained in the [README](../README.md#your-data).
 
+### Animations
+
+The app moves a little when you use it, so it feels alive. Press **Animations: …** at the bottom of the menu to change how much. Each press goes to the next choice: **Off**, **Calm**, **Smooth** (the start), **Lively**.
+
+- **Ripples** spread from the spot where you press a button.
+- **Menus and drop-down lists** fade and slide in, and out again. This includes the quick actions menu and the `@` list.
+- **Pages** fade and slide in when you open a tab, one part after another.
+- **The menu highlight** glides to the tab you open.
+- **Windows** (Search, History, Snapshots and so on) fade in and grow a little. **Messages** such as the **Undo** bar slide up.
+- **Cards on the Board** lift when you point at them. **Progress bars** fill smoothly. The box you type in gets a soft glow.
+- **Numbers on the Dashboard and Statistics** count up when the page opens.
+- The **Saved** mark pulses each time a save finishes.
+- Focus mode fades in and out.
+- The text of the editor never moves.
+
+If Windows or Linux is set to "reduce motion", the app starts with animations **Off** until you choose another level. The choice belongs to this computer, not to the project, so it is not in your backups.
+
 ## Notes
 
 The **Notes** tab is a rough notepad for your story ideas and thoughts. It has no link to the scene status "draft". Nothing here is part of the book.

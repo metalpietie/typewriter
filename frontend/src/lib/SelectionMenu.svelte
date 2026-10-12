@@ -3,6 +3,7 @@
   import type { Editor } from '@tiptap/core';
   import { db, CHARACTER_COLORS } from './db.svelte';
   import { openItem } from './nav.svelte';
+  import { pop } from './motion.svelte';
   import { linkTargets, type Cand } from './linktargets';
   import { titleOf, nameOf, pageHtml, loreText } from './selection-core';
 
@@ -159,7 +160,7 @@
 </script>
 
 {#if show}
-  <div class="selmenu" bind:this={root} role="toolbar" aria-label="Quick actions for the selected text" tabindex="-1" onmousedown={hold}
+  <div class="selmenu" transition:pop={{ origin: 'center bottom' }} bind:this={root} role="toolbar" aria-label="Quick actions for the selected text" tabindex="-1" onmousedown={hold}
     style:left="{pos.x}px" style:top={pos.top != null ? pos.top + 'px' : null} style:bottom={pos.bottom != null ? pos.bottom + 'px' : null}>
     {#if view === 'main'}
       <div class="row1">
@@ -207,7 +208,7 @@
 
 <style>
   .selmenu {
-    position: fixed; z-index: 70; transform: translateX(-50%); width: max-content; min-width: 14rem; max-width: 94vw;
+    position: fixed; z-index: 70; translate: -50% 0; width: max-content; min-width: 14rem; max-width: 94vw;
     background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: .3rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, .4); display: flex; flex-direction: column; gap: .15rem;
   }

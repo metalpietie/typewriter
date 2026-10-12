@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { veil, dialog } from './motion.svelte';
   import { Store } from '../../bindings/typewriter';
   import { onMount } from 'svelte';
   import { db } from './db.svelte';
@@ -54,8 +55,8 @@
 
 <svelte:window onkeydown={(e) => { if (e.key === 'Escape') close(); }} />
 
-<div class="overlay" role="presentation" onmousedown={(e) => { if (e.target === e.currentTarget) close(); }}>
-  <div class="palette box" role="dialog" aria-label="Projects">
+<div class="overlay" transition:veil|global role="presentation" onmousedown={(e) => { if (e.target === e.currentTarget) close(); }}>
+  <div transition:dialog|global class="palette box" role="dialog" aria-label="Projects">
     <div class="head"><h2 style="margin:0">Projects</h2><button class="small" onclick={close}>Close</button></div>
     <p class="muted" style="margin-top:.4rem">
       Each project is one book or one series. It has its own data file, its own backups, and its own characters, places, maps and text.

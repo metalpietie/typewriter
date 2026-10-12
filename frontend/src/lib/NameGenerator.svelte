@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { veil, dialog } from './motion.svelte';
   import Select from './Select.svelte';
   import { db, CHARACTER_COLORS, type Item } from './db.svelte';
   import { nav, openItem } from './nav.svelte';
@@ -71,8 +72,8 @@
 
 <svelte:window onkeydown={(e) => { if (e.key === 'Escape') close(); }} />
 
-<div class="overlay" role="presentation" onmousedown={(e) => { if (e.target === e.currentTarget) close(); }}>
-  <div class="palette box" role="dialog" aria-label="Name generator">
+<div class="overlay" transition:veil|global role="presentation" onmousedown={(e) => { if (e.target === e.currentTarget) close(); }}>
+  <div transition:dialog|global class="palette box" role="dialog" aria-label="Name generator">
     <div class="head"><h2 style="margin:0">Name generator</h2><button class="small" onclick={close}>Close</button></div>
 
     <div class="tabs">

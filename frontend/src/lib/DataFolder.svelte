@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { veil, dialog } from './motion.svelte';
   import { Store } from '../../bindings/typewriter';
   import { onMount } from 'svelte';
   import { db } from './db.svelte';
@@ -55,8 +56,8 @@
 
 <svelte:window onkeydown={(e) => { if (e.key === 'Escape') close(); }} />
 
-<div class="overlay" role="presentation" onmousedown={(e) => { if (e.target === e.currentTarget) close(); }}>
-  <div class="palette box" role="dialog" aria-label="Data folder">
+<div class="overlay" transition:veil|global role="presentation" onmousedown={(e) => { if (e.target === e.currentTarget) close(); }}>
+  <div transition:dialog|global class="palette box" role="dialog" aria-label="Data folder">
     <div class="head"><h2 style="margin:0">Data folder</h2><button class="small" onclick={close}>Close</button></div>
     <p class="muted" style="margin-top:.4rem">
       Your books, characters, maps and backups are saved in one folder. You can keep it somewhere else, for example on another drive.

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { veil, dialog } from './motion.svelte';
   import { onMount } from 'svelte';
   import { db } from './db.svelte';
   import { search, buildRegex, replaceIn, type SceneHits } from './findreplace';
@@ -59,8 +60,8 @@
 <svelte:window onkeydown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); onclose(); } }} />
 
 <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-<div class="overlay" onclick={(e) => { if (e.target === e.currentTarget) onclose(); }}>
-  <div class="palette fr">
+<div class="overlay" transition:veil|global onclick={(e) => { if (e.target === e.currentTarget) onclose(); }}>
+  <div transition:dialog|global class="palette fr">
     <div class="head"><strong>Find and replace</strong><button class="small" onclick={onclose}>Close</button></div>
     <div class="row">
       <div><label>Find</label><input bind:this={box} bind:value={query} placeholder="Text to find" onkeydown={(e) => { if (e.key === 'Enter' && e.ctrlKey) apply(results); }} /></div>

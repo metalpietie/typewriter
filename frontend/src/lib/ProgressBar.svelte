@@ -13,6 +13,6 @@
 <style>
   .bar { height: 8px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 99px; overflow: hidden; width: 100%; }
   .bar.thin { height: 4px; border: 0; }
-  .fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width .25s; }
+  .fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width calc(var(--m-dur) * 2.2) var(--m-ease); }
   .fill.done { background: var(--ok); }
 </style>

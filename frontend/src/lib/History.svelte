@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { veil, dialog } from './motion.svelte';
   import { onMount } from 'svelte';
   import { toHtml, wordCount } from './db.svelte';
   import { listVersions, addVersion, deleteVersion, type Version } from './versions';
@@ -68,8 +69,8 @@
 <svelte:window onkeydown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); onclose(); } }} />
 
 <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-<div class="overlay" onclick={(e) => { if (e.target === e.currentTarget) onclose(); }}>
-  <div class="palette hist">
+<div class="overlay" transition:veil|global onclick={(e) => { if (e.target === e.currentTarget) onclose(); }}>
+  <div transition:dialog|global class="palette hist">
     <div class="head"><strong>History: {title || 'this scene'}</strong><button class="small" onclick={onclose}>Close</button></div>
     <div class="row">
       <input bind:value={label} placeholder="Name for a copy (optional)" onkeydown={(e) => { if (e.key === 'Enter') saveNow(); }} />

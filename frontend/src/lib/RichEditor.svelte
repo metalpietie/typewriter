@@ -11,6 +11,7 @@
   import { type LinkKind } from './backlinks';
   import { linkTargets, type Cand } from './linktargets';
   import SelectionMenu from './SelectionMenu.svelte';
+  import { pop } from './motion.svelte';
   import { look } from './editorlook.svelte';
   import { lookVars } from './editorlook-core';
 
@@ -282,7 +283,7 @@
 {/if}
 
 {#if sug}
-  <div class="sug" style:left="{sug.x}px" style:top={sug.top != null ? sug.top + 'px' : null} style:bottom={sug.bottom != null ? sug.bottom + 'px' : null}>
+  <div class="sug" transition:pop style:left="{sug.x}px" style:top={sug.top != null ? sug.top + 'px' : null} style:bottom={sug.bottom != null ? sug.bottom + 'px' : null}>
     {#each sug.items as c, i (c.kind + c.id)}
       <button class:on={i === sug.at} onmousedown={(e) => { e.preventDefault(); pick(c); }}>
         <span>{c.label}</span><small>{c.word}</small>

@@ -2,6 +2,7 @@
   import { db } from '../lib/db.svelte';
   import ProgressBar from '../lib/ProgressBar.svelte';
   import Readability from '../lib/Readability.svelte';
+  import CountUp from '../lib/CountUp.svelte';
   import { chapterWords, sceneWords, scenesOf, STATUSES } from '../lib/scenes';
   import { dailyGoal, lastDays, setDailyGoal, streak, wordsToday } from '../lib/progress';
 
@@ -62,11 +63,11 @@
         <input id="goal" type="number" min="0" step="50" value={goal} onchange={(e) => setDailyGoal(+e.currentTarget.value)} />
       </div>
     </div>
-    <p style="margin:.8rem 0 .3rem"><b>Today: {n(today)}</b>{goal ? ` / ${n(goal)} words` : ' words'}{goal && today >= goal ? ' · goal reached' : ''}</p>
+    <p style="margin:.8rem 0 .3rem"><b>Today: <CountUp value={today} /></b>{goal ? ` / ${n(goal)} words` : ' words'}{goal && today >= goal ? ' · goal reached' : ''}</p>
     <ProgressBar value={today} {goal} />
     <p class="muted">
-      Streak: <b>{run.current}</b> day{run.current === 1 ? '' : 's'} · Best streak: <b>{run.best}</b> ·
-      Last 7 days: <b>{n(week)}</b> words · Average on writing days: <b>{n(average)}</b>
+      Streak: <b><CountUp value={run.current} /></b> day{run.current === 1 ? '' : 's'} · Best streak: <b><CountUp value={run.best} /></b> ·
+      Last 7 days: <b><CountUp value={week} /></b> words · Average on writing days: <b><CountUp value={average} /></b>
       {#if best}· Best day: <b>{n(best.words)}</b> ({best.date}){/if}
     </p>
     <p class="muted" style="font-size:.8rem;margin:0">Counts words added in the Write tab, one tally per day. Words you cut are taken off the day, but a day never goes below 0.</p>
@@ -99,7 +100,7 @@
   </div>
 
   <div class="card">
-    <h3>Words per chapter · {n(total)} words in all</h3>
+    <h3>Words per chapter · <CountUp value={total} /> words in all</h3>
     {#each books as b (b.book.id)}
       <div style="margin:.6rem 0 .2rem"><b>{b.book.title}</b></div>
       {#each b.chapters as r (r.c.id)}

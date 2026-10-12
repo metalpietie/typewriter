@@ -290,7 +290,9 @@
   .hash { color: var(--accent); }
   .adot { width: .6rem; height: .6rem; border-radius: 50%; flex: 0 0 auto; }
   .addscene { align-self: flex-start; }
-  .dragging { opacity: .35; transform: scale(.97); }
+  .card.idx { transition: transform var(--m-dur) var(--m-ease), border-color var(--m-dur) var(--m-ease), opacity var(--m-dur) var(--m-ease); }
+  .card.idx:hover { transform: translateY(-2px); }
+  .dragging, .card.idx.dragging:hover { opacity: .35; transform: scale(.97); }
 
   /* a line shows where the card or column will land */
   .drop-before::before, .drop-after::before { content: ''; position: absolute; background: var(--accent); box-shadow: 0 0 8px var(--accent); border-radius: 2px; pointer-events: none; z-index: 2; }
