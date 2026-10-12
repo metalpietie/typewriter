@@ -48,6 +48,8 @@ func renderPDF(blocks []block, opts ExportOptions, pages map[string]int) ([]byte
 	pdf := fpdf.NewCustom(&fpdf.InitType{OrientationStr: "P", UnitStr: "mm", Size: fpdf.SizeType{Wd: sz.w, Ht: sz.h}})
 	pdf.SetMargins(m, m, m)
 	pdf.SetAutoPageBreak(true, m)
+	cover := decodeCover(opts.Cover)
+	hasCover := cover != nil && !opts.Print
 	tr := pdf.UnicodeTranslatorFromDescriptor("") // core fonts only know Western characters
 
 	// In print layout the inside margin is wider, so the text is not lost in the binding.
@@ -69,7 +71,7 @@ func renderPDF(blocks []block, opts ExportOptions, pages map[string]int) ([]byte
 	})
 	pdf.SetFooterFunc(func() {
 		n := pdf.PageNo()
-		if blank[n] || (opts.Print && n == 1) {
+		if (hasCover && n == 1) || blank[n] || (opts.Print && n == 1) {
 			return // no number on the title page or on an empty page
 		}
 		align := "C"
@@ -84,6 +86,13 @@ func renderPDF(blocks []block, opts ExportOptions, pages map[string]int) ([]byte
 		pdf.CellFormat(0, 10, fmt.Sprint(n), "", 0, align, false, 0, "")
 	})
 	pdf.AddPage()
+	if hasCover {
+		pageW, pageH := pdf.GetPageSize()
+		w, h := fitIn(float64(cover.w), float64(cover.h), pageW, pageH)
+		pdf.RegisterImageOptionsReader("cover", fpdf.ImageOptions{ImageType: "JPG"}, bytes.NewReader(cover.jpeg))
+		pdf.ImageOptions("cover", (pageW-w)/2, (pageH-h)/2, w, h, false, fpdf.ImageOptions{ImageType: "JPG"}, 0, "")
+		pdf.AddPage()
+	}
 	fresh := true // true while the current page is still empty
 	links := map[string]int{}
 	linkOf := func(anchor string) int {

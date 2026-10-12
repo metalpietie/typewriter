@@ -16,7 +16,7 @@ import * as $models from "./models.js";
 
 /**
  * Export asks where to save, then writes the file.
- * what is "manuscript" or "bible". format is "docx", "pdf", "epub" or "md".
+ * what is "manuscript", "outline", "synopsis" or "bible". format is "docx", "pdf", "epub" or "md".
  * bookID 0 means every book. It returns the saved path, or "" if you cancel.
  */
 export function Export(what: string, bookID: number, format: string, opts: $models.ExportOptions): $CancellablePromise<string> {

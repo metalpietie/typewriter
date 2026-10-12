@@ -7,7 +7,7 @@
   onkeydown={(e) => {
     // Ctrl+Z undoes a delete, but only when you are not typing, so text undo still works.
     const el = e.target as HTMLElement;
-    const typing = el.closest('input, textarea, select, [contenteditable]');
+    const typing = el?.closest?.('input, textarea, select, [contenteditable]');
     if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z' && !typing && db.undoable) {
       e.preventDefault();
       db.undo();

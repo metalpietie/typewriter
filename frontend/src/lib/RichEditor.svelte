@@ -15,13 +15,15 @@
   import { look } from './editorlook.svelte';
   import { lookVars } from './editorlook-core';
 
-  let { value, onchange, placeholder = 'Start writing…', bare = false, source = '', onfind, oncomment, onfocuscomment, onopenref }: {
+  let { value, onchange, placeholder = 'Start writing…', bare = false, source = '', onfind, onbeside, oncomment, onfocuscomment, onopenref }: {
     value: string;
     onchange: (html: string) => void;
     placeholder?: string;
     bare?: boolean; // hide the toolbar (focus mode)
     /** Where this text is from, for notes made from selected text. */
     source?: string;
+    /** Called when an @ link is Alt+clicked: show that item beside the text. */
+    onbeside?: (kind: LinkKind, id: number) => void;
     /** Called to open Find & replace for the selected text. */
     onfind?: () => void;
     /** Called with the selected text. Returns the id of the new comment, or null to cancel. */
@@ -229,8 +231,10 @@
         handleDOMEvents: {
           click: (_view, e) => {
             const el = (e.target as HTMLElement).closest?.('[data-ref]');
-            if (!el || !(e.ctrlKey || e.metaKey) || !onopenref) return false;
+            if (!el) return false;
             const [kind, id] = el.getAttribute('data-ref')!.split(':');
+            if (e.altKey && onbeside) { onbeside(kind as LinkKind, +id); return true; }
+            if (!(e.ctrlKey || e.metaKey) || !onopenref) return false;
             onopenref(kind as LinkKind, +id);
             return true;
           },

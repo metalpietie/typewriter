@@ -3,9 +3,15 @@
   import { Exporter } from '../../bindings/typewriter';
   import { db } from '../lib/db.svelte';
   import Backup from '../lib/Backup.svelte';
+  import CoverEditor from '../lib/CoverEditor.svelte';
+  import { getCover } from '../lib/cover';
   import { cleanPages, copyrightStarter, SCENE_BREAKS, CHAPTER_STYLES } from '../lib/exportpages-core';
+  import { scenesOf } from '../lib/scenes';
+  import { synopsisWords, outlineWords, missingSummaries, pagesOf } from '../lib/summary-core';
 
-  let what = $state<'manuscript' | 'bible'>('manuscript');
+  let what = $state<'manuscript' | 'outline' | 'synopsis' | 'bible'>('manuscript');
+  let outlineDetails = $state(false);
+  let outlineEmpty = $state(false);
   let bookId = $state<number>(0);
   let format = $state<'docx' | 'pdf' | 'epub' | 'md'>('docx');
   let pageSize = $state('letter');
@@ -33,6 +39,16 @@
 
   const books = $derived([...db.lists.book].sort((a, b) => a.order - b.order));
 
+  // how long the outline or the synopsis will be, from the summaries of the chosen book (or of all books)
+  const summaries = $derived.by(() => {
+    const chapters = db.lists.chapter.filter((c) => !bookId || c.book === bookId)
+      .map((c) => ({ summary: c.summary as string, scenes: scenesOf(c.id).map((s) => ({ summary: s.summary as string })) }));
+    return { synopsis: synopsisWords(chapters), outline: outlineWords(chapters), missing: missingSummaries(chapters) };
+  });
+  const toBook = $derived(what !== 'bible');
+  // the cover is the cover of the chosen book, or of the first book when all books are chosen
+  const coverBook = $derived(bookId || books[0]?.id || null); // an outline and a synopsis are made for one book or for all
+
   async function run() {
     busy = true; message = ''; failed = false;
     try {
@@ -41,7 +57,8 @@
     } catch { /* these are only conveniences */ }
     try {
       await keepPages();
-      const path = await Exporter.Export(what, what === 'manuscript' ? bookId : 0, format, { author: author.trim(), pageSize, print: format === 'pdf' && print, contents, ...pages });
+      const cover = what === 'manuscript' && coverBook ? (await getCover(coverBook))?.image ?? '' : '';
+      const path = await Exporter.Export(what, toBook ? bookId : 0, format, { author: author.trim(), pageSize, print: format === 'pdf' && print, contents: contents && (what === 'manuscript' || what === 'bible'), ...pages, outlineDetails, outlineEmpty, cover });
       message = path ? `Saved: ${path}` : 'Cancelled.';
     } catch (e: any) {
       failed = true; message = e?.message ?? String(e);
@@ -57,10 +74,14 @@
   <h3 style="margin-top:1.2rem">What to export</h3>
   <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={what} value="manuscript" />
     Manuscript — chapter text, with a title page</label>
+  <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={what} value="outline" />
+    Outline — each chapter and scene with its summary</label>
+  <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={what} value="synopsis" />
+    Synopsis — the story in a few pages, from your summaries (for an agent or an editor)</label>
   <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={what} value="bible" />
     Story bible — characters, relationships, places, lore, timeline</label>
 
-  {#if what === 'manuscript'}
+  {#if what !== 'bible'}
     <label>Author name (on the title page and in the e-book)</label>
     <input bind:value={author} placeholder="Your name" />
     <label>Which book</label>
@@ -87,6 +108,27 @@
       <label for="px-chap">Chapter headings</label>
       <Select id="px-chap" bind:value={pages.chapterStyle} onchange={keepPages}>{#each CHAPTER_STYLES as [key, name]}<option value={key}>{name}</option>{/each}</Select>
     </details>
+    <CoverEditor bookId={coverBook} {author} />
+  {/if}
+
+  {#if what === 'outline' || what === 'synopsis'}
+    <div class="card" style="margin:1rem 0 0">
+      {#if what === 'outline'}
+        <label style="display:flex;gap:.5rem;color:var(--text);margin:0"><input type="checkbox" style="width:auto" bind:checked={outlineDetails} />
+          Add the point of view and the place of each scene</label>
+        <label style="display:flex;gap:.5rem;color:var(--text);margin:.4rem 0 0"><input type="checkbox" style="width:auto" bind:checked={outlineEmpty} />
+          List scenes that have no summary yet</label>
+      {/if}
+      <p class="muted" style="margin:{what === 'outline' ? '.7rem' : '0'} 0 0;font-size:.85rem">
+        {#if what === 'synopsis'}
+          Your summaries make a synopsis of about {summaries.synopsis.toLocaleString()} words ({pagesOf(summaries.synopsis) || 'under 1'} page{pagesOf(summaries.synopsis) === 1 ? '' : 's'}).
+          Each chapter is one paragraph: its own summary, or else the summaries of its scenes joined. Agents often ask for 1 to 2 pages (500 to 1,000 words).
+        {:else}
+          Your summaries come to {summaries.outline.toLocaleString()} words.
+        {/if}
+        {#if summaries.missing}{summaries.missing} scene{summaries.missing === 1 ? ' has' : 's have'} no summary yet. Write it in the Scene panel in the Write tab, or on the Board.{/if}
+      </p>
+    </div>
   {/if}
 
   <h3 style="margin-top:1.2rem">File type</h3>
@@ -95,6 +137,7 @@
   <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={format} value="epub" />E-book (.epub): for e-readers and phones</label>
   <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={format} value="md" />Markdown (.md): plain text with simple marks</label>
 
+  {#if what === 'manuscript' || what === 'bible'}
   <label style="display:flex;gap:.5rem;color:var(--text);margin-top:1rem"><input type="checkbox" style="width:auto" bind:checked={contents} />
     Table of contents after the title page</label>
   {#if contents}
@@ -104,6 +147,7 @@
       {:else if format === 'epub'}A Contents page with a link for each chapter. Your e-reader also has its own list.
       {:else}A list of links to the chapter headings.{/if}
     </p>
+  {/if}
   {/if}
 
   {#if format === 'docx' || format === 'pdf'}

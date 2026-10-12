@@ -25,6 +25,8 @@
   import LookButton from '../lib/LookButton.svelte';
   import SceneTags from '../lib/SceneTags.svelte';
   import MoodBoard from '../lib/MoodBoard.svelte';
+  import ReferencePane from '../lib/ReferencePane.svelte';
+  import { cleanPick, refKindOf, type RefPick } from '../lib/reference-core';
   import RevisionPasses from '../lib/RevisionPasses.svelte';
   import { passesOf, tick } from '../lib/passes';
   import { isDone, summary as passSummary } from '../lib/passes-core';
@@ -58,6 +60,16 @@
     const here = JSON.stringify({ book: bookId, chapter: chapId, scene: sceneId });
     try { localStorage.setItem(LAST, here); } catch { /* fine without it */ }
   });
+
+  // The reference pane: something pinned next to the text. Its choice is kept on this computer.
+  const REF_KEY = 'typewriter-reference';
+  let ref = $state<RefPick>(cleanPick((() => { try { return JSON.parse(localStorage.getItem(REF_KEY) ?? 'null'); } catch { return null; } })()));
+  $effect(() => { try { localStorage.setItem(REF_KEY, JSON.stringify(ref)); } catch { /* fine without it */ } });
+  /** Show an item beside the text (Alt+click on an @ link does this). */
+  function showBeside(kind: string, id: number) {
+    const k = refKindOf(kind);
+    if (k) ref = { kind: k, id, open: true };
+  }
 
   let showFind = $state(false);
   let showHistory = $state(false);
@@ -329,7 +341,7 @@
 <svelte:window onkeydown={onKey} />
 <svelte:head>{@html `<style>${resolvedCss}</style>`}</svelte:head>
 
-<div class="split wide" class:focus={nav.focus}>
+<div class="split wide" class:focus={nav.focus} class:withref={ref.open && !nav.focus}>
   <aside class="side">
     <div class="row"><Select bind:value={bookId} onchange={() => pickChapter(null)}>
       <option value={null}>— choose a book —</option>
@@ -403,6 +415,7 @@
       <div class="tools">
         <button class="small" onclick={() => (showFind = true)}>Find &amp; replace <kbd>Ctrl+H</kbd></button>
         <LookButton />
+        <button class="small" class:active={ref.open} title="Pin a scene, note, character or place next to your text" onclick={() => (ref = { ...ref, open: !ref.open })}>Reference</button>
         {#if scene}<button class="small" onclick={() => (showHistory = true)}>History</button>{/if}
         {#if scene}<button class="small" title="Split this scene in two at the cursor" onclick={splitHere}>Split here</button>{/if}
         {#if scene && sceneAfter(scene)}<ConfirmButton label="Merge with next" onconfirm={mergeNext} />{/if}
@@ -416,7 +429,7 @@
         <input class="scenetitle" bind:value={scene.title} oninput={saveScene} placeholder="Scene title (only you see this)" />
       {/if}
       {#key scene.id + ':' + rev}
-        <RichEditor bind:this={rich} bare={nav.focus} onfind={() => (showFind = true)} source={[book?.title, sceneLabel(scene)].filter(Boolean).join(', ')} onopenref={(k, id) => { db.flush(); openItem(k, id); }} oncomment={newComment} onfocuscomment={(id) => { if (id) activeComment = id; }} value={toHtml(scene.body ?? '')}
+        <RichEditor bind:this={rich} bare={nav.focus} onfind={() => (showFind = true)} onbeside={showBeside} source={[book?.title, sceneLabel(scene)].filter(Boolean).join(', ')} onopenref={(k, id) => { db.flush(); openItem(k, id); }} oncomment={newComment} onfocuscomment={(id) => { if (id) activeComment = id; }} value={toHtml(scene.body ?? '')}
           onchange={(html) => { const before = scene.body ?? ''; scene.body = html; saveScene(); maybeAutoVersion(scene.id, before); addWords(wordCount(html) - wordCount(before)); }} />
       {/key}
       {@const words = sceneWords(scene)}
@@ -440,6 +453,10 @@
       <div class="empty">{book ? 'Pick a chapter, or add one.' : 'Add a book to begin.'}</div>
     {/if}
   </section>
+
+  {#if ref.open && !nav.focus}
+    <ReferencePane bind:pick={ref} hereScene={sceneId} onclose={() => (ref = { ...ref, open: false })} />
+  {/if}
 
   <aside class="side right">
     {#if scene}

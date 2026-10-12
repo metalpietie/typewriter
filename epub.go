@@ -59,6 +59,8 @@ p.subtitle, p.author { text-align: center; font-style: italic; margin-top: .8em;
 p.toc { text-indent: 0; margin: .5em 0; }
 p.toc.l1 { margin-left: 1.5em; }
 p.toc a { text-decoration: none; color: inherit; }
+div.cover { text-align: center; margin: 0; }
+div.cover img { max-width: 100%; max-height: 100vh; }
 p.rule { text-align: center; text-indent: 0; margin: 1.2em 0; }
 p.center { text-align: center; text-indent: 0; margin: 0 0 .6em; }
 blockquote { margin: .8em 1.5em; font-style: italic; }
@@ -68,6 +70,11 @@ blockquote p { text-indent: 0; }
 
 // buildEPUB writes an EPUB 3 e-book. Each title and each chapter heading starts a new page file.
 func buildEPUB(blocks []block, title, author string) ([]byte, error) {
+	return buildEPUBWithCover(blocks, title, author, nil)
+}
+
+// buildEPUBWithCover is buildEPUB with a cover. The cover is the first page, and e-readers show it in the library.
+func buildEPUBWithCover(blocks []block, title, author string, cover *coverData) ([]byte, error) {
 	var parts []*epubPart
 	var cur *epubPart
 	start := func(label string) *epubPart {
@@ -163,6 +170,11 @@ func buildEPUB(blocks []block, title, author string) ([]byte, error) {
 			tocPart.body.WriteString(fmt.Sprintf(`<p class="toc l%d"><a href="%s">%s</a></p>`+"\n", it.level, file, xhtmlEsc(it.text)))
 		}
 	}
+	if cover != nil {
+		cp := &epubPart{file: "cover.xhtml", label: "Cover"}
+		cp.body.WriteString(`<div class="cover"><img src="images/cover.jpg" alt="Cover"/></div>` + "\n")
+		parts = append([]*epubPart{cp}, parts...)
+	}
 	for _, p := range parts {
 		if strings.TrimSpace(p.label) == "" {
 			p.label = "Untitled"
@@ -185,6 +197,11 @@ func buildEPUB(blocks []block, title, author string) ([]byte, error) {
 		creator = "<dc:creator>" + xhtmlEsc(strings.TrimSpace(author)) + "</dc:creator>\n"
 	}
 
+	coverItem, coverMeta := "", ""
+	if cover != nil {
+		coverItem = `<item id="cover-image" href="images/cover.jpg" media-type="image/jpeg" properties="cover-image"/>` + "\n"
+		coverMeta = `<meta name="cover" content="cover-image"/>` + "\n"
+	}
 	files := []struct {
 		name, data string
 		store      bool
@@ -195,14 +212,14 @@ func buildEPUB(blocks []block, title, author string) ([]byte, error) {
 <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
 <dc:identifier id="bookid">urn:uuid:` + id + `</dc:identifier>
 <dc:title>` + xhtmlEsc(title) + `</dc:title>
-` + creator + `<dc:language>en</dc:language>
+` + creator + coverMeta + `<dc:language>en</dc:language>
 <meta property="dcterms:modified">` + now + `</meta>
 </metadata>
 <manifest>
 <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>
 <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
 <item id="css" href="style.css" media-type="text/css"/>
-` + manifest.String() + `</manifest>
+` + coverItem + manifest.String() + `</manifest>
 <spine toc="ncx">
 ` + spine.String() + `</spine>
 </package>`, false},
@@ -222,6 +239,13 @@ func buildEPUB(blocks []block, title, author string) ([]byte, error) {
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head><meta charset="utf-8"/><title>` + xhtmlEsc(p.label) + `</title><link rel="stylesheet" type="text/css" href="style.css"/></head>
 <body>
 ` + p.body.String() + `</body></html>`, false})
+	}
+
+	if cover != nil {
+		files = append(files, struct {
+			name, data string
+			store      bool
+		}{"OEBPS/images/cover.jpg", string(cover.jpeg), true})
 	}
 
 	var buf bytes.Buffer

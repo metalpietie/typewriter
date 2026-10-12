@@ -143,6 +143,16 @@ A pass is one round of revising a book: plot, characters, dialogue, line edit, p
 
 Deleting a pass takes its ticks off the scenes. Passes go with the book when you delete it.
 
+### Reference pane
+
+Press **Reference** above the text to pin something next to your writing, so you can read it while you write. It only shows. It does not change anything.
+
+- Pick what to show: a **Scene**, a **Notes page**, a **Character**, a **Place** or a **Lore note**. Then pick which one. It stays there when you change scene.
+- **Open** goes to the full screen of that item, where you can change it. **✕** closes the pane.
+- **Alt+click** on an `@` link in your text shows that character, place or note in the pane. (**Ctrl+click** still opens it in its own tab.)
+- Focus mode hides the pane. It comes back when you leave focus mode.
+- Your choice belongs to this computer, not to the project, so it is not in your backups.
+
 ### Focus mode
 
 Press **F11** (or **Ctrl+Shift+F**, or the **Focus mode** button) to hide every menu and panel. You see only the text. The window goes full screen. A small word count and save status sit in the corner. Press **Esc** to leave.
@@ -586,7 +596,7 @@ Every result shows what kind it is. Typos are only allowed in short text such as
 
 1. Open **Export**.
 2. Choose **Manuscript** (a title page, then each chapter on a new page, with your bold, italic, underline, headings, lists and quotes) or **Story bible** (characters, relationships, places, glossary, factions, items, lore, timeline).
-3. For a manuscript, pick one book or the whole series.
+3. For a manuscript, an outline or a synopsis, pick one book or the whole series.
 4. Type your **author name** if you want it on the title page. The app remembers it.
 5. Leave **Table of contents** ticked if you want one after the title page. The app remembers your choice.
 6. Choose a file type, press **Export…**, and pick where to save.
@@ -621,6 +631,25 @@ PDF uses standard fonts. Letters outside Western languages may show as `?`. Use 
 - **Word:** each line is a link to the chapter. Word does not tell the app which page a chapter lands on, so the lines have no page numbers.
 - **E-book:** a Contents page with a link for each chapter.
 - **Markdown:** a list of links to the chapter headings.
+
+### Outline and synopsis
+
+Instead of the whole text, you can export what you wrote in the **summary** boxes of your chapters and scenes. Pick **Outline** or **Synopsis** under **What to export**.
+
+- **Outline:** each chapter (with its summary), and under it each scene with its summary. You can add the point of view and the place of each scene, and list the scenes that have no summary yet.
+- **Synopsis:** the story in running text, with no headings. Each chapter is one paragraph: its own summary, or else the summaries of its scenes joined. This is what an agent or an editor asks for. The screen tells you how many words and pages it will be (an agent often asks for 1 to 2 pages, about 500 to 1,000 words) and how many scenes still have no summary.
+- Both can be saved as Word, PDF, e-book or Markdown. They use your author name and, for the outline, your **Chapter headings** choice.
+- Write the summaries in the **Scene** panel of the Write tab (and the chapter summary in the **Chapter** panel), or on the **Board**.
+
+### Cover
+
+Open **Cover** on the Export screen (manuscripts only). Each book has its own cover. When you pick **All books**, the cover of the first book is used.
+
+- **Choose a picture…** uses a picture you have. It is made smaller (at most 2,400 pixels on the long side) and kept in the project.
+- **Make a cover…** makes a simple cover from a template: **Classic** (a frame, the title in the middle), **Modern** (a big title on the left) or **Band** (a coloured band across the cover). Type the title, a subtitle and the author. Pick the colours. You can add a background picture and darken it. Press **Use this cover** to keep it. **Change the cover…** opens it again with your choices.
+- **Remove** takes the cover away.
+- The cover is the first page of the Word file, the PDF and the e-book (e-readers show it in the library). A Markdown file has no cover. A print-ready PDF (**Print layout**) has none either, because a printer wants the cover as its own file.
+- The cover is part of your data, so it is in backups. It goes away with its book, and **Undo** brings it back.
 
 ### Pages and style
 

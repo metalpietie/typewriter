@@ -76,7 +76,7 @@ func nameOf(list []rec, id float64, field string) string {
 }
 
 // Export asks where to save, then writes the file.
-// what is "manuscript" or "bible". format is "docx", "pdf", "epub" or "md".
+// what is "manuscript", "outline", "synopsis" or "bible". format is "docx", "pdf", "epub" or "md".
 // bookID 0 means every book. It returns the saved path, or "" if you cancel.
 func (e *Exporter) Export(what string, bookID int64, format string, opts ExportOptions) (string, error) {
 	filters := map[string]string{
@@ -87,11 +87,19 @@ func (e *Exporter) Export(what string, bookID int64, format string, opts ExportO
 	if !ok {
 		return "", fmt.Errorf("unknown format %q", format)
 	}
+	if what != "manuscript" {
+		opts.Cover = "" // only a manuscript has a cover
+	}
 	var blocks []block
 	name := "Story bible"
 	switch what {
 	case "manuscript":
 		blocks, name = e.manuscript(bookID, opts)
+		if len(blocks) == 0 {
+			return "", fmt.Errorf("nothing to export yet: add a book and chapters first")
+		}
+	case "outline", "synopsis":
+		blocks, name = e.outline(what, bookID, opts)
 		if len(blocks) == 0 {
 			return "", fmt.Errorf("nothing to export yet: add a book and chapters first")
 		}
@@ -126,7 +134,7 @@ func (e *Exporter) Export(what string, bookID int64, format string, opts ExportO
 	case "pdf":
 		data, err = buildPDF(blocks, opts)
 	case "epub":
-		data, err = buildEPUB(blocks, name, opts.Author)
+		data, err = buildEPUBWithCover(blocks, name, opts.Author, decodeCover(opts.Cover))
 	case "md":
 		data = buildMarkdown(blocks)
 	}
@@ -510,9 +518,14 @@ func buildDocx(blocks []block, opts ExportOptions) ([]byte, error) {
 			body.WriteString(`<w:p>` + props + runsOf(b) + `</w:p>`)
 		}
 	}
+	cover := decodeCover(opts.Cover)
+	coverXML := ""
+	if cover != nil {
+		coverXML = docxCover(cover, sz.w-2*sz.margin(), sz.h-2*sz.margin()-10)
+	}
 	doc := `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>` +
-		body.String() +
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"><w:body>` +
+		coverXML + body.String() +
 		fmt.Sprintf(`<w:sectPr><w:pgSz w:w="%d" w:h="%d"/><w:pgMar w:top="%d" w:right="%d" w:bottom="%d" w:left="%d" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr></w:body></w:document>`,
 			twips(sz.w), twips(sz.h), m, m, m, m)
 
@@ -541,6 +554,17 @@ func buildDocx(blocks []block, opts ExportOptions) ([]byte, error) {
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
 		{"word/styles.xml", styles},
 		{"word/document.xml", doc},
+	}
+	if cover != nil {
+		for i := range files {
+			switch files[i].name {
+			case "[Content_Types].xml":
+				files[i].data = strings.Replace(files[i].data, `<Default Extension="xml"`, `<Default Extension="jpg" ContentType="image/jpeg"/><Default Extension="xml"`, 1)
+			case "word/_rels/document.xml.rels":
+				files[i].data = strings.Replace(files[i].data, `</Relationships>`, `<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/cover.jpg"/></Relationships>`, 1)
+			}
+		}
+		files = append(files, struct{ name, data string }{"word/media/cover.jpg", string(cover.jpeg)})
 	}
 	var buf bytes.Buffer
 	zw := zip.NewWriter(&buf)

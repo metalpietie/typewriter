@@ -34,7 +34,7 @@ type Store struct {
 var kinds = map[string]bool{
 	"book": true, "chapter": true, "character": true, "relationship": true,
 	"location": true, "map": true, "pathpoint": true, "note": true, "event": true, "mapdoc": true, "scene": true, "version": true, "comment": true,
-	"faction": true, "membership": true, "factionrel": true, "item": true, "itemlog": true, "plotignore": true, "wordday": true, "todo": true, "setting": true, "region": true, "draft": true, "arc": true, "arcscene": true, "term": true, "snapshot": true, "pass": true, "mood": true,
+	"faction": true, "membership": true, "factionrel": true, "item": true, "itemlog": true, "plotignore": true, "wordday": true, "todo": true, "setting": true, "region": true, "draft": true, "arc": true, "arcscene": true, "term": true, "snapshot": true, "pass": true, "mood": true, "cover": true,
 }
 
 // cascades lists, per kind, the JSON links that must go when that item is deleted.
@@ -44,7 +44,7 @@ var cascades = map[string][][2]string{
 	"faction":   {{"membership", "faction"}, {"factionrel", "a"}, {"factionrel", "b"}},
 	"item":      {{"itemlog", "item"}},
 	"map":       {{"pathpoint", "map"}, {"mapdoc", "map"}, {"region", "map"}},
-	"book":      {{"chapter", "book"}, {"scene", "book"}, {"snapshot", "book"}, {"pass", "book"}},
+	"book":      {{"chapter", "book"}, {"scene", "book"}, {"snapshot", "book"}, {"pass", "book"}, {"cover", "book"}},
 	"chapter":   {{"scene", "chapter"}},
 	"scene":     {{"version", "scene"}, {"comment", "scene"}, {"arcscene", "scene"}, {"mood", "owner"}},
 	"arc":       {{"arcscene", "arc"}},

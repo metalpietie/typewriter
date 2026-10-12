@@ -107,6 +107,22 @@ export interface ExportOptions {
      * "full" (the default), "title", "number" or "plain"
      */
     "chapterStyle": string;
+
+    /**
+     * a JPEG as a data URL, for the first page of a manuscript. Empty means no cover.
+     */
+    "cover": string;
+
+    /**
+     * The outline (what is "outline")
+     * add the point of view and the place of each scene
+     */
+    "outlineDetails": boolean;
+
+    /**
+     * list scenes that have no summary yet
+     */
+    "outlineEmpty": boolean;
 }
 
 /**

@@ -30,6 +30,9 @@ Nothing open here.
 
 ## Done
 
+- [x] Reference pane: pin a scene, note, character or place next to your text
+- [x] Cover for the Word file, the PDF and the e-book: choose a picture or make one from a template
+- [x] Outline and synopsis export, made from your chapter and scene summaries
 - [x] A better name generator: 12 styles, female and male names, family names, bynames and homes, kinds of places (town, kingdom, wild place, inn), a starting letter, and favourites
 - [x] Animations: button ripples, menus and windows that animate in and out, page transitions, a sliding menu highlight, count-up numbers, and an Off / Calm / Smooth / Lively choice
 - [x] Split a scene at the cursor, and merge a scene with the next one

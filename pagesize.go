@@ -16,6 +16,12 @@ type ExportOptions struct {
 	About        string `json:"about"`        // about the author, at the very end
 	SceneBreak   string `json:"sceneBreak"`   // "stars" (the default), "hash", "dashes" or "blank"
 	ChapterStyle string `json:"chapterStyle"` // "full" (the default), "title", "number" or "plain"
+
+	Cover string `json:"cover"` // a JPEG as a data URL, for the first page of a manuscript. Empty means no cover.
+
+	// The outline (what is "outline")
+	OutlineDetails bool `json:"outlineDetails"` // add the point of view and the place of each scene
+	OutlineEmpty   bool `json:"outlineEmpty"`   // list scenes that have no summary yet
 }
 
 // pageSize is a paper size in millimetres.
