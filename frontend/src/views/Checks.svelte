@@ -8,10 +8,19 @@
   import { findRepeats } from '../lib/repeats';
   import StyleCheck from '../lib/StyleCheck.svelte';
   import LooseCharacters from '../lib/LooseCharacters.svelte';
+  import { has, word } from '../lib/projecttype.svelte';
+  import { sourceProblems } from '../lib/sourcecheck';
+  import { sourceLine } from '../lib/cite-core';
 
   let showDismissed = $state(false);
   let help = $state(false);
-  let tab = $state<'holes' | 'gaps' | 'names' | 'repeats' | 'style' | 'loose'>('holes');
+  let tab = $state<'holes' | 'gaps' | 'names' | 'repeats' | 'style' | 'loose' | 'sources'>(has('characters') ? 'holes' : 'gaps');
+  // a tab of a tool that is switched off is not shown, so leave it
+  $effect(() => { if (!has('characters') && (tab === 'holes' || tab === 'loose')) tab = 'gaps'; });
+  $effect(() => { if (!has('sources') && tab === 'sources') tab = 'gaps'; });
+  // the check of sources reads the whole book, so it runs only while its tab is open
+  const srcCheck = $derived(tab === 'sources' ? sourceProblems() : null);
+  const srcCount = $derived(has('sources') ? (() => { const p = sourceProblems(); return p.claims.length + p.dead.length; })() : 0);
   let showHiddenGaps = $state(false);
 
   const gaps = $derived(findGaps());
@@ -112,22 +121,49 @@
 
 <section class="pane">
   <div class="tabs">
-    <button class:active={tab === 'holes'} onclick={() => (tab = 'holes')}>Plot holes{open.length ? ' · ' + open.length : ''}</button>
+    {#if has('characters')}<button class:active={tab === 'holes'} onclick={() => (tab = 'holes')}>Plot holes{open.length ? ' · ' + open.length : ''}</button>{/if}
     <button class:active={tab === 'gaps'} onclick={() => (tab = 'gaps')}>Unfinished{openGapList.length ? ' · ' + openGapList.length : ''}</button>
     <button class:active={tab === 'names'} onclick={() => (tab = 'names')}>Names{tab === 'names' && openNames.length ? ' · ' + openNames.length : ''}</button>
     <button class:active={tab === 'repeats'} onclick={() => (tab = 'repeats')}>Repeats{tab === 'repeats' && openClose.length + openStarts.length ? ' · ' + (openClose.length + openStarts.length) : ''}</button>
     <button class:active={tab === 'style'} onclick={() => (tab = 'style')}>Style</button>
-    <button class:active={tab === 'loose'} onclick={() => (tab = 'loose')}>Loose characters</button>
+    {#if has('sources')}<button class:active={tab === 'sources'} onclick={() => (tab = 'sources')}>Sources{srcCount ? ' · ' + srcCount : ''}</button>{/if}
+    {#if has('characters')}<button class:active={tab === 'loose'} onclick={() => (tab = 'loose')}>Loose characters</button>{/if}
   </div>
 
-  {#if tab === 'loose'}
+  {#if tab === 'sources'}
+    <p class="muted">
+      Checks the sources of your book. Mark a claim with <b>Needs a source</b> in the Write tab, and it shows here until a citation follows it in the same paragraph.
+      A word that is spelled two ways is on the <b>Names</b> tab, which uses your Glossary.
+    </p>
+    {#if srcCheck}
+      <div class="card">
+        <h3>Claims that need a source · {srcCheck.claims.length}</h3>
+        {#each srcCheck.claims as c, i (c.id + ':' + i)}
+          <div class="gap"><button class="row-link" onclick={() => openScene(c.id)} title="Open the {word('scene')}"><span class="t"><mark>{c.text}</mark> <span class="muted">{c.label}</span></span></button></div>
+        {:else}<div class="muted">Every marked claim has a citation. Nice.</div>{/each}
+      </div>
+      <div class="card">
+        <h3>Citations of a source that is gone · {srcCheck.dead.length}</h3>
+        {#each srcCheck.dead as d, i (d.id + ':' + d.source + ':' + i)}
+          <div class="gap"><button class="row-link" onclick={() => openScene(d.id)}><span class="t">{d.label} <span class="muted">cites a source that is gone ({d.times}×). It shows as [?] in an export.</span></span></button></div>
+        {:else}<div class="muted">None.</div>{/each}
+      </div>
+      <div class="card">
+        <h3>Sources that you never cited · {srcCheck.unused.length}</h3>
+        {#each srcCheck.unused as id (id)}
+          {@const s = db.get('source', id)}
+          {#if s}<div class="gap"><button class="row-link" onclick={() => openItem('source', id)}><span class="t"><b>{sourceLine(s)}</b> <span class="muted">is not cited yet</span></span></button></div>{/if}
+        {:else}<div class="muted">Every source is cited.</div>{/each}
+      </div>
+    {/if}
+  {:else if tab === 'loose'}
     <LooseCharacters />
   {:else if tab === 'style'}
     <StyleCheck />
   {:else if tab === 'repeats'}
     <p class="muted">
       Finds words that come back too soon, sentences that start the same way, and the words you use most.
-      It reads your scenes. Names from your Characters, Places, Factions and Items are left out, and so are everyday words.
+      It reads your {word('scenes')}. {has('characters') ? 'Names from your Characters, Places, Factions and Items are left out, and so are everyday words.' : 'Everyday words are left out.'}
       Press <b>Skip</b> if a repeat is on purpose.
     </p>
     <div class="row" style="justify-content:flex-start;margin-bottom:.6rem">
@@ -144,7 +180,7 @@
     </div>
 
     {#if rPart === 'top'}
-      <p class="muted">The words used most, out of {reps?.words.toLocaleString() ?? 0} words in {reps?.scenes ?? 0} scene{reps?.scenes === 1 ? '' : 's'}. A word used a lot is not always wrong. Look for words that surprise you.</p>
+      <p class="muted">The words used most, out of {reps?.words.toLocaleString() ?? 0} words in {reps?.scenes ?? 0} {reps?.scenes === 1 ? word('scene') : word('scenes')}. A word used a lot is not always wrong. Look for words that surprise you.</p>
       {#each reps?.top ?? [] as t (t.word)}
         <div class="topw"><b>{t.word}</b><span class="bar" style:width={Math.max(4, (t.count / (reps?.top[0].count || 1)) * 100) + '%'}></span><span class="muted">{t.count} · {t.per1000} per 1,000</span></div>
       {:else}
@@ -159,11 +195,11 @@
       {@const cards = rPart === 'close' ? closeCards : startCards}
       {#each showAllCards ? cards : cards.slice(0, CARD_LIMIT) as c (c.id)}
         <div class="card">
-          <button class="row-link" onclick={() => openScene(c.id)} title="Open the scene"><span class="t"><b>{c.label}</b></span></button>
+          <button class="row-link" onclick={() => openScene(c.id)} title="Open the {word('scene')}"><span class="t"><b>{c.label}</b></span></button>
           {#each c.rows as r (r.key)}
             {@const x = snip(r.snippet)}
             <div class="gap">
-              <button class="row-link" onclick={() => openScene(c.id)} title="Open the scene">
+              <button class="row-link" onclick={() => openScene(c.id)} title="Open the {word('scene')}">
                 <span class="chip">{r.word}{'times' in r ? ' · ' + r.times + '×' : ' · ' + r.run + ' in a row'}</span>
                 <span class="t">{#each x as p}{#if p.hit}<mark>{p.t}</mark>{:else}{p.t}{/if}{/each}</span>
               </button>
@@ -172,10 +208,10 @@
           {/each}
         </div>
       {:else}
-        <div class="empty">{(reps?.scenes ?? 0) ? 'Nothing found. Nice.' : 'Nothing to check yet. Write some scenes first.'}</div>
+        <div class="empty">{(reps?.scenes ?? 0) ? 'Nothing found. Nice.' : `Nothing to check yet. Write some ${word('scenes')} first.`}</div>
       {/each}
       {#if !showAllCards && cards.length > CARD_LIMIT}
-        <button class="small" onclick={() => (showAllCards = true)}>Show the other {cards.length - CARD_LIMIT} scenes</button>
+        <button class="small" onclick={() => (showAllCards = true)}>Show the other {cards.length - CARD_LIMIT} {word('scenes')}</button>
       {/if}
     {/if}
 
@@ -196,8 +232,7 @@
     {/if}
   {:else if tab === 'names'}
     <p class="muted">
-      Finds a name or a made-up word that is spelled two ways. It looks for a capitalised word that is almost a name from your Characters, Places, Factions or Items,
-      for a word that is almost one of your Glossary words, and for a rare word that is almost a name you use often in the text. It reads your scenes only.
+      Finds a name or a special word that is spelled two ways. {has('characters') ? 'It looks for a capitalised word that is almost a name from your Characters, Places, Factions or Items, for a word that is almost one of your Glossary words, and for a rare word that is almost a name you use often in the text.' : 'It looks for a word that is almost one of your Glossary words, and for a rare word that is almost a name you use often in the text.'} It reads your {word('scenes')} only.
       Press <b>Skip</b> if the word is right (for example a different person with a close name).
     </p>
     {#if nameMsg}<p style="color:var(--ok)">{nameMsg}</p>{/if}
@@ -220,7 +255,7 @@
         {/each}
       </div>
     {:else}
-      <div class="empty">{db.lists.scene.length ? 'No names look misspelled.' : 'Nothing to check yet. Write some scenes first.'}</div>
+      <div class="empty">{db.lists.scene.length ? 'No names look misspelled.' : `Nothing to check yet. Write some ${word('scenes')} first.`}</div>
     {/each}
     {#if hiddenNames.length}
       <button class="small" style="margin-top:1rem" onclick={() => (showHiddenNames = !showHiddenNames)}>
@@ -238,10 +273,10 @@
       {/if}
     {/if}
   {:else if tab === 'gaps'}
-    <p class="muted">Things that look unfinished. Open one to fix it. Press <b>Skip</b> if it is fine as it is (for example a character with no age on purpose).</p>
+    <p class="muted">Things that look unfinished. Open one to fix it. Press <b>Skip</b> if it is fine as it is {has('characters') ? '(for example a character with no age on purpose)' : ''}.</p>
     {#each gapGroups as g (g.name)}
       <div class="card">
-        <h3>{g.name} · {g.rows.length}</h3>
+        <h3>{g.name === 'Scenes' ? word('Scenes') : g.name} · {g.rows.length}</h3>
         {#each g.rows as r (r.key)}
           <div class="gap">
             <button class="row-link" onclick={() => fix(r)} title="Open it"><span class="t"><b>{r.name}</b> {r.problem}</span></button>
@@ -250,7 +285,7 @@
         {/each}
       </div>
     {:else}
-      <div class="empty">{gaps.length ? 'Everything is done or skipped.' : 'Nothing to check yet. Add characters, places and scenes first.'}</div>
+      <div class="empty">{gaps.length ? 'Everything is done or skipped.' : has('characters') ? 'Nothing to check yet. Add characters, places and scenes first.' : `Nothing to check yet. Add some ${word('scenes')} first.`}</div>
     {/each}
     {#if hiddenGapList.length}
       <button class="small" style="margin-top:1rem" onclick={() => (showHiddenGaps = !showHiddenGaps)}>

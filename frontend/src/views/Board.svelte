@@ -3,6 +3,7 @@
   import { flip } from 'svelte/animate';
   import { db } from '../lib/db.svelte';
   import { openScene } from '../lib/nav.svelte';
+  import { has, word } from '../lib/projecttype.svelte';
   import { STATUSES, scenesOf, sceneWords, chapterWords, addScene } from '../lib/scenes';
   import ProgressBar from '../lib/ProgressBar.svelte';
   import { arcsOfScene } from '../lib/arcs';
@@ -176,13 +177,13 @@
 
 <section class="pane boardpane">
   <div class="top">
-    <h2 style="margin:0">Board</h2>
+    <h2 style="margin:0">{word('Board')}</h2>
     <Select aria-label="Book" bind:value={pick}>
       {#each books as b}<option value={b.id}>{b.order}. {b.title}</option>{/each}
     </Select>
     {#if bookTags.length}
-      <Select aria-label="Show scenes with a tag" bind:value={tagFilter}>
-        <option value="">All scenes</option>
+      <Select aria-label="Show {word('scenes')} with a tag" bind:value={tagFilter}>
+        <option value="">All {word('scenes')}</option>
         {#each bookTags as [t, n]}<option value={t}>Tag: {t} ({n})</option>{/each}
       </Select>
     {/if}
@@ -191,16 +192,18 @@
         <option value={null}>Revision pass: none</option>
         {#each bookPasses as p}<option value={p.id}>Pass: {p.name}</option>{/each}
       </Select>
-      {#if pass}<label class="hd"><input type="checkbox" bind:checked={hideDone} /> Hide scenes that are done</label>{/if}
+      {#if pass}<label class="hd"><input type="checkbox" bind:checked={hideDone} /> Hide {word('scenes')} that are done</label>{/if}
     {/if}
+    {#if has('characters')}
     <div class="seg">
       <button class:active={colour === 'status'} onclick={() => (colour = 'status')}>Colour by status</button>
       <button class:active={colour === 'pov'} onclick={() => (colour = 'pov')}>Colour by point of view</button>
     </div>
+    {/if}
     <span class="muted">{total.toLocaleString()} words</span>
   </div>
   <p class="muted" style="margin:.3rem 0 .6rem;font-size:.85rem">
-    One card for each scene. Drag the grip <b>⠿</b> on a card to put it in another place or another chapter. Drag the grip next to a chapter's title to move the whole chapter. Click a card's title to write that scene.
+    One card for each {word('scene')}. Drag the grip <b>⠿</b> on a card to put it in another place or another chapter. Drag the grip next to a chapter's title to move the whole chapter. Click a card's title to write that {word('scene')}.
   </p>
 
   {#if !book}
@@ -219,7 +222,7 @@
                 onpointerdown={(e) => startDrag(e, { type: 'chapter', id: c.id, label: c.title || 'Chapter' })}>⠿</span>
               <input class="ctitle" aria-label="Chapter title" bind:value={c.title} oninput={() => saveChap(c)} />
             </div>
-            <div class="muted small">{c.order}. {scenes.length} scene{scenes.length === 1 ? '' : 's'}{pass ? ' (' + all.filter((s) => !isDone(s, pass.id)).length + ' to do)' : ''} · {words.toLocaleString()}{goalOf(c) ? ' / ' + goalOf(c).toLocaleString() : ''} words</div>
+            <div class="muted small">{c.order}. {scenes.length} {scenes.length === 1 ? word('scene') : word('scenes')}{pass ? ' (' + all.filter((s) => !isDone(s, pass.id)).length + ' to do)' : ''} · {words.toLocaleString()}{goalOf(c) ? ' / ' + goalOf(c).toLocaleString() : ''} words</div>
             {#if goalOf(c)}<div style="margin-top:.2rem"><ProgressBar value={words} goal={goalOf(c)} thin /></div>{/if}
           </div>
           <div class="cards">
@@ -228,23 +231,23 @@
                 style:border-left-color={barColour(s)} data-scene={s.id} animate:flip={{ duration: 200 }}>
                 <div class="hrow">
                   {#if pass}<input class="pk" type="checkbox" checked={isDone(s, pass.id)} title="Done in the pass: {pass.name}" aria-label="Done in the pass {pass.name}" onchange={() => tick(s, pass.id)} />{/if}
-                  <button class="title" title="Write this scene" onclick={() => { if (!suppressClick) openScene(s.id); }}>{s.title || 'Untitled scene'}</button>
-                  <span class="grip" role="button" tabindex="-1" title="Drag to move this scene" aria-label="Drag to move this scene"
-                    onpointerdown={(e) => startDrag(e, { type: 'scene', id: s.id, label: s.title || 'Untitled scene' })}>⠿</span>
+                  <button class="title" title="Write this {word('scene')}" onclick={() => { if (!suppressClick) openScene(s.id); }}>{s.title || 'Untitled ' + word('scene')}</button>
+                  <span class="grip" role="button" tabindex="-1" title="Drag to move this {word('scene')}" aria-label="Drag to move this {word('scene')}"
+                    onpointerdown={(e) => startDrag(e, { type: 'scene', id: s.id, label: s.title || 'Untitled ' + word('scene') })}>⠿</span>
                 </div>
-                <textarea rows="3" placeholder="What happens in this scene?" aria-label="Summary" bind:value={s.summary} oninput={() => saveScene(s)}></textarea>
+                <textarea rows="3" placeholder={word('summaryhint')} aria-label={word('Summary')} bind:value={s.summary} oninput={() => saveScene(s)}></textarea>
                 <div class="foot muted">
                   <Select class="st" aria-label="Status" bind:value={s.status} onchange={() => saveScene(s)}>{#each STATUSES as t}<option>{t}</option>{/each}</Select>
                   {#if bookPasses.length && !pass}<span class="tag" title="Revision passes done">{passSummary(s, bookPasses).done}/{bookPasses.length} passes</span>{/if}
                   {#each tagsOf(s) as t (t)}<span class="tag hash" title="Tag">#{t}</span>{/each}
-                  {#each arcsOfScene(s.id) as a (a.id)}<span class="adot" style:background={a.color} title="Arc: {a.name}"></span>{/each}
-                  {#if povOf(s)}<span class="tag" title="Point of view">{povOf(s)}</span>{/if}
-                  {#if placeOf(s)}<span class="tag" title="Place">{placeOf(s)}</span>{/if}
+                  {#each has('arcs') ? arcsOfScene(s.id) : [] as a (a.id)}<span class="adot" style:background={a.color} title="Arc: {a.name}"></span>{/each}
+                  {#if has('characters') && povOf(s)}<span class="tag" title="Point of view">{povOf(s)}</span>{/if}
+                  {#if has('world') && placeOf(s)}<span class="tag" title="Place">{placeOf(s)}</span>{/if}
                   <span class="fit">{sceneWords(s).toLocaleString()} words</span>
                 </div>
               </div>
             {/each}
-            <button class="small addscene" onclick={() => newScene(c)}>+ Scene</button>
+            <button class="small addscene" onclick={() => newScene(c)}>+ {word('Scene')}</button>
           </div>
         </div>
       {/each}

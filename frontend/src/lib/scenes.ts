@@ -1,4 +1,5 @@
 import { db, wordCount, type Item } from './db.svelte';
+import { word } from './projecttype.svelte';
 
 export const STATUSES = ['idea', 'draft', 'revised', 'final'];
 
@@ -36,13 +37,13 @@ export function chapterHasPov(c: Item, characterId: number): boolean {
 export function sceneLabel(s: Item): string {
   const c = db.get('chapter', s.chapter);
   const n = scenesOf(s.chapter).findIndex((x) => x.id === s.id) + 1;
-  return `${c ? `ch. ${c.order}` : 'ch. ?'}, scene ${n}${s.title ? ': ' + s.title : ''}`;
+  return `${c ? `ch. ${c.order}` : 'ch. ?'}, ${word('scene')} ${n}${s.title ? ': ' + s.title : ''}`;
 }
 
 export async function addScene(chapter: Item, fields: Record<string, unknown> = {}): Promise<Item> {
   const n = scenesOf(chapter.id).length + 1;
   return db.save('scene', {
-    chapter: chapter.id, book: chapter.book, order: n, title: `Scene ${n}`, body: '', summary: '',
+    chapter: chapter.id, book: chapter.book, order: n, title: `${word('Scene')} ${n}`, body: '', summary: '',
     status: 'draft', tags: [], pov: null, location: null, characters: [], when: '', time: null, goal: null,
     ...fields,
   });
@@ -59,7 +60,7 @@ export async function migrateChapters() {
     const hasInfo = !!(c.pov || c.location || (c.characters ?? []).length || c.when || c.time != null);
     if (!hasText && !hasInfo) continue;
     await addScene(c, {
-      title: 'Scene 1', body: c.body ?? '', status: c.status ?? 'draft', pov: c.pov ?? null,
+      title: `${word('Scene')} 1`, body: c.body ?? '', status: c.status ?? 'draft', pov: c.pov ?? null,
       location: c.location ?? null, characters: [...(c.characters ?? [])], when: c.when ?? '', time: c.time ?? null,
     });
     await db.save('chapter', { ...c, body: '', pov: null, location: null, characters: [], when: '', time: null });

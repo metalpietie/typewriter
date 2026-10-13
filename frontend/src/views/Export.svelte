@@ -5,11 +5,12 @@
   import Backup from '../lib/Backup.svelte';
   import CoverEditor from '../lib/CoverEditor.svelte';
   import { getCover } from '../lib/cover';
-  import { cleanPages, copyrightStarter, SCENE_BREAKS, CHAPTER_STYLES } from '../lib/exportpages-core';
+  import { cleanPages, copyrightStarter, SCENE_BREAKS, CHAPTER_STYLES, CITATION_STYLES } from '../lib/exportpages-core';
   import { scenesOf } from '../lib/scenes';
   import { synopsisWords, outlineWords, missingSummaries, pagesOf } from '../lib/summary-core';
+  import { has, word, isNonfiction } from '../lib/projecttype.svelte';
 
-  let what = $state<'manuscript' | 'outline' | 'synopsis' | 'bible'>('manuscript');
+  let what = $state<'manuscript' | 'outline' | 'synopsis' | 'bible' | 'sources'>('manuscript');
   let outlineDetails = $state(false);
   let outlineEmpty = $state(false);
   let bookId = $state<number>(0);
@@ -22,7 +23,11 @@
   const row = $derived(db.lists.setting.find((r) => r.key === 'exportPages'));
   let pages = $state(cleanPages(null));
   let loaded = false;
-  $effect(() => { if (!loaded && db.ready) { loaded = true; pages = cleanPages(row?.value); } });
+  $effect(() => { if (!loaded && db.ready) { loaded = true; pages = cleanPages(row?.value, isNonfiction()); } });
+  const sourcesOk = $derived(has('sources'));
+  $effect(() => { if (!sourcesOk && what === 'sources') what = 'manuscript'; });
+  const bibleOk = $derived(has('characters') || has('world') || has('timeline'));
+  $effect(() => { if (!bibleOk && what === 'bible') what = 'manuscript'; });
   async function keepPages() { await db.save('setting', { ...(row ?? {}), key: 'exportPages', value: { ...pages } }); }
   const fillCopyright = () => { if (!pages.copyright.trim()) { pages.copyright = copyrightStarter(author); keepPages(); } };
   let busy = $state(false);
@@ -45,7 +50,7 @@
       .map((c) => ({ summary: c.summary as string, scenes: scenesOf(c.id).map((s) => ({ summary: s.summary as string })) }));
     return { synopsis: synopsisWords(chapters), outline: outlineWords(chapters), missing: missingSummaries(chapters) };
   });
-  const toBook = $derived(what !== 'bible');
+  const toBook = $derived(what !== 'bible' && what !== 'sources');
   // the cover is the cover of the chosen book, or of the first book when all books are chosen
   const coverBook = $derived(bookId || books[0]?.id || null); // an outline and a synopsis are made for one book or for all
 
@@ -58,7 +63,7 @@
     try {
       await keepPages();
       const cover = what === 'manuscript' && coverBook ? (await getCover(coverBook))?.image ?? '' : '';
-      const path = await Exporter.Export(what, toBook ? bookId : 0, format, { author: author.trim(), pageSize, print: format === 'pdf' && print, contents: contents && (what === 'manuscript' || what === 'bible'), ...pages, outlineDetails, outlineEmpty, cover });
+      const path = await Exporter.Export(what, toBook ? bookId : 0, format, { author: author.trim(), pageSize, print: format === 'pdf' && print, contents: contents && (what === 'manuscript' || what === 'bible'), ...pages, outlineDetails: outlineDetails && has('characters'), outlineEmpty, cover, nonfiction: isNonfiction(), sectionHeadings: pages.sceneBreak === 'heading' });
       message = path ? `Saved: ${path}` : 'Cancelled.';
     } catch (e: any) {
       failed = true; message = e?.message ?? String(e);
@@ -75,13 +80,19 @@
   <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={what} value="manuscript" />
     Manuscript — chapter text, with a title page</label>
   <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={what} value="outline" />
-    Outline — each chapter and scene with its summary</label>
+    Outline — each chapter and {word('scene')} with its {word('summary')}</label>
   <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={what} value="synopsis" />
-    Synopsis — the story in a few pages, from your summaries (for an agent or an editor)</label>
+    Synopsis — the {word('story')} in a few pages, from your summaries (for an agent or an editor)</label>
+  {#if sourcesOk}
+  <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={what} value="sources" />
+    Sources — the list of all your sources</label>
+  {/if}
+  {#if bibleOk}
   <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={what} value="bible" />
     Story bible — characters, relationships, places, lore, timeline</label>
+  {/if}
 
-  {#if what !== 'bible'}
+  {#if what !== 'bible' && what !== 'sources'}
     <label>Author name (on the title page and in the e-book)</label>
     <input bind:value={author} placeholder="Your name" />
     <label>Which book</label>
@@ -103,10 +114,26 @@
       <textarea id="px-thanks" rows="4" bind:value={pages.thanks} onchange={keepPages}></textarea>
       <label for="px-about">About the author (at the end)</label>
       <textarea id="px-about" rows="4" bind:value={pages.about} onchange={keepPages}></textarea>
-      <label for="px-break">Between scenes</label>
+      <label for="px-break">Between {word('scenes')}</label>
       <Select id="px-break" bind:value={pages.sceneBreak} onchange={keepPages}>{#each SCENE_BREAKS as [key, name]}<option value={key}>{name}</option>{/each}</Select>
       <label for="px-chap">Chapter headings</label>
       <Select id="px-chap" bind:value={pages.chapterStyle} onchange={keepPages}>{#each CHAPTER_STYLES as [key, name]}<option value={key}>{name}</option>{/each}</Select>
+      {#if isNonfiction()}
+        <label style="display:flex;gap:.5rem;color:var(--text);margin-top:.6rem"><input type="checkbox" style="width:auto" bind:checked={pages.takeaways} onchange={keepPages} />
+          Print the key takeaways at the end of each chapter</label>
+      {/if}
+      {#if sourcesOk || has('ideas')}
+        <label style="display:flex;gap:.5rem;color:var(--text);margin-top:.6rem"><input type="checkbox" style="width:auto" bind:checked={pages.indexPage} onchange={keepPages} />
+          Print an index of the terms that you marked, at the very end (it lists chapters, not page numbers)</label>
+        <label style="display:flex;gap:.5rem;color:var(--text);margin-top:.4rem"><input type="checkbox" style="width:auto" bind:checked={pages.exerciseList} onchange={keepPages} />
+          Print all the exercise boxes together after the last chapter</label>
+      {/if}
+      {#if sourcesOk}
+        <label for="px-cite">How citations look</label>
+        <Select id="px-cite" bind:value={pages.citationStyle} onchange={keepPages}>{#each CITATION_STYLES as [key, name]}<option value={key}>{name}</option>{/each}</Select>
+        <label style="display:flex;gap:.5rem;color:var(--text);margin-top:.6rem"><input type="checkbox" style="width:auto" bind:checked={pages.bibliography} onchange={keepPages} />
+          Print a bibliography (the sources that you cited) after the last chapter</label>
+      {/if}
     </details>
     <CoverEditor bookId={coverBook} {author} />
   {/if}
@@ -114,19 +141,21 @@
   {#if what === 'outline' || what === 'synopsis'}
     <div class="card" style="margin:1rem 0 0">
       {#if what === 'outline'}
+        {#if has('characters')}
         <label style="display:flex;gap:.5rem;color:var(--text);margin:0"><input type="checkbox" style="width:auto" bind:checked={outlineDetails} />
           Add the point of view and the place of each scene</label>
+        {/if}
         <label style="display:flex;gap:.5rem;color:var(--text);margin:.4rem 0 0"><input type="checkbox" style="width:auto" bind:checked={outlineEmpty} />
-          List scenes that have no summary yet</label>
+          List {word('scenes')} that have no {word('summary')} yet</label>
       {/if}
       <p class="muted" style="margin:{what === 'outline' ? '.7rem' : '0'} 0 0;font-size:.85rem">
         {#if what === 'synopsis'}
           Your summaries make a synopsis of about {summaries.synopsis.toLocaleString()} words ({pagesOf(summaries.synopsis) || 'under 1'} page{pagesOf(summaries.synopsis) === 1 ? '' : 's'}).
-          Each chapter is one paragraph: its own summary, or else the summaries of its scenes joined. Agents often ask for 1 to 2 pages (500 to 1,000 words).
+          Each chapter is one paragraph: its own {word('chaptersummary')}, or else the {word('summary')}s of its {word('scenes')} joined. Agents often ask for 1 to 2 pages (500 to 1,000 words).
         {:else}
           Your summaries come to {summaries.outline.toLocaleString()} words.
         {/if}
-        {#if summaries.missing}{summaries.missing} scene{summaries.missing === 1 ? ' has' : 's have'} no summary yet. Write it in the Scene panel in the Write tab, or on the Board.{/if}
+        {#if summaries.missing}{summaries.missing} {summaries.missing === 1 ? word('scene') + ' has' : word('scenes') + ' have'} no {word('summary')} yet. Write it in the {word('Scene')} panel in the Write tab, or on the Board.{/if}
       </p>
     </div>
   {/if}

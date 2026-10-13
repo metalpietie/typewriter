@@ -23,12 +23,19 @@ Nothing open here.
 
 Nothing open here.
 
+## Look of the app
+
+- [ ] Look at changing the style of the app: colours, type, spacing and the general feel (an idea to study. Nothing is decided yet)
+
 ## Data and files
 
 - [ ] Sync to a folder: copy the data to Dropbox or OneDrive for a second safe copy (**not now**: it needs an online connection, which you do not want. You upload the backups by hand when you need to)
 - [ ] Import a Word file as chapters (**not now**: you plan to write your own work, so there is no old draft to bring in. It could come back if you get Word files for feedback)
 
 ## Done
+
+- [x] Project types: a Fiction, Non-fiction or Mixed switch for each project, with its own tools and words
+- [x] Non-fiction tools: Sources and citations (three styles), footnotes, a bibliography, an index, callout boxes, captions, Ideas and quotes, and source checks
 
 - [x] Reference pane: pin a scene, note, character or place next to your text
 - [x] Cover for the Word file, the PDF and the e-book: choose a picture or make one from a template

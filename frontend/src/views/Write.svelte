@@ -24,6 +24,8 @@
   import SaveIndicator from '../lib/SaveIndicator.svelte';
   import LookButton from '../lib/LookButton.svelte';
   import SceneTags from '../lib/SceneTags.svelte';
+  import { has, word, isNonfiction } from '../lib/projecttype.svelte';
+  import { EXERCISE_TEMPLATE } from '../lib/boxes-core';
   import MoodBoard from '../lib/MoodBoard.svelte';
   import ReferencePane from '../lib/ReferencePane.svelte';
   import { cleanPick, refKindOf, type RefPick } from '../lib/reference-core';
@@ -319,7 +321,7 @@
     db.flush();
     const made = await splitScene(scene, parts.before, parts.after);
     if (typeof made === 'string') { say(made); return; }
-    say('Split. The text after the cursor is now the next scene. The old text is saved in History.');
+    say(`Split. The text after the cursor is now the next ${word('scene')}. The old text is saved in History.`);
     sceneId = made.id; // the editor opens the new scene, with the cursor at its start
   }
   async function mergeNext() {
@@ -328,7 +330,29 @@
     const err = await mergeWithNext(scene);
     if (err) { say(err); return; }
     rev++; // show the joined text
-    say('Merged. The text of the next scene now follows this text. The old text is saved in History.');
+    say(`Merged. The text of the next ${word('scene')} now follows this text. The old text is saved in History.`);
+  }
+  // An idea or a quote from the Ideas tab goes at the end of the text that is open.
+  $effect(() => {
+    const i = nav.insert;
+    if (!i || !db.ready) return;
+    if (!rich || !scene) { if (!scene && db.ready) { nav.insert = null; say('Open a ' + word('scene') + ' first, then put the idea in it.'); } return; }
+    nav.insert = null;
+    rich.insertIdea(i);
+    say('Added at the end of this ' + word('scene') + '. Move it where it belongs.');
+  });
+
+  /** Add an exercise box at the end of the last scene of the chapter. */
+  async function addExercises() {
+    if (!chap) return;
+    const last = scenesOf(chap.id).at(-1);
+    if (!last) return;
+    db.flush();
+    last.body = toHtml(last.body ?? '') + EXERCISE_TEMPLATE;
+    await db.save('scene', last);
+    sceneId = last.id;
+    rev++; // show the new text
+    say('Added an Exercises heading and an exercise box at the end of the chapter.');
   }
   async function delScene() {
     if (!sceneId) return;
@@ -368,9 +392,9 @@
       {/if}
       <RevisionPasses bookId={book.id} />
       {#if bookTags.length}
-        <label for="tagfilter">Show scenes tagged</label>
+        <label for="tagfilter">Show {word('scenes')} tagged</label>
         <Select id="tagfilter" bind:value={tagFilter}>
-          <option value="">All scenes</option>
+          <option value="">All {word('scenes')}</option>
           {#each bookTags as [t, n]}<option value={t}>{t} ({n})</option>{/each}
         </Select>
       {/if}
@@ -390,16 +414,16 @@
             <div class="scenes">
               {#each shown as s (s.id)}
                 <button animate:flip={{ duration: 200 }} class="scene {dropClass('scene', s.id)}" class:landed={landed === 'scene' + s.id} class:on={s.id === sceneId} class:dragging={drag?.type === 'scene' && drag.id === s.id}
-                  data-scene={s.id} onpointerdown={(e) => startDrag(e, { type: 'scene', id: s.id, label: s.title || 'Untitled scene' })}
+                  data-scene={s.id} onpointerdown={(e) => startDrag(e, { type: 'scene', id: s.id, label: s.title || 'Untitled ' + word('scene') })}
                   onclick={() => { if (!suppressClick) sceneId = s.id; }}>
                   <span class="status {s.status}" title={s.status}></span>
                   <span class="t">{scenes.indexOf(s) + 1}. {s.title || 'Untitled'}</span>
-                  {#if missingCast(s).length}<span class="badge" title="Names a character who is not in the cast">⚠</span>{/if}
+                  {#if has('characters') && missingCast(s).length}<span class="badge" title="Names a character who is not in the cast">⚠</span>{/if}
                   {#if openComments(s.id)}<span class="badge" title="Open comments">💬{openComments(s.id)}</span>{/if}
                   <small>{sceneWords(s)}</small>
                 </button>
               {/each}
-              <button class="small" onclick={newScene}>+ Scene</button>
+              <button class="small" onclick={newScene}>+ {word('Scene')}</button>
             </div>
           {/if}
           </div>
@@ -415,9 +439,9 @@
       <div class="tools">
         <button class="small" onclick={() => (showFind = true)}>Find &amp; replace <kbd>Ctrl+H</kbd></button>
         <LookButton />
-        <button class="small" class:active={ref.open} title="Pin a scene, note, character or place next to your text" onclick={() => (ref = { ...ref, open: !ref.open })}>Reference</button>
+        <button class="small" class:active={ref.open} title="Pin a {word('scene')}, note or other page next to your text" onclick={() => (ref = { ...ref, open: !ref.open })}>Reference</button>
         {#if scene}<button class="small" onclick={() => (showHistory = true)}>History</button>{/if}
-        {#if scene}<button class="small" title="Split this scene in two at the cursor" onclick={splitHere}>Split here</button>{/if}
+        {#if scene}<button class="small" title="Split this {word('scene')} in two at the cursor" onclick={splitHere}>Split here</button>{/if}
         {#if scene && sceneAfter(scene)}<ConfirmButton label="Merge with next" onconfirm={mergeNext} />{/if}
         {#if book}<button class="small" title="Save a copy of the whole book, and see later what changed" onclick={() => (showSnaps = true)}>Snapshots</button>{/if}
         <button class="small" onclick={() => setFocus(true)}>Focus mode <kbd>F11</kbd></button>
@@ -426,7 +450,7 @@
     {#if chap && scene}
       {#if !nav.focus}
         <input class="editor" style="font-size:1.4rem;min-height:0;margin-bottom:.4rem" bind:value={chap.title} oninput={saveChap} placeholder="Chapter title" />
-        <input class="scenetitle" bind:value={scene.title} oninput={saveScene} placeholder="Scene title (only you see this)" />
+        <input class="scenetitle" bind:value={scene.title} oninput={saveScene} placeholder={isNonfiction() ? 'Section title (printed as a heading)' : 'Scene title (only you see this)'} />
       {/if}
       {#key scene.id + ':' + rev}
         <RichEditor bind:this={rich} bare={nav.focus} onfind={() => (showFind = true)} onbeside={showBeside} source={[book?.title, sceneLabel(scene)].filter(Boolean).join(', ')} onopenref={(k, id) => { db.flush(); openItem(k, id); }} oncomment={newComment} onfocuscomment={(id) => { if (id) activeComment = id; }} value={toHtml(scene.body ?? '')}
@@ -439,7 +463,7 @@
         <div class="statusbar">
         {#if Number(scene.goal) > 0}<div style="margin-top:.6rem"><ProgressBar value={words} goal={Number(scene.goal)} /></div>{/if}
         <p class="muted">
-          Scene: {words.toLocaleString()}{Number(scene.goal) ? ' / ' + Number(scene.goal).toLocaleString() : ''} words{pctText(words, Number(scene.goal))}
+          {word('Scene')}: {words.toLocaleString()}{Number(scene.goal) ? ' / ' + Number(scene.goal).toLocaleString() : ''} words{pctText(words, Number(scene.goal))}
           · Today: {wordsToday().toLocaleString()}{dailyGoal() ? ' / ' + dailyGoal().toLocaleString() : ''}
           · Chapter: {chapWords.toLocaleString()}{goalOf(chap) ? ' / ' + goalOf(chap).toLocaleString() : ''} words{pctText(chapWords, goalOf(chap))}
           {#if goalOf(chap) && chapWords >= goalOf(chap)} · chapter goal reached{/if}
@@ -448,7 +472,7 @@
       {/if}
     {:else if chap}
       <input class="editor" style="font-size:1.4rem;min-height:0;margin-bottom:.8rem" bind:value={chap.title} oninput={saveChap} />
-      <div class="empty">This chapter has no scenes yet. <button class="primary" onclick={newScene}>+ Add the first scene</button></div>
+      <div class="empty">This chapter has no {word('scenes')} yet. <button class="primary" onclick={newScene}>+ Add the first {word('scene')}</button></div>
     {:else}
       <div class="empty">{book ? 'Pick a chapter, or add one.' : 'Add a book to begin.'}</div>
     {/if}
@@ -461,7 +485,7 @@
   <aside class="side right">
     {#if scene}
       <Comments sceneId={scene.id} body={scene.body ?? ''} active={activeComment} onshow={(id) => { activeComment = id; rich?.showComment(id); }} onremove={removeComment} />
-      <div class="head" style="margin-top:1.4rem"><h3 style="margin:0">Scene</h3>
+      <div class="head" style="margin-top:1.4rem"><h3 style="margin:0">{word('Scene')}</h3>
         <span class="row fit" style="gap:.2rem">
           <button class="small" title="Move up" onclick={() => swapOrder('scene', scenes, scene, -1)}>↑</button>
           <button class="small" title="Move down" onclick={() => swapOrder('scene', scenes, scene, 1)}>↓</button>
@@ -470,17 +494,21 @@
       </div>
       <label>Status</label>
       <Select bind:value={scene.status} onchange={saveScene}>{#each STATUSES as s}<option>{s}</option>{/each}</Select>
-      <label>Point of view</label>
-      <Select bind:value={scene.pov} onchange={saveScene}>
-        <option value={null}>— none —</option>
-        {#each db.lists.character as c}<option value={c.id}>{c.name}</option>{/each}
-      </Select>
-      <label>Place</label>
-      <Select bind:value={scene.location} onchange={saveScene}>
-        <option value={null}>— none —</option>
-        {#each db.lists.location as l}<option value={l.id}>{l.name}</option>{/each}
-      </Select>
-      <DateField bind:time={scene.time} bind:when={scene.when} onchange={saveScene} />
+      {#if has('characters')}
+        <label>Point of view</label>
+        <Select bind:value={scene.pov} onchange={saveScene}>
+          <option value={null}>— none —</option>
+          {#each db.lists.character as c}<option value={c.id}>{c.name}</option>{/each}
+        </Select>
+      {/if}
+      {#if has('world')}
+        <label>Place</label>
+        <Select bind:value={scene.location} onchange={saveScene}>
+          <option value={null}>— none —</option>
+          {#each db.lists.location as l}<option value={l.id}>{l.name}</option>{/each}
+        </Select>
+      {/if}
+      {#if has('timeline')}<DateField bind:time={scene.time} bind:when={scene.when} onchange={saveScene} />{/if}
       <label>Tags</label>
       {#key scene.id}<SceneTags {scene} onchange={saveScene} />{/key}
       {#key scene.id}<MoodBoard owner={scene.id} />{/key}
@@ -492,6 +520,7 @@
           </label></div>
         {/each}
       {/if}
+      {#if has('arcs')}
       <label>Story arcs</label>
       {#each arcsSorted() as a (a.id)}
         {@const lk = linkFor(a.id, scene.id)}
@@ -509,6 +538,8 @@
       {:else}
         <div class="muted" style="font-size:.85rem">No arcs yet. <button class="small" onclick={() => (nav.tab = 'arcs')}>Add one</button></div>
       {/each}
+      {/if}
+      {#if has('characters')}
       <label>Who is in this scene</label>
       {#each db.lists.character as c}
         <div><label style="display:flex;gap:.4rem;margin:.15rem 0;color:var(--text)">
@@ -531,9 +562,10 @@
           {/each}
         </div>
       {/if}
-      <label>Notes and plan</label>
-      <textarea bind:value={scene.summary} oninput={saveScene} placeholder="What happens? What must the reader learn?"></textarea>
-      <label>Word goal for this scene</label>
+      {/if}
+      <label>{isNonfiction() ? 'Key point' : 'Notes and plan'}</label>
+      <textarea bind:value={scene.summary} oninput={saveScene} placeholder={isNonfiction() ? word('summaryhint') : 'What happens? What must the reader learn?'}></textarea>
+      <label>Word goal for this {word('scene')}</label>
       <input type="number" min="0" bind:value={scene.goal} oninput={saveScene} />
       <label>Move to chapter</label>
       <Select value={scene.chapter} onchange={(e) => moveScene(+e.currentTarget.value)}>
@@ -549,14 +581,21 @@
           <ConfirmButton onconfirm={delChap} />
         </span>
       </div>
+      {#if isNonfiction()}<button class="small" style="margin-top:.6rem" title="Adds an Exercises heading and an exercise box at the end of the last section" onclick={addExercises}>+ Exercise box at the end</button>{/if}
       <label>Word goal for this chapter</label>
       <input type="number" min="0" bind:value={chap.goal} oninput={saveChap} placeholder={book?.chapterGoal ? 'Default: ' + book.chapterGoal : 'No goal'} />
+      {#if has('characters')}
       <label>In this chapter</label>
       <div>
         {#each chapterCast(chap) as id}<span class="chip"><span class="dot" style="display:inline-block;background:{db.get('character', id)?.color}"></span> {db.name('character', id)}</span>
         {:else}<span class="muted">No one yet. Tick people in a scene.</span>{/each}
       </div>
-      <label>Summary</label><textarea bind:value={chap.summary} oninput={saveChap}></textarea>
+      {/if}
+      <label>{word('Chaptersummary')}</label><textarea bind:value={chap.summary} oninput={saveChap} placeholder={isNonfiction() ? word('chapterhint') : ''}></textarea>
+      {#if isNonfiction()}
+        <label>Key takeaways <small class="muted">one on each line</small></label>
+        <textarea bind:value={chap.takeaways} oninput={saveChap} placeholder="What should the reader remember?"></textarea>
+      {/if}
     {/if}
   </aside>
 </div>

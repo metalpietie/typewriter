@@ -5,10 +5,14 @@
   import { db } from './db.svelte';
   import { nav } from './nav.svelte';
   import ConfirmButton from './ConfirmButton.svelte';
+  import Select from './Select.svelte';
+  import { projectType } from './projecttype.svelte';
+  import { TYPES, type ProjectType } from './projecttype-core';
   import type { ProjectItem } from '../../bindings/typewriter/models.js';
 
   let list = $state<ProjectItem[]>([]);
   let newName = $state('');
+  let newType = $state<ProjectType>('fiction');
   let editing = $state<string | null>(null);
   let editName = $state('');
   let busy = $state(false);
@@ -39,7 +43,12 @@
   }
 
   const open = (p: ProjectItem) => run(() => Store.SwitchProject(p.id), true);
-  const create = () => run(() => Store.NewProject(newName), true);
+  // The type is a setting of the new project. NewProject opens the new project, so the setting is saved into it.
+  const create = () => run(async () => {
+    await Store.NewProject(newName);
+    if (newType !== 'fiction') await Store.Save({ id: 0, kind: 'setting', data: JSON.stringify({ key: 'projectType', value: newType }), updatedAt: '' });
+  }, true);
+  const typeName = (t: ProjectType) => TYPES.find(([k]) => k === t)?.[1] ?? '';
   async function rename(p: ProjectItem) {
     const name = editName;
     editing = null;
@@ -57,7 +66,7 @@
 
 <div class="overlay" transition:veil|global role="presentation" onmousedown={(e) => { if (e.target === e.currentTarget) close(); }}>
   <div transition:dialog|global class="palette box" role="dialog" aria-label="Projects">
-    <div class="head"><h2 style="margin:0">Projects</h2><button class="small" onclick={close}>Close</button></div>
+    <div class="head"><h2 style="margin:0">Projects</h2><span class="row fit" style="gap:.3rem"><button class="small" title="The type of this project and the tools it shows" onclick={() => { nav.projects = false; nav.projectSettings = true; }}>Project settings…</button><button class="small" onclick={close}>Close</button></span></div>
     <p class="muted" style="margin-top:.4rem">
       Each project is one book or one series. It has its own data file, its own backups, and its own characters, places, maps and text.
     </p>
@@ -69,7 +78,7 @@
           <button class="small primary" onclick={() => rename(p)}>Save</button>
           <button class="small" onclick={() => (editing = null)}>Cancel</button>
         {:else}
-          <span class="name">{p.name}{#if p.current} <em class="muted">(open)</em>{/if}</span>
+          <span class="name">{p.name}{#if p.current} <em class="muted">(open{projectType() === 'fiction' ? '' : ', ' + typeName(projectType()).toLowerCase()})</em>{/if}</span>
           <span class="muted fit">{size(p.size)}</span>
           {#if !p.current}<button class="small primary" disabled={busy} onclick={() => open(p)}>Open</button>{/if}
           <button class="small" disabled={busy} onclick={() => { editing = p.id; editName = p.name; }}>Rename</button>
@@ -83,6 +92,9 @@
       <input placeholder="Name, for example “Book two”" bind:value={newName} onkeydown={(e) => { if (e.key === 'Enter') create(); }} />
       <button class="primary" disabled={busy} onclick={create}>Create and open</button>
     </div>
+    <label for="newtype">Type</label>
+    <Select id="newtype" bind:value={newType}>{#each TYPES as [t, name]}<option value={t}>{name}</option>{/each}</Select>
+    <p class="muted" style="font-size:.8rem;margin:.3rem 0 0">{TYPES.find(([k]) => k === newType)?.[2]} You can change it later in Project settings.</p>
     <p class="muted" style="font-size:.8rem;margin-bottom:0">
       Opening a project reloads the app. Remove does not delete the file. It moves to the folder <code>projects\removed</code> in the app data folder.
     </p>

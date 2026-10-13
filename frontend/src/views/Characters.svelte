@@ -8,6 +8,7 @@
   import DatePick from '../lib/DatePick.svelte';
   import { ageAt, momentsOf } from '../lib/ages';
   import { nav, openItem, openScene } from '../lib/nav.svelte';
+  import { has } from '../lib/projecttype.svelte';
   import { scenesOf, sceneLabel } from '../lib/scenes';
   import { itemsHeldBy, membershipsOf } from '../lib/items';
 
@@ -63,7 +64,7 @@
       <input placeholder="Search…" bind:value={search} />
       <button class="primary" onclick={add}>+ New</button>
     </div>
-    <button class="small" style="width:100%;margin-top:.4rem" onclick={() => (nav.names = 'person')}>Name generator…</button>
+    {#if has('names')}<button class="small" style="width:100%;margin-top:.4rem" onclick={() => (nav.names = 'person')}>Name generator…</button>{/if}
     <div class="list">
       {#each shown as c (c.id)}
         <button class="item" class:on={c.id === selId} onclick={() => (selId = c.id)}>

@@ -10,6 +10,8 @@
   import { reminderDue } from '../lib/backupReminder';
   import { findConflicts, openConflicts } from '../lib/plotholes';
   import { findGaps, openGaps } from '../lib/consistency';
+  import { has, hasKind, word } from '../lib/projecttype.svelte';
+  import { sourceProblems } from '../lib/sourcecheck';
 
   let text = $state('');
 
@@ -17,8 +19,9 @@
   const today = $derived(wordsToday());
   const run = $derived(streak());
   const total = $derived(db.lists.scene.reduce((a, s) => a + sceneWords(s), 0));
-  const holes = $derived(openConflicts(findConflicts().conflicts).length);
+  const holes = $derived(has('characters') ? openConflicts(findConflicts().conflicts).length : 0);
   const gaps = $derived(openGaps(findGaps()).length);
+  const srcIssues = $derived(has('sources') ? (() => { const p = sourceProblems(); return p.claims.length + p.dead.length; })() : 0);
   let hideBackup = $state(false); // set when you press "Remind me tomorrow" or "Close"
   let keepBackup = $state(false); // set when you press "Back up now", so the card stays and can say it worked
   const backupDue = $derived(!hideBackup && (keepBackup || reminderDue(total)));
@@ -26,13 +29,14 @@
   const finishBooks = $derived([...db.lists.book].filter((b) => b.finishBy).sort((a, b) => a.order - b.order));
 
   type Recent = { kind: Kind; id: number; label: string; what: string; at: string };
-  const WHAT: Partial<Record<Kind, string>> = { scene: 'scene', character: 'character', location: 'place', note: 'lore note', faction: 'faction', item: 'item', event: 'event' };
+  const WHAT = $derived<Partial<Record<Kind, string>>>({ scene: word('scene'), character: 'character', location: 'place', note: 'lore note', faction: 'faction', item: 'item', event: 'event' });
   const labelOf = (kind: Kind, i: any): string =>
     kind === 'scene' ? sceneLabel(i) : kind === 'note' || kind === 'event' ? i.title || 'Untitled' : i.name || 'Unnamed';
 
   const recent = $derived.by(() => {
     const all: Recent[] = [];
     for (const kind of Object.keys(WHAT) as Kind[]) {
+      if (!hasKind(kind)) continue;
       for (const i of db.lists[kind]) all.push({ kind, id: i.id, label: labelOf(kind, i), what: WHAT[kind]!, at: i.updatedAt });
     }
     return all.sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0)).slice(0, 8);
@@ -66,7 +70,7 @@
 </script>
 
 <section class="pane">
-  <h2>Dashboard</h2>
+  <div class="head"><h2 style="margin:0">Dashboard</h2><button class="small" title="The type of this project and the tools it shows" onclick={() => (nav.projectSettings = true)}>Project settings…</button></div>
 
   <div class="cols">
     <div class="card">
@@ -87,16 +91,23 @@
 
     <div class="card">
       <h3>Needs attention</h3>
+      {#if has('characters')}
       <button class="row-link" onclick={() => (nav.tab = 'checks')}>
         <span class="chip" class:bad={holes > 0}>{holes}</span><span>plot hole{holes === 1 ? '' : 's'}</span>
       </button>
+      {/if}
       <button class="row-link" onclick={() => (nav.tab = 'checks')}>
         <span class="chip">{gaps}</span><span>unfinished thing{gaps === 1 ? '' : 's'}</span>
       </button>
+      {#if has('sources')}
+      <button class="row-link" onclick={() => (nav.tab = 'checks')}>
+        <span class="chip" class:bad={srcIssues > 0}>{srcIssues}</span><span>source problem{srcIssues === 1 ? '' : 's'}</span>
+      </button>
+      {/if}
       <button class="row-link" onclick={() => (nav.tab = 'checks')}>
         <span class="chip">{db.lists.comment.filter((c) => !c.resolved).length}</span><span>open comment{db.lists.comment.filter((c) => !c.resolved).length === 1 ? '' : 's'}</span>
       </button>
-      <p class="muted" style="margin:.5rem 0 0">Plot holes and unfinished things are on the Checks tab.</p>
+      <p class="muted" style="margin:.5rem 0 0">{has('characters') ? 'Plot holes and unfinished things' : 'Unfinished things'} are on the Checks tab.</p>
     </div>
   </div>
 

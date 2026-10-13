@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -11,6 +12,10 @@ import (
 type span struct {
 	text                    string
 	bold, italic, underline bool
+	cite                    *citeRef // a citation. It is replaced by text or by a note before the file is written.
+	note                    string   // the text of a footnote that starts here
+	noteID                  int      // the number of that footnote, set when the notes are numbered
+	index                   string   // the term of the index that this text is marked with
 }
 
 // spansOf returns the styled text of a block. Plain blocks have one unstyled span.
@@ -81,7 +86,30 @@ func blocksFrom(n *html.Node, kind string, out *[]block) {
 		}
 		switch c.Data {
 		case "p":
+			if cap, ok := attr(c, "data-caption"); ok {
+				add("caption", inlineSpans(c, span{}))
+				if n := len(*out); n > 0 && (*out)[n-1].kind == "caption" && (*out)[n-1].label == "" {
+					(*out)[n-1].label = cap
+				}
+				continue
+			}
 			add(kind, inlineSpans(c, span{}))
+		case "div":
+			if k, ok := attr(c, "data-callout"); ok {
+				if !isBoxKind(k) {
+					k = "idea"
+				}
+				start := len(*out)
+				*out = append(*out, block{kind: "boxhead", text: boxOf(k).label})
+				blocksFrom(c, "p", out)
+				if len(*out) == start+1 {
+					*out = (*out)[:start] // an empty box is left out
+					continue
+				}
+				for i := start; i < len(*out); i++ {
+					(*out)[i].box = k
+				}
+			}
 		case "h1", "h2", "h3", "h4", "h5", "h6":
 			add("sub", inlineSpans(c, span{}))
 		case "blockquote":
@@ -111,9 +139,27 @@ func inlineSpans(n *html.Node, style span) []span {
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
 		switch c.Type {
 		case html.TextNode:
-			out = append(out, span{text: c.Data, bold: style.bold, italic: style.italic, underline: style.underline})
+			out = append(out, span{text: c.Data, bold: style.bold, italic: style.italic, underline: style.underline, index: style.index})
 		case html.ElementNode:
 			st := style
+			if c.Data == "span" {
+				if v, ok := attr(c, "data-index"); ok {
+					st.index = strings.TrimSpace(v)
+				}
+				if v, ok := attr(c, "data-cite"); ok {
+					if id, err := strconv.ParseInt(v, 10, 64); err == nil {
+						loc, _ := attr(c, "data-loc")
+						out = append(out, span{cite: &citeRef{source: id, loc: loc}})
+					}
+					continue
+				}
+				if v, ok := attr(c, "data-footnote"); ok {
+					if strings.TrimSpace(v) != "" {
+						out = append(out, span{note: strings.TrimSpace(v)})
+					}
+					continue
+				}
+			}
 			switch c.Data {
 			case "strong", "b":
 				st.bold = true
@@ -133,4 +179,14 @@ func inlineSpans(n *html.Node, style span) []span {
 		}
 	}
 	return out
+}
+
+// attr is the value of one attribute of an element.
+func attr(n *html.Node, key string) (string, bool) {
+	for _, a := range n.Attr {
+		if a.Key == key {
+			return a.Val, true
+		}
+	}
+	return "", false
 }

@@ -25,6 +25,10 @@ func xhtmlEsc(s string) string {
 func xhtmlSpans(spans []span) string {
 	var out strings.Builder
 	for _, sp := range mergeSpans(spans) {
+		if sp.noteID > 0 {
+			out.WriteString(fmt.Sprintf(`<sup><a id="r%d" href="#n%d">%d</a></sup>`, sp.noteID, sp.noteID, sp.noteID))
+			continue
+		}
 		t := strings.ReplaceAll(xhtmlEsc(sp.text), "\n", "<br/>")
 		if sp.underline {
 			t = `<span class="u">` + t + "</span>"
@@ -47,12 +51,15 @@ type epubPart struct {
 	body  strings.Builder
 }
 
+var epubCSSAll = epubCSS + boxCSS()
+
 const epubCSS = `body { font-family: serif; line-height: 1.5; margin: 0 5%; }
 h1 { font-size: 1.6em; margin: 2em 0 1em; text-align: left; }
 h1.title { font-size: 2.4em; text-align: center; margin-top: 30%; }
 h2 { font-size: 1.2em; margin: 1.6em 0 .4em; }
 p { margin: 0; text-indent: 1.2em; }
-p.first, p.kv, p.li, p.subtitle, p.author { text-indent: 0; }
+p.first, p.kv, p.li, p.note, p.subtitle, p.author { text-indent: 0; }
+p.note { font-size: .9em; margin: 0 0 .3em; }
 p.kv, p.li { margin: 0 0 .4em; }
 p.li { margin-left: 1.5em; }
 p.subtitle, p.author { text-align: center; font-style: italic; margin-top: .8em; }
@@ -130,8 +137,12 @@ func buildEPUBWithCover(blocks []block, title, author string, cover *coverData) 
 			w.WriteString(`<p class="subtitle">` + xhtmlEsc(b.text) + "</p>\n")
 		case "h2":
 			w.WriteString("<h2>" + xhtmlEsc(b.text) + "</h2>\n")
+		case "boxhead":
+			w.WriteString(`<p class="boxhead box box-` + b.box + `">` + xhtmlEsc(b.text) + "</p>\n")
+		case "caption":
+			w.WriteString(`<p class="caption">` + xhtmlSpans(spansOf(b)) + "</p>\n")
 		case "sub":
-			w.WriteString("<h2>" + xhtmlSpans(spansOf(b)) + "</h2>\n")
+			w.WriteString("<h2" + boxClass(b) + ">" + xhtmlSpans(spansOf(b)) + "</h2>\n")
 		case "kv":
 			w.WriteString(`<p class="kv"><strong>` + xhtmlEsc(b.label) + ":</strong> " + strings.ReplaceAll(xhtmlEsc(b.text), "\n", "<br/>") + "</p>\n")
 		case "rule":
@@ -147,13 +158,15 @@ func buildEPUBWithCover(blocks []block, title, author string, cover *coverData) 
 			}
 			w.WriteString(`<p class="center"` + style + ">" + xhtmlSpans(spansOf(b)) + "</p>\n")
 		case "quote":
-			w.WriteString("<blockquote><p>" + xhtmlSpans(spansOf(b)) + "</p></blockquote>\n")
+			w.WriteString("<blockquote" + boxClass(b) + "><p>" + xhtmlSpans(spansOf(b)) + "</p></blockquote>\n")
+		case "note":
+			w.WriteString(fmt.Sprintf(`<p class="note" id="n%d"><sup>%d</sup> %s <a href="#r%d">&#8617;</a></p>`+"\n", b.level, b.level, xhtmlEsc(b.text), b.level))
 		case "li":
-			w.WriteString(`<p class="li">` + xhtmlSpans(spansOf(b)) + "</p>\n")
+			w.WriteString(`<p class="li` + boxWord(b) + `">` + xhtmlSpans(spansOf(b)) + "</p>\n")
 		default:
 			class := ""
-			if b.flush {
-				class = ` class="first"`
+			if b.flush || b.box != "" {
+				class = ` class="first` + boxWord(b) + `"`
 			}
 			w.WriteString("<p" + class + ">" + xhtmlSpans(spansOf(b)) + "</p>\n")
 		}
@@ -229,7 +242,7 @@ func buildEPUBWithCover(blocks []block, title, author string, cover *coverData) 
 ` + navItems.String() + `</ol></nav></body></html>`, false},
 		{"OEBPS/toc.ncx", head + `<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1"><head><meta name="dtb:uid" content="urn:uuid:` + id + `"/><meta name="dtb:depth" content="1"/><meta name="dtb:totalPageCount" content="0"/><meta name="dtb:maxPageNumber" content="0"/></head><docTitle><text>` + xhtmlEsc(title) + `</text></docTitle><navMap>
 ` + ncxPoints.String() + `</navMap></ncx>`, false},
-		{"OEBPS/style.css", epubCSS, false},
+		{"OEBPS/style.css", epubCSSAll, false},
 	}
 	for _, p := range parts {
 		files = append(files, struct {
@@ -276,4 +289,20 @@ func newUUID() string {
 	b[6] = b[6]&0x0f | 0x40
 	b[8] = b[8]&0x3f | 0x80
 	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
+}
+
+// boxWord is the class names of a block that is inside a callout box, with a space in front.
+func boxWord(b block) string {
+	if b.box == "" {
+		return ""
+	}
+	return " box box-" + b.box
+}
+
+// boxClass is the class attribute of a tag of a block that is inside a callout box.
+func boxClass(b block) string {
+	if b.box == "" {
+		return ""
+	}
+	return ` class="box box-` + b.box + `"`
 }

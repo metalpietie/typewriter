@@ -60,7 +60,7 @@
   <div transition:dialog|global class="palette box" role="dialog" aria-label="Data folder">
     <div class="head"><h2 style="margin:0">Data folder</h2><button class="small" onclick={close}>Close</button></div>
     <p class="muted" style="margin-top:.4rem">
-      Your books, characters, maps and backups are saved in one folder. You can keep it somewhere else, for example on another drive.
+      Your projects and backups are saved in one folder. You can keep it somewhere else, for example on another drive.
     </p>
 
     {#if info}

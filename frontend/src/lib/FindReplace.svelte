@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { word } from './projecttype.svelte';
   import { veil, dialog } from './motion.svelte';
   import { onMount } from 'svelte';
   import { db } from './db.svelte';
@@ -48,7 +49,7 @@
         count += out.count;
       }
       onchanged();
-      message = `Replaced ${count} in ${list.length} scene${list.length === 1 ? '' : 's'}. To undo: open History in that scene.`;
+      message = `Replaced ${count} in ${list.length} ${list.length === 1 ? word('scene') : word('scenes')}. To undo: open History in that ${word('scene')}.`;
     } catch (e: any) {
       message = 'Could not replace: ' + (e?.message ?? e);
     } finally {
@@ -78,11 +79,11 @@
 
     <div class="results">
       {#if !query}
-        <p class="muted">Type to search every scene{allBooks ? ' in all books' : ' in this book'}.</p>
+        <p class="muted">Type to search every {word('scene')}{allBooks ? ' in all books' : ' in this book'}.</p>
       {:else if !results.length}
         <p class="muted">Nothing found.</p>
       {:else}
-        <p class="muted">{total} match{total === 1 ? '' : 'es'} in {results.length} scene{results.length === 1 ? '' : 's'}.</p>
+        <p class="muted">{total} match{total === 1 ? '' : 'es'} in {results.length} {results.length === 1 ? word('scene') : word('scenes')}.</p>
         {#each results as r (r.scene.id)}
           <div class="scene">
             <div class="head">

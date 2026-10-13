@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { word } from './projecttype.svelte';
   import { db } from './db.svelte';
   import ConfirmButton from './ConfirmButton.svelte';
 
@@ -44,7 +45,7 @@
 
 <div class="head"><h3 style="margin:0">Comments{open.length ? ` · ${open.length} open` : ''}</h3></div>
 {#if !mine.length}
-  <p class="muted">Select text in the scene, then press 💬 to add a note to it.</p>
+  <p class="muted">Select text in the {word('scene')}, then press 💬 to add a note to it.</p>
 {/if}
 {#each open as c (c.id)}{@render card(c)}{/each}
 {#if done.length}

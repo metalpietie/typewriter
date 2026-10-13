@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { word } from './projecttype.svelte';
   import { backlinks, type LinkKind } from './backlinks';
   import { openScene } from './nav.svelte';
 
@@ -9,13 +10,13 @@
 <h3 style="margin-top:1.4rem">Appears in</h3>
 <div class="card">
   {#each list as b (b.scene.id)}
-    <button class="back" onclick={() => openScene(b.scene.id)} title="Open this scene">
+    <button class="back" onclick={() => openScene(b.scene.id)} title="Open this {word('scene')}">
       <span class="t">{b.label}</span>
       {#if b.tagged}<span class="chip">@ tagged</span>{/if}
       {#if b.named}<span class="chip">{b.named}× by name</span>{/if}
     </button>
   {:else}
-    <span class="muted">Not in any scene yet. Type <b>@</b> in a scene to tag it, or write its name.</span>
+    <span class="muted">Not in any {word('scene')} yet. Type <b>@</b> in a {word('scene')} to tag it, or write its name.</span>
   {/each}
 </div>
 

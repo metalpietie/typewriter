@@ -1,7 +1,8 @@
 <script lang="ts">
   import { veil, dialog } from './motion.svelte';
   import { tick } from 'svelte';
-  import { db } from './db.svelte';
+  import { db, KINDS } from './db.svelte';
+  import { hasKind, word, isNonfiction } from './projecttype.svelte';
   import { nav, openItem } from './nav.svelte';
   import { search } from './search';
 
@@ -10,7 +11,9 @@
   let input = $state<HTMLInputElement>();
   let list = $state<HTMLElement>();
 
-  const hits = $derived(search(query, db.lists));
+  // a kind that belongs to a tool that is switched off is not searched
+  const lists = $derived(Object.fromEntries(KINDS.map((k) => [k, hasKind(k) ? db.lists[k] : []])) as typeof db.lists);
+  const hits = $derived(search(query, lists, 30, word('scene')));
   $effect(() => { query; active = 0; });
   $effect(() => { if (nav.searchOpen) tick().then(() => input?.focus()); else query = ''; });
 
@@ -27,7 +30,7 @@
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
   <div class="overlay" transition:veil|global onclick={() => (nav.searchOpen = false)}>
     <div transition:dialog|global class="palette" onclick={(e) => e.stopPropagation()}>
-      <input bind:this={input} bind:value={query} onkeydown={key} placeholder="Search your scenes, notes, characters, places, lore, glossary and arcs…" />
+      <input bind:this={input} bind:value={query} onkeydown={key} placeholder={isNonfiction() ? `Search your ${word('scenes')}, notes and glossary…` : 'Search your scenes, notes, characters, places, lore, glossary and arcs…'} />
       <div class="results" bind:this={list}>
         {#each hits as h, i (h.kind + h.id)}
           <button class="hit" class:on={i === active} onmouseenter={() => (active = i)} onclick={() => openItem(h.kind, h.id)}>

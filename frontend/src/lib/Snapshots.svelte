@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { word } from './projecttype.svelte';
   import { veil, dialog } from './motion.svelte';
   import { onMount } from 'svelte';
   import { db, toHtml } from './db.svelte';
@@ -87,7 +88,7 @@
   async function putBack() {
     if (!oldScene || !row) return;
     await onrestore(row.id, oldScene.body);
-    note = 'Done. The old text is back in the scene. The text from before is saved in the History of that scene.';
+    note = `Done. The old text is back in the ${word('scene')}. The text from before is saved in the History of that ${word('scene')}.`;
   }
 </script>
 
@@ -102,7 +103,7 @@
       <button class="primary fit" disabled={busy} onclick={save}>Save a snapshot now</button>
     </div>
     {#if error}<p class="err">{error}</p>{/if}
-    <p class="muted">A snapshot is a copy of the whole book as it is now. Later you can see what changed in each scene. Snapshots stay until you delete them.</p>
+    <p class="muted">A snapshot is a copy of the whole book as it is now. Later you can see what changed in each {word('scene')}. Snapshots stay until you delete them.</p>
 
     <div class="cols">
       <div class="list">
@@ -110,7 +111,7 @@
           <button class="item" class:on={picked?.id === s.id} onclick={() => pick(s)}>
             <span class="nm">{s.name}</span>
             <small>{when(s.at)}</small>
-            <small>{n(s.words)} words · {plural(s.scenes.length, 'scene')}</small>
+            <small>{n(s.words)} words · {plural(s.scenes.length, word('scene'))}</small>
           </button>
         {:else}
           <p class="muted">{loaded ? 'No snapshots yet.' : 'Loading…'}</p>
@@ -138,7 +139,7 @@
             You <span class="add">added {plural(sum.wordsAdded, 'word')}</span> and <span class="del">cut {plural(sum.wordsCut, 'word')}</span>.
           </p>
           <p class="muted counts">
-            {plural(sum.changed, 'scene')} changed · {n(sum.added)} new · {n(sum.gone)} removed · {n(sum.moved)} moved to another chapter
+            {plural(sum.changed, word('scene'))} changed · {n(sum.added)} new · {n(sum.gone)} removed · {n(sum.moved)} moved to another chapter
           </p>
           <label class="chk"><input type="checkbox" bind:checked={onlyChanged} /> Show only what changed</label>
           <div class="rows">
@@ -153,7 +154,7 @@
                 </small>
               </button>
             {:else}
-              <p class="muted">{rows.length ? 'No scene is different. The book is the same as the snapshot.' : 'The book had no scenes then, and has none now.'}</p>
+              <p class="muted">{rows.length ? `No ${word('scene')} is different. The book is the same as the snapshot.` : `The book had no ${word('scenes')} then, and has none now.`}</p>
             {/each}
           </div>
         {:else}
@@ -175,12 +176,12 @@
               {/each}
             </div>
           {:else if row.state === 'gone' && oldScene}
-            <p class="muted legend">This scene is gone now. This is its text at the snapshot. You can copy from it.</p>
+            <p class="muted legend">This {word('scene')} is gone now. This is its text at the snapshot. You can copy from it.</p>
             <div class="preview">{@html toHtml(oldScene.body)}</div>
           {:else if row.state === 'new'}
-            <p class="muted">You wrote this scene after the snapshot. It has {plural(row.wordsNow, 'word')}.</p>
+            <p class="muted">You wrote this {word('scene')} after the snapshot. It has {plural(row.wordsNow, 'word')}.</p>
           {:else}
-            <p class="muted">The text is the same as in the snapshot.{row.moved ? ' The scene was moved to another chapter.' : ''}</p>
+            <p class="muted">The text is the same as in the snapshot.{row.moved ? ` The ${word('scene')} was moved to another chapter.` : ''}</p>
           {/if}
         {/if}
       </div>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { word } from './projecttype.svelte';
   import { passesOf, scenesInBook, addPass, addUsualPasses, renamePass, movePass, removePass } from './passes';
   import { progress } from './passes-core';
   import ConfirmButton from './ConfirmButton.svelte';
@@ -22,13 +23,13 @@
 
 <details class="passes">
   <summary>Revision passes{passes.length ? ' · ' + passes.length : ''}</summary>
-  <p class="muted note">A pass is one round of revising: plot, dialogue, line edit. Tick a scene in the Scene panel when a pass is done for it. The Board shows what is left.</p>
+  <p class="muted note">A pass is one round of revising: plot, dialogue, line edit. Tick a {word('scene')} in the {word('Scene')} panel when a pass is done for it. The Board shows what is left.</p>
 
   {#each passes as p, i (p.id)}
     {@const pr = progress(scenes, p.id)}
     <div class="p">
       <input class="nm" value={p.name} maxlength="40" aria-label="Name of the pass" onchange={(e) => rename(e, p)} />
-      <span class="muted cnt" title="Scenes done in this pass">{pr.done}/{pr.total}</span>
+      <span class="muted cnt" title="{word('Scenes')} done in this pass">{pr.done}/{pr.total}</span>
       <button class="small" title="Move up" disabled={i === 0} onclick={() => movePass(bookId, p.id, -1)}>↑</button>
       <button class="small" title="Move down" disabled={i === passes.length - 1} onclick={() => movePass(bookId, p.id, 1)}>↓</button>
       <ConfirmButton label="✕" onconfirm={() => removePass(p)} />

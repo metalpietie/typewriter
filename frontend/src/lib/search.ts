@@ -83,21 +83,25 @@ function fieldsOf(kind: Kind, it: Item): Field[] {
   if (kind === 'draft') return [f(it.title, 3), { text: plain(kind, it).lower, weight: 1 }];
   if (kind === 'term') return [f(it.word, 3), f(it.accepted, 2.5), f(it.pronunciation, 1), f(it.meaning, 1.5), f(it.notes, 1), f(it.type, 1)];
   if (kind === 'arc') return [f(it.name, 3), f(it.notes, 1)];
+  if (kind === 'source') return [f(it.title, 3), f(it.authors, 2.5), f(it.year, 1), f(it.container, 1), f(it.note, 1)];
+  if (kind === 'idea') return [f(it.text, 3), f(it.source, 1), f(it.tags, 1)];
   return [f(it.title, 3), f(it.tags, 2), f(it.category, 1), f(it.body, 1)];
 }
 
 function titleOf(kind: Kind, it: Item) {
-  return kind === 'note' || kind === 'scene' || kind === 'draft' ? it.title : kind === 'term' ? it.word : it.name;
+  return kind === 'note' || kind === 'scene' || kind === 'draft' || kind === 'source' ? it.title : kind === 'term' ? it.word : kind === 'idea' ? String(it.text ?? '').slice(0, 60) : it.name;
 }
-function subOf(kind: Kind, it: Item) {
+function subOf(kind: Kind, it: Item, sceneWord: string) {
   if (kind === 'character') return it.role;
   if (kind === 'location') return `place · ${it.type}`;
   if (kind === 'faction') return `faction · ${it.type ?? ''}`;
   if (kind === 'item') return `item · ${it.type ?? ''}`;
-  if (kind === 'scene') return `scene · ${sceneLabel(it).split(':')[0]}`;
+  if (kind === 'scene') return `${sceneWord} · ${sceneLabel(it).split(':')[0]}`;
   if (kind === 'draft') return 'notes page';
   if (kind === 'term') return `glossary · ${it.type ?? 'word'}`;
   if (kind === 'arc') return 'story arc';
+  if (kind === 'source') return `source · ${it.year || 'no year'}`;
+  if (kind === 'idea') return `idea · ${it.form ?? 'idea'}`;
   return `lore · ${it.category}`;
 }
 function bodyOf(kind: Kind, it: Item): string {
@@ -105,6 +109,8 @@ function bodyOf(kind: Kind, it: Item): string {
   if (kind === 'draft') return plain(kind, it).text;
   if (kind === 'term') return [it.meaning, it.notes].filter(Boolean).join(' ');
   if (kind === 'arc') return it.notes ?? '';
+  if (kind === 'source') return [it.authors, it.note].filter(Boolean).join(' · ');
+  if (kind === 'idea') return it.text ?? '';
   return kind === 'character'
     ? [it.description, it.backstory, it.traits, it.goals, it.notes].filter(Boolean).join(' ')
     : (kind === 'location' || kind === 'faction' || kind === 'item' ? it.description : it.body) ?? '';
@@ -125,11 +131,11 @@ function snippet(kind: Kind, it: Item, tokens: string[]): string {
   return body.slice(0, 110) + (body.length > 110 ? '…' : '');
 }
 
-export function search(query: string, lists: Record<Kind, Item[]>, limit = 30): Hit[] {
+export function search(query: string, lists: Record<Kind, Item[]>, limit = 30, sceneWord = 'scene'): Hit[] {
   const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
   if (!tokens.length) return [];
   const hits: Hit[] = [];
-  const kinds: Kind[] = ['character', 'location', 'note', 'faction', 'item', 'scene', 'draft', 'term', 'arc'];
+  const kinds: Kind[] = ['character', 'location', 'note', 'faction', 'item', 'scene', 'draft', 'term', 'arc', 'source', 'idea'];
   for (const kind of kinds) {
     for (const it of lists[kind]) {
       const fields = fieldsOf(kind, it);
@@ -145,7 +151,7 @@ export function search(query: string, lists: Record<Kind, Item[]>, limit = 30): 
         total += best;
       }
       if (total > 0) {
-        hits.push({ kind, id: it.id, title: titleOf(kind, it) || (kind === 'scene' ? 'Untitled scene' : 'Untitled'), sub: subOf(kind, it), snippet: snippet(kind, it, tokens), score: total });
+        hits.push({ kind, id: it.id, title: titleOf(kind, it) || (kind === 'scene' ? 'Untitled ' + sceneWord : 'Untitled'), sub: subOf(kind, it, sceneWord), snippet: snippet(kind, it, tokens), score: total });
       }
     }
   }

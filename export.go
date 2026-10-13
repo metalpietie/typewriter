@@ -28,6 +28,7 @@ type block struct {
 	flush  bool   // no first-line indent (first paragraph of a chapter)
 	anchor string // set on a heading that the table of contents points to
 	level  int    // tocitem: 0 for a chapter (or a book title), 1 for a chapter in a series. center: how far down the page it starts
+	box    string // the kind of callout box that this block is inside (idea, story, example, exercise, warning, quote), or empty
 	front  bool   // part of the cover or the front pages, so the table of contents comes after it
 }
 
@@ -90,6 +91,9 @@ func (e *Exporter) Export(what string, bookID int64, format string, opts ExportO
 	if what != "manuscript" {
 		opts.Cover = "" // only a manuscript has a cover
 	}
+	if opts.SceneBreak == "heading" {
+		opts.SectionHeadings = true // the same choice, as it comes from the Export screen
+	}
 	var blocks []block
 	name := "Story bible"
 	switch what {
@@ -102,6 +106,12 @@ func (e *Exporter) Export(what string, bookID int64, format string, opts ExportO
 		blocks, name = e.outline(what, bookID, opts)
 		if len(blocks) == 0 {
 			return "", fmt.Errorf("nothing to export yet: add a book and chapters first")
+		}
+	case "sources":
+		blocks = e.sourcesList(opts)
+		name = "Sources"
+		if len(blocks) == 0 {
+			return "", fmt.Errorf("nothing to export yet: add a source first")
 		}
 	case "bible":
 		blocks = e.bible()
@@ -122,6 +132,9 @@ func (e *Exporter) Export(what string, bookID int64, format string, opts ExportO
 
 	if what == "manuscript" {
 		blocks = withBreakStyle(blocks, opts.SceneBreak)
+		if format != "docx" { // Word has real footnotes. The other formats print the notes at the end of each chapter.
+			blocks = withChapterNotes(blocks)
+		}
 	}
 	if opts.Contents {
 		blocks = withContents(blocks)
@@ -172,6 +185,8 @@ func (e *Exporter) manuscript(bookID int64, opts ExportOptions) ([]block, string
 	var out []block
 	title := "Manuscript"
 	count := 0
+	index := map[string]*indexEntry{}
+	var chapterList []chapterBlocksOf
 	for _, b := range books {
 		if bookID != 0 && int64(num(b, "id")) != bookID {
 			continue
@@ -199,8 +214,13 @@ func (e *Exporter) manuscript(bookID int64, opts ExportOptions) ([]block, string
 		}
 		for _, c := range chs {
 			out = append(out, block{kind: "pagebreak"})
-			out = append(out, block{kind: "h1", text: chapterHeading(int(num(c, "order")), str(c, "title"), opts.ChapterStyle)})
-			out = append(out, chapterText(c, scenes)...)
+			heading := chapterHeading(int(num(c, "order")), str(c, "title"), opts.ChapterStyle)
+			out = append(out, block{kind: "h1", text: heading})
+			text := numberCaptions(chapterText(c, scenes, opts.SectionHeadings), int(num(c, "order")))
+			collectIndex(index, text, int(num(c, "order")))
+			chapterList = append(chapterList, chapterBlocksOf{heading: heading, blocks: text})
+			out = append(out, text...)
+			out = append(out, takeawayBlocks(c, opts)...)
 		}
 		title = str(b, "title")
 	}
@@ -213,10 +233,41 @@ func (e *Exporter) manuscript(bookID int64, opts ExportOptions) ([]block, string
 		for at < len(out) && isCover(out, at) {
 			at++
 		}
+		if opts.ExerciseList {
+			out = append(out, exerciseList(chapterList)...)
+		}
+		out = e.finishCitations(out, opts)
 		out = append(out[:at:at], append(frontPages(opts), out[at:]...)...)
 		out = append(out, backPages(opts)...)
+		if opts.IndexPage {
+			out = append(out, indexBlocks(index)...)
+		}
 	}
 	return out, title
+}
+
+// finishCitations turns the citations in the text into words, numbers the footnotes, and adds the bibliography when it was asked for.
+func (e *Exporter) finishCitations(out []block, opts ExportOptions) []block {
+	sources := map[int64]source{}
+	for _, r := range e.load("source") {
+		s := sourceOf(r)
+		sources[s.id] = s
+	}
+	out, cited := resolveCitations(out, sources, opts.CitationStyle)
+	out = numberNotes(out)
+	if opts.Bibliography {
+		out = append(out, bibliographyBlocks(cited, opts.CitationStyle)...)
+	}
+	return out
+}
+
+// sourcesList is the whole library of sources as a list.
+func (e *Exporter) sourcesList(opts ExportOptions) []block {
+	var all []source
+	for _, r := range e.load("source") {
+		all = append(all, sourceOf(r))
+	}
+	return sourcesBlocks(all, opts.CitationStyle)
 }
 
 func (e *Exporter) bible() []block {
@@ -430,6 +481,9 @@ func run(text string, bold bool) string { return runOf(span{text: text, bold: bo
 
 // runOf writes one styled piece of text. A new line in the text becomes a line break.
 func runOf(sp span) string {
+	if sp.noteID > 0 { // a real Word footnote: the text of it is in footnotes.xml
+		return fmt.Sprintf(`<w:r><w:rPr><w:rStyle w:val="FootnoteReference"/></w:rPr><w:footnoteReference w:id="%d"/></w:r>`, sp.noteID)
+	}
 	props := ""
 	if sp.bold {
 		props += "<w:b/>"
@@ -496,12 +550,16 @@ func buildDocx(blocks []block, opts ExportOptions) ([]byte, error) {
 			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Heading2"/></w:pPr>` + run(b.text, false) + `</w:p>`)
 		case "kv":
 			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Plain"/></w:pPr>` + run(b.label+": ", true) + run(b.text, false) + `</w:p>`)
+		case "boxhead":
+			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Plain"/><w:keepNext/>` + boxPr(b) + `<w:spacing w:before="200" w:after="40"/></w:pPr>` + run(b.text, true) + `</w:p>`)
+		case "caption":
+			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Caption"/></w:pPr>` + runsOf(b) + `</w:p>`)
 		case "sub":
-			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Heading2"/></w:pPr>` + runsOf(b) + `</w:p>`)
+			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Heading2"/>` + boxPr(b) + `</w:pPr>` + runsOf(b) + `</w:p>`)
 		case "quote":
-			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Quote"/></w:pPr>` + runsOf(b) + `</w:p>`)
+			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="Quote"/>` + boxPr(b) + `</w:pPr>` + runsOf(b) + `</w:p>`)
 		case "li":
-			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="ListItem"/></w:pPr>` + runsOf(b) + `</w:p>`)
+			body.WriteString(`<w:p><w:pPr><w:pStyle w:val="ListItem"/>` + boxPr(b) + `</w:pPr>` + runsOf(b) + `</w:p>`)
 		case "rule":
 			mark := b.text
 			if mark == "" {
@@ -512,7 +570,9 @@ func buildDocx(blocks []block, opts ExportOptions) ([]byte, error) {
 			body.WriteString(fmt.Sprintf(`<w:p><w:pPr><w:pStyle w:val="Plain"/><w:spacing w:before="%d"/><w:ind w:firstLine="0"/><w:jc w:val="center"/></w:pPr>`, b.level*1000) + runsOf(b) + `</w:p>`)
 		default:
 			props := ""
-			if b.flush {
+			if b.box != "" {
+				props = `<w:pPr>` + boxPr(b) + `<w:ind w:left="160" w:right="120" w:firstLine="0"/></w:pPr>`
+			} else if b.flush {
 				props = `<w:pPr><w:ind w:firstLine="0"/></w:pPr>`
 			}
 			body.WriteString(`<w:p>` + props + runsOf(b) + `</w:p>`)
@@ -542,6 +602,9 @@ func buildDocx(blocks []block, opts ExportOptions) ([]byte, error) {
 <w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:pPr><w:keepNext/><w:spacing w:before="480" w:after="360"/><w:ind w:firstLine="0"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:sz w:val="40"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="ContentsHeading"><w:name w:val="Contents Heading"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:pPr><w:keepNext/><w:spacing w:before="480" w:after="360"/><w:ind w:firstLine="0"/></w:pPr><w:rPr><w:b/><w:sz w:val="40"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="ContentsItem"><w:name w:val="Contents Item"/><w:basedOn w:val="Plain"/><w:pPr><w:spacing w:after="120"/></w:pPr></w:style>
+<w:style w:type="paragraph" w:styleId="Caption"><w:name w:val="caption"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:before="60" w:after="200" w:line="240" w:lineRule="auto"/><w:ind w:firstLine="0"/><w:jc w:val="center"/></w:pPr><w:rPr><w:i/><w:sz w:val="20"/></w:rPr></w:style>
+<w:style w:type="character" w:styleId="FootnoteReference"><w:name w:val="footnote reference"/><w:rPr><w:vertAlign w:val="superscript"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="FootnoteText"><w:name w:val="footnote text"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:after="40" w:line="240" w:lineRule="auto"/><w:ind w:firstLine="0"/></w:pPr><w:rPr><w:sz w:val="20"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:pPr><w:keepNext/><w:spacing w:before="320" w:after="120"/><w:ind w:firstLine="0"/><w:outlineLvl w:val="1"/></w:pPr><w:rPr><w:b/><w:sz w:val="30"/></w:rPr></w:style>
 </w:styles>`
 
@@ -565,6 +628,17 @@ func buildDocx(blocks []block, opts ExportOptions) ([]byte, error) {
 			}
 		}
 		files = append(files, struct{ name, data string }{"word/media/cover.jpg", string(cover.jpeg)})
+	}
+	if notes := docxNotes(blocks); notes != "" {
+		files = append(files, struct{ name, data string }{"word/footnotes.xml", notes}, struct{ name, data string }{"word/settings.xml", docxSettings})
+		for i := range files {
+			switch files[i].name {
+			case "[Content_Types].xml":
+				files[i].data = strings.Replace(files[i].data, `</Types>`, `<Override PartName="/word/footnotes.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/></Types>`, 1)
+			case "word/_rels/document.xml.rels":
+				files[i].data = strings.Replace(files[i].data, `</Relationships>`, `<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes" Target="footnotes.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/></Relationships>`, 1)
+			}
+		}
 	}
 	var buf bytes.Buffer
 	zw := zip.NewWriter(&buf)
@@ -609,7 +683,7 @@ func (e *Exporter) SaveImage(name, dataURL string) (string, error) {
 
 // chapterText is the text of one chapter. A chapter with scenes is its scenes in order, with a
 // scene break between them. An older chapter without scenes uses its own text.
-func chapterText(c rec, scenes []rec) []block {
+func chapterText(c rec, scenes []rec, headings bool) []block {
 	var mine []rec
 	for _, sc := range scenes {
 		if num(sc, "chapter") == num(c, "id") {
@@ -626,10 +700,31 @@ func chapterText(c rec, scenes []rec) []block {
 		if len(body) == 0 {
 			continue // a planned scene with no text yet
 		}
-		if len(out) > 0 {
+		if headings {
+			// a non-fiction book: the title of each section is a sub-heading, and no mark goes between sections
+			if t := strings.TrimSpace(str(sc, "title")); t != "" {
+				out = append(out, block{kind: "h2", text: t})
+			}
+		} else if len(out) > 0 {
 			out = append(out, block{kind: "rule"})
 		}
 		out = append(out, body...)
+	}
+	return out
+}
+
+// takeawayBlocks is the list "Key takeaways" at the end of a chapter, when the writer asked for it and filled it in.
+func takeawayBlocks(c rec, opts ExportOptions) []block {
+	if !opts.Takeaways {
+		return nil
+	}
+	lines := paragraphs(str(c, "takeaways"))
+	if len(lines) == 0 {
+		return nil
+	}
+	out := []block{{kind: "h2", text: "Key takeaways"}}
+	for _, l := range lines {
+		out = append(out, block{kind: "li", text: strings.TrimSpace(strings.TrimLeft(l, "-*• "))})
 	}
 	return out
 }
@@ -657,4 +752,34 @@ func writeFileAtomic(path string, data []byte) error {
 		return err
 	}
 	return nil
+}
+
+// docxSettings tells Word which footnotes are the separators. A document with footnotes needs it.
+const docxSettings = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:footnotePr><w:footnote w:id="-1"/><w:footnote w:id="0"/></w:footnotePr></w:settings>`
+
+// docxNotes is the part word/footnotes.xml for the footnotes in the blocks, or "" when there are none.
+func docxNotes(blocks []block) string {
+	var body strings.Builder
+	for _, b := range blocks {
+		for _, sp := range b.spans {
+			if sp.noteID > 0 {
+				body.WriteString(fmt.Sprintf(`<w:footnote w:id="%d"><w:p><w:pPr><w:pStyle w:val="FootnoteText"/></w:pPr><w:r><w:rPr><w:rStyle w:val="FootnoteReference"/></w:rPr><w:footnoteRef/></w:r><w:r><w:t xml:space="preserve"> %s</w:t></w:r></w:p></w:footnote>`, sp.noteID, xhtmlEsc(sp.note)))
+			}
+		}
+	}
+	if body.Len() == 0 {
+		return ""
+	}
+	return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:footnotes xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:footnote w:type="separator" w:id="-1"><w:p><w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/></w:pPr><w:r><w:separator/></w:r></w:p></w:footnote><w:footnote w:type="continuationSeparator" w:id="0"><w:p><w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/></w:pPr><w:r><w:continuationSeparator/></w:r></w:p></w:footnote>` + body.String() + `</w:footnotes>`
+}
+
+// boxPr is the bar at the left and the colour behind a paragraph that is inside a callout box.
+func boxPr(b block) string {
+	if b.box == "" {
+		return ""
+	}
+	s := boxOf(b.box)
+	return fmt.Sprintf(`<w:pBdr><w:left w:val="single" w:sz="24" w:space="8" w:color="%s"/></w:pBdr><w:shd w:val="clear" w:color="auto" w:fill="%s"/>`, s.bar, s.fill)
 }

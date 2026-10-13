@@ -6,6 +6,7 @@
   import MoodBoard from '../lib/MoodBoard.svelte';
   import Picture from '../lib/Picture.svelte';
   import { nav } from '../lib/nav.svelte';
+  import { has } from '../lib/projecttype.svelte';
 
   let mode = $state<'note' | 'location'>('note');
   let selId = $state<number | null>(null);
@@ -49,7 +50,7 @@
       <button class:active={mode === 'location'} onclick={() => switchMode('location')}>Places</button>
     </div>
     <div class="row"><input placeholder="Search…" bind:value={search} /><button class="primary" onclick={add}>+ New</button></div>
-    {#if mode === 'location'}<button class="small" style="width:100%;margin-top:.4rem" onclick={() => (nav.names = 'place')}>Name generator…</button>{/if}
+    {#if mode === 'location' && has('names')}<button class="small" style="width:100%;margin-top:.4rem" onclick={() => (nav.names = 'place')}>Name generator…</button>{/if}
     <label>Filter</label>
     <Select bind:value={filter}>{#each cats as c}<option>{c}</option>{/each}</Select>
     <div class="list">

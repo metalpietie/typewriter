@@ -1,5 +1,6 @@
 <script lang="ts">
   import ConfirmButton from './ConfirmButton.svelte';
+  import { word } from './projecttype.svelte';
   import { shrinkPicture } from './picture';
   import { listMood, addMood, saveMood, deleteMood, type Mood } from './mood';
   import { MAX_CARDS, MAX_TEXT, whyNot } from './mood-core';
@@ -57,9 +58,9 @@
 <svelte:window onkeydown={(e) => { if (e.key === 'Escape' && big) { e.stopPropagation(); big = null; } }} />
 
 <details class="mood" bind:open>
-  <summary>Mood board{cards.length ? ' · ' + cards.length : ''}</summary>
+  <summary>{word('Mood')}{cards.length ? ' · ' + cards.length : ''}</summary>
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-  <div class="drop" class:over role="group" aria-label="Mood board" tabindex="0"
+  <div class="drop" class:over role="group" aria-label={word('Mood')} tabindex="0"
     ondragover={(e) => { e.preventDefault(); over = true; }} ondragleave={() => (over = false)} ondrop={onDrop} onpaste={onPaste}>
     <div class="grid">
       {#each cards as c (c.id)}

@@ -6,6 +6,7 @@ New to Typewriter? Start with the [tutorial](tutorial.md). It walks you through 
 
 ## Contents
 
+- [Project type](#project-type-a-story-or-a-non-fiction-book)
 - [Notes](#notes)
 - [Write](#write)
 - [Board](#board)
@@ -16,6 +17,9 @@ New to Typewriter? Start with the [tutorial](tutorial.md). It walks you through 
 - [Relationships](#relationships)
 - [World](#world)
 - [Glossary](#glossary)
+- [Sources](#sources)
+- [Ideas and quotes](#ideas-and-quotes)
+- [Boxes, captions and the index](#boxes-captions-and-the-index)
 - [Factions](#factions)
 - [Items](#items)
 - [Family tree](#family-tree)
@@ -53,6 +57,82 @@ The app moves a little when you use it, so it feels alive. Press **Animations: �
 - The text of the editor never moves.
 
 If Windows or Linux is set to "reduce motion", the app starts with animations **Off** until you choose another level. The choice belongs to this computer, not to the project, so it is not in your backups.
+
+## Project type: a story or a non-fiction book
+
+Every project has a **type**. The type decides which tools are in the menu and which words the screens use. Nothing is deleted when you change it.
+
+| Type | Use it for | The menu shows |
+| --- | --- | --- |
+| **Fiction** | A story. This is the type of every project that you made before. | Everything, as before. |
+| **Non-fiction** | A how-to, self-help, history or any book about real things. | Notes, Write, the Outline board, Glossary, Sources, Ideas and quotes, Checks, Statistics, Export. |
+| **Mixed** | A memoir, or a story with real research behind it. | Everything, and Sources and Ideas and quotes too. |
+
+**Where to choose it:**
+
+- When you make a new project (the **Type** list under **New project** in the Projects window).
+- Later, in **Project settings…** (a button on the Dashboard and in the Projects window). It shows the type and a list of tools with a tick box for each. Tick a tool to show it, or clear the tick to hide it. A history book can be **Non-fiction** and still have the **Timeline** and **Maps & Paths** ticked. When you change the type, the ticks go back to what that type usually shows.
+
+**What changes in a non-fiction project:**
+
+- A **scene** is called a **section**. The **Board** is the **Outline board**. A scene summary is a **key point**. A chapter summary is the **chapter promise**. The Mood board is **Ideas and pictures**.
+- The **Section** panel in the Write tab has no point of view, place, time, cast or story arcs. A chapter also has **Key takeaways**: a short list, one on each line.
+- The quick actions menu has no **@ Link** and **Make new** for tools that are hidden.
+- **Checks** has no **Plot holes** and **Loose characters**. **Statistics** has no **Words per character**. The Dashboard has no plot hole count.
+- **Export** has no **Story bible**. The section titles print as headings instead of a mark between scenes, and chapter headings start on **The title**.
+
+A hidden tool keeps its data. A backup keeps the type and the tool ticks, and a restore brings them back. A project from an older version has no type saved, so it opens as **Fiction** and looks as it always did.
+
+## Sources
+
+(Non-fiction and Mixed projects.) The **Sources** screen is your library of the books, articles, web pages, reports and interviews that you use.
+
+- Press **+ New**. Give the **title**, the **type**, the **authors**, the **year**, and the details that the type needs (the journal and pages of an article, the website and address of a web page, the publisher of a book).
+- Write the authors one on each line as **Last, First**. A group goes with a comma at the end, such as `World Health Organization,`.
+- **Status** (to read, read, quoted) helps you see what you have used. The list can be filtered by it.
+- **Cited in** lists the sections that cite the source. Click one to open it.
+- If you delete a source that is cited, the app asks. You can **delete and remove the citations**, or delete and keep them (they print as **[?]**).
+
+### Citations
+
+In the Write tab, press **Cite** in the toolbar, or select text and press **Cite** in the quick actions menu. Pick a source (or **+ A new source…** to make one on the spot) and type the page or place if you want one (`45`, `45-47` or `ch. 3`). The citation goes after the selected text. It shows as `(Clear, 2018, p. 45)`. Click a citation to change or remove it.
+
+The **Export** screen has **How citations look**:
+
+| Style | In the text | At the end |
+| --- | --- | --- |
+| **Author and year** (the start) | (Clear, 2018, p. 45) | Bibliography in alphabetical order |
+| **Numbers** | [1] or [1, p. 45] | Bibliography in the order of the first citation |
+| **Notes** | A footnote for each citation. The first note for a source is long, later ones are short. | Bibliography in alphabetical order |
+
+Tick **Print a bibliography** to add the sources that you cited after the last chapter. The **Sources** export (under **What to export**) is the list of all your sources. These are a few simple styles, not every academic style. Check them against the style that your publisher asks for.
+
+### Footnotes
+
+Press **Footnote** in the toolbar (or **Ctrl+Alt+F**, or the button in the quick actions menu), and type the note. The number is set for you. Click a number to change the note or remove it.
+
+- **Word:** real footnotes at the bottom of the page. Word shows them in its own footnote area.
+- **PDF and e-book:** the notes are printed at the end of each chapter. In the e-book each number links to its note and back.
+- **Markdown:** `[^1]` notes.
+- Footnote text is not counted in the word count.
+
+## Ideas and quotes
+
+(Non-fiction and Mixed projects.) A place for short items: an **idea**, a **quote**, an **anecdote**, a **statistic**. A quote or a statistic can name its **source** and a page. Press **Put it in the text** and the item goes at the end of the section that is open in the Write tab, with its citation. A quote becomes a block quote. Then move it where it belongs.
+
+## Boxes, captions and the index
+
+(Non-fiction and Mixed projects.) These are in the Write toolbar.
+
+- **Box…** puts a coloured box around paragraphs: **Key idea**, **Story**, **Example**, **Exercise**, **Warning** or **Quote**. Pick **Take the box off** to remove it. Boxes print in Word, PDF, e-book and Markdown (as a quote with a bold label).
+- **Caption…** makes a paragraph a caption of a **Figure**, **Table** or **Chart**. The export numbers it by chapter: *Figure 3.2: text*. There are no pictures in the text yet, so a caption goes with a table or a figure that you describe in words.
+- **Index:** select a word or phrase and press **Index** in the quick actions menu. Tick **Print an index** on the Export screen. The index is at the very end, in alphabetical order, with the chapters of each term. It lists chapters, not page numbers.
+- **Print all the exercise boxes together** adds a chapter at the end that collects every **Exercise** box under its chapter title.
+- In the **Chapter** panel, **+ Exercise box at the end** adds an Exercises heading and an empty exercise box to the last section.
+
+### Source checks
+
+The **Checks** tab has a **Sources** page. Select a claim and press **Needs a source** in the quick actions menu. The claim shows with a red wavy line. The page lists every marked claim that has no citation after it in the same paragraph. It also lists citations of a source that is gone, and sources that you never cited. A word that is spelled two ways is on the **Names** page, which uses your Glossary.
 
 ## Notes
 
@@ -657,8 +737,10 @@ Open **Pages and style** on the Export screen (manuscripts only). Your choices a
 
 - **Copyright page** and **Dedication:** each one is a page after the title page. An empty box means no page. Click the empty copyright box to fill in a start, from your author name.
 - **Acknowledgments** and **About the author:** pages after the last chapter. They are listed in the table of contents.
-- **Between scenes:** the mark between scenes: three stars (the start), a hash mark, three dashes, or an empty line.
+- **Between scenes:** the mark between scenes: three stars (the start), a hash mark, three dashes, or an empty line. In a non-fiction project the same list has **A heading**, which prints the title of each section as a sub-heading and no mark. A section with no title gets no heading.
 - **Chapter headings:** "Chapter 3: The title", only the title, only "Chapter 3", or "3. The title".
+- **Key takeaways** (non-fiction): print the takeaways of each chapter at the end of it.
+- **Citations, bibliography, index and exercises:** see [Sources](#sources) and [Boxes, captions and the index](#boxes-captions-and-the-index).
 - The table of contents comes after the copyright and dedication pages. In an e-book, each front page has its own page file. These choices work in Word, PDF, e-book and Markdown.
 
 ### Backup and restore

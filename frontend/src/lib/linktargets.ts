@@ -1,5 +1,6 @@
 import { db } from './db.svelte';
 import { LINK_KINDS, labelOf, type LinkKind } from './backlinks';
+import { hasKind } from './projecttype.svelte';
 
 /** Something an @ link can point at. */
 export type Cand = { kind: LinkKind; id: number; label: string; word: string; also: string };
@@ -9,6 +10,7 @@ export function linkTargets(q: string, limit = 8): Cand[] {
   const query = q.trim().toLowerCase();
   const all: Cand[] = [];
   for (const { kind, word } of LINK_KINDS) {
+    if (!hasKind(kind)) continue;
     for (const it of db.lists[kind]) {
       const label = labelOf(kind, it);
       if (label) all.push({ kind, id: it.id, label, word, also: String(it.aliases ?? '').toLowerCase() });

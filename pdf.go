@@ -111,6 +111,7 @@ func renderPDF(blocks []block, opts ExportOptions, pages map[string]int) ([]byte
 	}
 
 	for _, b := range blocks {
+		boxY, boxPage := pdf.GetY(), pdf.PageNo() // where a callout box starts, for the bar at its left
 		switch b.kind {
 		case "pagebreak":
 			if !fresh {
@@ -215,6 +216,24 @@ func renderPDF(blocks []block, opts ExportOptions, pages map[string]int) ([]byte
 			pdf.SetFont("Times", style, look.font)
 			pdf.MultiCell(0, look.line, tr(spansText(spansOf(b))), "", "C", false)
 			pdf.Ln(look.gap)
+		case "boxhead":
+			r, g, bl := hexRGB(boxOf(b.box).bar)
+			pdf.Ln(2)
+			pdf.SetFont("Times", "B", look.font-1)
+			pdf.SetTextColor(r, g, bl)
+			pdf.MultiCell(0, look.line, tr(b.text), "", "L", false)
+			pdf.SetTextColor(0, 0, 0)
+			boxY += 2
+		case "caption":
+			pdf.SetFont("Times", "I", look.font-1.5)
+			pdf.MultiCell(0, look.line*0.85, tr(spansText(spansOf(b))), "", "C", false)
+			pdf.Ln(look.gap)
+		case "note":
+			// a footnote at the end of a chapter, in smaller type
+			pdf.SetFont("Times", "", look.font-1.5)
+			pdf.SetX(left)
+			pdf.MultiCell(0, look.line*0.85, tr(fmt.Sprintf("%d.  %s", b.level, b.text)), "", "L", false)
+			pdf.Ln(look.gap / 2)
 		case "quote", "li":
 			indent := 10.0
 			if b.kind == "li" {
@@ -233,6 +252,11 @@ func renderPDF(blocks []block, opts ExportOptions, pages map[string]int) ([]byte
 			}
 			writeSpans(pdf, tr, look, b, false, indent)
 		}
+		if b.box != "" && pdf.PageNo() == boxPage && pdf.GetY() > boxY {
+			r, g, bl := hexRGB(boxOf(b.box).bar)
+			pdf.SetFillColor(r, g, bl)
+			pdf.Rect(left-3.5, boxY, 1.2, pdf.GetY()-boxY, "F")
+		}
 		fresh = false
 	}
 	var buf bytes.Buffer
@@ -246,6 +270,16 @@ func renderPDF(blocks []block, opts ExportOptions, pages map[string]int) ([]byte
 func writeSpans(pdf *fpdf.Fpdf, tr func(string) string, look pdfLook, b block, italic bool, firstLine float64) {
 	pdf.SetX(pdf.GetX() + firstLine)
 	for _, sp := range spansOf(b) {
+		if sp.noteID > 0 {
+			// the number of a footnote: small, and a little above the line
+			x, y := pdf.GetXY()
+			pdf.SetFont("Times", "", look.font*0.65)
+			pdf.SetXY(x, y-look.line*0.3)
+			pdf.Write(look.line, tr(fmt.Sprint(sp.noteID)))
+			nx, _ := pdf.GetXY()
+			pdf.SetXY(nx, y)
+			continue
+		}
 		style := ""
 		if sp.bold {
 			style += "B"

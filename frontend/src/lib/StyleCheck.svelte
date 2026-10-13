@@ -2,6 +2,7 @@
   import Select from './Select.svelte';
   import { db } from './db.svelte';
   import { openScene } from './nav.svelte';
+  import { word } from './projecttype.svelte';
   import { findStyle, weakExamples, type LongRow } from './style';
   import { GROUPS } from './style-core';
 
@@ -51,7 +52,7 @@
 </div>
 
 {#if !report.scenes}
-  <div class="empty">Nothing to check yet. Write some scenes first.</div>
+  <div class="empty">Nothing to check yet. Write some {word('scenes')} first.</div>
 {:else if part === 'dialogue'}
   <p class="lead">
     Dialogue is <b>{pct(report.dialogue.dialogue, report.dialogue.total)}%</b> of the text
@@ -59,7 +60,7 @@
   </p>
   <p class="muted">Words inside quotation marks, chapter by chapter. There is no right number. A chapter with a very low or high share may be just what you want.</p>
   {#each report.chapters as c (c.id)}
-    <button class="chap" disabled={!c.first} onclick={() => c.first && openScene(c.first)} title="Open the first scene of this chapter">
+    <button class="chap" disabled={!c.first} onclick={() => c.first && openScene(c.first)} title="Open the first {word('scene')} of this chapter">
       <span class="name">{c.label}</span>
       <span class="track"><span class="fill" style:width={pct(c.dialogue, c.total) + '%'}></span></span>
       <span class="num">{pct(c.dialogue, c.total)}%</span>
@@ -77,7 +78,7 @@
   {#each shown as r (r.key)}
     <div class="card">
       <div class="gap">
-        <button class="row-link" onclick={() => openScene(r.scene.id)} title="Open the scene">
+        <button class="row-link" onclick={() => openScene(r.scene.id)} title="Open the {word('scene')}">
           <span class="chip">{r.words} words</span>
           <span class="t wrap">{short(r.text)}</span>
         </button>
@@ -115,7 +116,7 @@
       {#if openWord === w.word}
         <div class="card examples">
           {#each examples as e}
-            <button class="row-link" onclick={() => openScene(e.scene.id)} title="Open the scene">
+            <button class="row-link" onclick={() => openScene(e.scene.id)} title="Open the {word('scene')}">
               <span class="chip">{e.label}</span>
               <span class="t">{#each snip(e.snippet) as p}{#if p.hit}<mark>{p.t}</mark>{:else}{p.t}{/if}{/each}</span>
             </button>

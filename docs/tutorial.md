@@ -254,6 +254,19 @@ Each chapter starts on a new page. A table of contents comes after the title pag
 
 ---
 
+## Writing a non-fiction book
+
+Typewriter also works for a book about real things: a how-to, self-help, a history. You need a different set of tools, so you tell the app that.
+
+1. Open the **Projects** window (the button at the top of the menu). Under **New project**, type a name, set **Type** to **Non-fiction**, and press **Create and open**. (To change a project that you already have, press **Project settings…** on the Dashboard.)
+2. Look at the menu. The story tools are gone. You see **Notes**, **Write**, the **Outline board**, **Glossary**, **Sources** and **Ideas and quotes**. Nothing is deleted when you hide a tool.
+3. In **Write**, add a book, a chapter and a **section**. A section has a title that prints as a heading, and a **key point**: what the reader should take away. Fill in the **chapter promise** and the **key takeaways** of the chapter.
+4. Open **Sources** and add a book that you read. Then go back to Write, select a sentence, and press **Cite** in the quick actions menu. Pick the source and type a page number. The citation shows as (Author, Year, p. 45).
+5. Press **Footnote** in the toolbar for a side remark. Press **Box…** for a **Key idea** or an **Exercise** box.
+6. Open **Export**, tick **Print a bibliography**, pick how citations look, and export to Word. Your sources are listed at the end.
+
+The [guide](using-the-app.md#project-type-a-story-or-a-non-fiction-book) explains every part.
+
 ## Where to go next
 
 You now know the main loop: **write**, **link**, **check**, **back up**, **export**. When you are ready for more, the [guide to every screen](using-the-app.md) explains these:

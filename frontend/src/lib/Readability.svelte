@@ -1,7 +1,7 @@
 <script lang="ts">
   import { db } from './db.svelte';
   import { chapterCounts } from './readability';
-  import { addCounts, cleanWpm, DEFAULT_WPM, ease, easeLabel, grade, marks, NO_COUNTS, readingTime } from './readability-core';
+  import { addCounts, cleanTarget, cleanWpm, DEFAULT_WPM, ease, easeLabel, grade, marks, NO_COUNTS, overTarget, readingTime, TARGET_MARGIN } from './readability-core';
 
   // Reading time and reading level, for each chapter. Shown in the Statistics tab.
   const KEY = 'typewriter-wpm';
@@ -12,6 +12,16 @@
     wpm = cleanWpm(input.value);
     input.value = String(wpm);
     try { localStorage.setItem(KEY, String(wpm)); } catch { /* it lasts until the app closes */ }
+  }
+
+  // The target grade is kept with the project: a chapter well above it is marked.
+  const targetRow = $derived(db.lists.setting.find((s) => s.key === 'readingTarget'));
+  const target = $derived(cleanTarget(targetRow?.value));
+  async function setTarget(e: Event) {
+    const input = e.currentTarget as HTMLInputElement;
+    const v = cleanTarget(input.value);
+    input.value = v ? String(v) : '';
+    await db.save('setting', { ...(targetRow ?? {}), key: 'readingTarget', value: v });
   }
 
   const books = $derived(
@@ -42,6 +52,11 @@
     <input id="wpm" class="wpmbox" type="number" min="80" max="600" value={wpm} onchange={setWpm} />
     <span class="fit muted">words a minute</span>
   </div>
+  <div class="row" style="justify-content:flex-start;margin-bottom:.6rem">
+    <label class="fit" for="tgrade" style="margin:0">Target grade</label>
+    <input id="tgrade" class="wpmbox" type="number" min="1" max="20" placeholder="none" value={target || ''} onchange={setTarget} />
+    <span class="fit muted">a chapter more than {TARGET_MARGIN} grades above it is marked (for example 8 for a book anyone can read)</span>
+  </div>
 
   {#each books as b (b.book.id)}
     <div style="margin:.8rem 0 .3rem"><b>{b.book.title}</b>
@@ -52,7 +67,7 @@
         <span class="num">{n(r.counts.words)}</span>
         <span class="num">{readingTime(r.counts.words, wpm)}</span>
         <span class="lv">{level(r.counts)}</span>
-        <span class="mk" class:harder={r.flag === 'harder'} class:easier={r.flag === 'easier'}>{r.flag ? r.flag + ' than the rest' : ''}</span>
+        <span class="mk" class:harder={r.flag === 'harder' || overTarget(r.counts, target)} class:easier={r.flag === 'easier' && !overTarget(r.counts, target)}>{overTarget(r.counts, target) ? 'above your target' : r.flag ? r.flag + ' than the rest' : ''}</span>
       </div>
     {:else}
       <div class="muted">No chapters yet.</div>

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 	"unicode"
@@ -10,10 +11,10 @@ import (
 func mergeSpans(in []span) []span {
 	var out []span
 	for _, s := range in {
-		if s.text == "" {
+		if s.text == "" && s.noteID == 0 {
 			continue
 		}
-		if n := len(out); n > 0 && out[n-1].bold == s.bold && out[n-1].italic == s.italic && out[n-1].underline == s.underline {
+		if n := len(out); n > 0 && s.noteID == 0 && out[n-1].noteID == 0 && out[n-1].bold == s.bold && out[n-1].italic == s.italic && out[n-1].underline == s.underline {
 			out[n-1].text += s.text
 			continue
 		}
@@ -30,6 +31,10 @@ var mdLineStart = regexp.MustCompile(`^(#|>|-|\+|\d+[.)])`)
 func mdInline(spans []span) string {
 	var out strings.Builder
 	for _, sp := range mergeSpans(spans) {
+		if sp.noteID > 0 {
+			out.WriteString(fmt.Sprintf("[^%d]", sp.noteID))
+			continue
+		}
 		core := strings.TrimFunc(sp.text, unicode.IsSpace)
 		if core == "" {
 			out.WriteString(strings.ReplaceAll(sp.text, "\n", "  \n"))
@@ -87,7 +92,7 @@ func buildMarkdown(blocks []block) []byte {
 		case "h2":
 			put("### " + mdInline([]span{{text: b.text}}))
 		case "sub":
-			put("### " + mdInline(spansOf(b)))
+			put(boxMark(b) + "### " + mdInline(spansOf(b)))
 		case "kv":
 			put("**" + mdInline([]span{{text: b.label}}) + ":** " + mdInline([]span{{text: b.text}}))
 		case "rule":
@@ -101,10 +106,16 @@ func buildMarkdown(blocks []block) []byte {
 			default:
 				put(mdInline([]span{{text: b.text}}))
 			}
+		case "boxhead":
+			put("> **" + mdInline([]span{{text: b.text}}) + "**")
+		case "caption":
+			put(mdInline(spansOf(b)))
+		case "note":
+			put(fmt.Sprintf("[^%d]: %s", b.level, mdInline([]span{{text: b.text}})))
 		case "center":
 			put(mdInline(spansOf(b)))
 		case "quote":
-			put("> " + strings.ReplaceAll(mdInline(spansOf(b)), "\n", "\n> "))
+			put(boxMark(b) + "> " + strings.ReplaceAll(mdInline(spansOf(b)), "\n", "\n> "))
 		case "li":
 			sp := append([]span(nil), spansOf(b)...)
 			marker := "- "
@@ -116,15 +127,23 @@ func buildMarkdown(blocks []block) []byte {
 					sp[0].text = strings.TrimPrefix(sp[0].text, m[0])
 				}
 			}
-			out.WriteString(marker + strings.ReplaceAll(mdInline(sp), "\n", "\n  ") + "\n")
+			out.WriteString(boxMark(b) + marker + strings.ReplaceAll(mdInline(sp), "\n", "\n  ") + "\n")
 			inList = true
 		default:
 			t := mdInline(spansOf(b))
 			if mdLineStart.MatchString(t) {
 				t = `\` + t
 			}
-			put(t)
+			put(boxMark(b) + t)
 		}
 	}
 	return []byte(strings.TrimRight(out.String(), "\n") + "\n")
+}
+
+// boxMark puts a block that is inside a callout box in a block quote.
+func boxMark(b block) string {
+	if b.box == "" {
+		return ""
+	}
+	return "> "
 }

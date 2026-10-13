@@ -50,7 +50,7 @@
 
 <h2 style="margin-top:2.4rem">Backup</h2>
 <p class="muted" style="margin-top:0">
-  A backup is one file with everything: books, characters, maps, and drawings.
+  A backup is one file with everything in this project: the text of your books, your notes, sources, and all the other things you made.
   {#if days !== null}Last backup: {agoText(days)} <span>({when})</span>.{:else}You have not made a backup yet.{/if}
 </p>
 
@@ -73,7 +73,7 @@
   <div class="card" style="border-color:var(--danger)">
     <strong>Replace everything with a backup?</strong>
     <p class="muted" style="margin:.4rem 0 .8rem">
-      All books, characters, maps, and drawings in the app are replaced by the ones in the backup file.
+      Everything in this project is replaced by what is in the backup file: the text of your books, your notes, and all the other things you made.
       Your current data is saved to a safety copy first, so you can go back.
     </p>
     <div class="row" style="justify-content:flex-start">

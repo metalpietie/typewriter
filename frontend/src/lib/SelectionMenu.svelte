@@ -2,17 +2,20 @@
   import { onMount, tick as nextTick } from 'svelte';
   import type { Editor } from '@tiptap/core';
   import { db, CHARACTER_COLORS } from './db.svelte';
+  import { has } from './projecttype.svelte';
   import { openItem } from './nav.svelte';
   import { pop } from './motion.svelte';
   import { linkTargets, type Cand } from './linktargets';
   import { titleOf, nameOf, pageHtml, loreText } from './selection-core';
 
   // The pop-up above selected text: quick actions. It lives with the editor and uses the editor's own selection.
-  let { editor, redraw, oncomment, onfind, source = '' }: {
+  let { editor, redraw, oncomment, onfind, oncite, onfootnote, source = '' }: {
     editor: Editor | undefined;
     redraw: number; // changes whenever the editor changes, so this menu redraws
     oncomment?: () => void;
     onfind?: () => void; // open Find & replace, which starts with the selected text
+    oncite?: () => void; // add a citation after the selected text
+    onfootnote?: () => void; // add a footnote after the selected text
     source?: string; // where the text is from, for example "Book One, ch. 3, scene 2"
   } = $props();
 
@@ -92,7 +95,20 @@
     (name === 'bold' ? c.toggleBold() : name === 'italic' ? c.toggleItalic() : c.toggleUnderline()).run();
   };
 
+  // ---- index and "needs a source" ----
+  function toggleIndex() {
+    if (!editor || !sel) return;
+    const chain = editor.chain().focus().setTextSelection({ from: sel.from, to: sel.to });
+    if (is('indexTerm')) chain.unsetMark('indexTerm').run();
+    else chain.setMark('indexTerm', { term: sel.text.replace(/\s+/g, ' ').trim().slice(0, 60) }).run();
+  }
+  function toggleNeeds() {
+    if (!editor || !sel) return;
+    editor.chain().focus().setTextSelection({ from: sel.from, to: sel.to }).toggleMark('needsSource').run();
+  }
+
   // ---- link to a character, place, lore note, faction or item ----
+  const linkable = $derived(has('characters') || has('world') || has('factions') || has('items'));
   async function openLink() {
     view = 'link';
     query = sel && sel.text.length <= 40 && !sel.text.includes('\n') ? sel.text.trim() : '';
@@ -169,11 +185,15 @@
         <button class:active={is('underline')} title="Underline (Ctrl+U)" onclick={() => mark('underline')}><u>U</u></button>
         <span class="sep"></span>
         {#if oncomment}<button title="Comment on this text" onclick={() => oncomment?.()}>💬 Comment</button>{/if}
-        <button class:active={is('ref')} title="Link this text to a character, place, lore note, faction or item" onclick={openLink}>@ Link</button>
+        {#if linkable}<button class:active={is('ref')} title="Link this text to a character, place, lore note, faction or item" onclick={openLink}>@ Link</button>{/if}
       </div>
       <div class="row1">
-        <button title="Make a new character, place, item or faction from this text" onclick={() => (view = 'make')}>＋ Make new</button>
+        {#if has('characters') || has('world') || has('items') || has('factions')}<button title="Make a new character, place, item or faction from this text" onclick={() => (view = 'make')}>＋ Make new</button>{/if}
         <button title="Copy this text to a new note" onclick={() => (view = 'note')}>📝 To a note</button>
+        {#if oncite && has('sources')}<button title="Cite a source after this text" onclick={() => { hidden = true; oncite?.(); }}>❞ Cite</button>{/if}
+        {#if has('sources') || has('ideas')}<button class:active={is('indexTerm')} title="Put this text in the index at the end of the book" onclick={toggleIndex}>🔖 Index</button>{/if}
+        {#if has('sources')}<button class:active={is('needsSource')} title="Mark this claim: it still needs a source. The Checks tab lists it until you cite a source." onclick={toggleNeeds}>❓ Needs a source</button>{/if}
+        {#if onfootnote}<button title="Add a footnote after this text" onclick={() => { hidden = true; onfootnote?.(); }}>¹ Footnote</button>{/if}
         {#if onfind}<button title="Find this text in your book" onclick={() => { hidden = true; onfind?.(); }}>🔍 Find</button>{/if}
       </div>
     {:else if view === 'link'}
@@ -189,13 +209,13 @@
     {:else if view === 'note'}
       <div class="head"><button class="small" title="Back" onclick={() => (view = 'main')}>‹</button><span class="muted">Copy this text to…</span></div>
       <button class="item" onclick={() => toNote('draft')}><span>A page in Notes</span><small>ideas and thoughts</small></button>
-      <button class="item" onclick={() => toNote('note')}><span>A lore note</span><small>World tab</small></button>
+      {#if has('world')}<button class="item" onclick={() => toNote('note')}><span>A lore note</span><small>World tab</small></button>{/if}
     {:else if view === 'make'}
       <div class="head"><button class="small" title="Back" onclick={() => (view = 'main')}>‹</button><span class="muted">Make a new… from “{nameOf(sel?.text ?? '')}”</span></div>
-      <button class="item" onclick={() => makeNew('character')}><span>Character</span><small>Characters tab</small></button>
-      <button class="item" onclick={() => makeNew('location')}><span>Place</span><small>World tab</small></button>
-      <button class="item" onclick={() => makeNew('item')}><span>Item</span><small>Items tab</small></button>
-      <button class="item" onclick={() => makeNew('faction')}><span>Faction</span><small>Factions tab</small></button>
+      {#if has('characters')}<button class="item" onclick={() => makeNew('character')}><span>Character</span><small>Characters tab</small></button>{/if}
+      {#if has('world')}<button class="item" onclick={() => makeNew('location')}><span>Place</span><small>World tab</small></button>{/if}
+      {#if has('items')}<button class="item" onclick={() => makeNew('item')}><span>Item</span><small>Items tab</small></button>{/if}
+      {#if has('factions')}<button class="item" onclick={() => makeNew('faction')}><span>Faction</span><small>Factions tab</small></button>{/if}
     {:else if done}
       <div class="head"><span>{done.what}: <b>{done.title}</b></span></div>
       <div class="row1">

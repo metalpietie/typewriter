@@ -103,3 +103,18 @@ export function htmlToText(html: string): string {
     .replace(/<[^>]*>/g, '')
     .replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&amp;/g, '&');
 }
+
+/** The most a chapter may be above the target grade before it is marked. */
+export const TARGET_MARGIN = 2;
+
+/** The target grade a writer chose: a whole number from 1 to 20, or 0 for no target. */
+export function cleanTarget(raw: unknown): number {
+  const n = Math.round(Number(raw));
+  return Number.isFinite(n) && n >= 1 ? Math.min(20, n) : 0;
+}
+
+/** Is this text harder to read than the target allows? A chapter that is too short to judge is never over. */
+export function overTarget(c: Counts, target: number): boolean {
+  const g = grade(c);
+  return target > 0 && g !== null && g > target + TARGET_MARGIN;
+}

@@ -19,6 +19,15 @@ type ExportOptions struct {
 
 	Cover string `json:"cover"` // a JPEG as a data URL, for the first page of a manuscript. Empty means no cover.
 
+	// Non-fiction
+	SectionHeadings bool   `json:"sectionHeadings"` // print the title of each section as a sub-heading, and no mark between sections
+	Takeaways       bool   `json:"takeaways"`       // print "Key takeaways" at the end of each chapter that has some
+	CitationStyle   string `json:"citationStyle"`   // "authordate" (the start), "numbered" or "notes"
+	Bibliography    bool   `json:"bibliography"`    // print the list of the sources that were cited, after the last chapter
+	IndexPage       bool   `json:"indexPage"`       // print an index of the terms that are marked in the text, at the end
+	ExerciseList    bool   `json:"exerciseList"`    // print all the exercise boxes together, after the last chapter
+	Nonfiction      bool   `json:"nonfiction"`      // the project is a non-fiction book: a scene is called a section
+
 	// The outline (what is "outline")
 	OutlineDetails bool `json:"outlineDetails"` // add the point of view and the place of each scene
 	OutlineEmpty   bool `json:"outlineEmpty"`   // list scenes that have no summary yet
@@ -67,3 +76,11 @@ func (s pageSize) fontPt() float64 {
 
 // twips converts millimetres to the unit Word uses (1/1440 inch).
 func twips(mm float64) int { return int(math.Round(mm / 25.4 * 1440)) }
+
+// sceneWord is what a scene is called in an export: "Scene" in a story, "Section" in a non-fiction book.
+func (o ExportOptions) sceneWord() string {
+	if o.Nonfiction {
+		return "Section"
+	}
+	return "Scene"
+}

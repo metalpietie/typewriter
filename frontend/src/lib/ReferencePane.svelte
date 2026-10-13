@@ -2,6 +2,7 @@
   import Select from './Select.svelte';
   import { db, toHtml, type Item } from './db.svelte';
   import { openItem } from './nav.svelte';
+  import { hasKind } from './projecttype.svelte';
   import { orderedScenes, sceneLabel } from './scenes';
   import { REF_KINDS, characterFields, loreFields, placeFields, type RefKind, type RefPick } from './reference-core';
 
@@ -49,7 +50,7 @@
   </div>
   <label for="refkind">Show a…</label>
   <Select id="refkind" value={pick.kind} onchange={(e) => changeKind(e.currentTarget.value as RefKind)}>
-    {#each REF_KINDS as [k, name]}<option value={k}>{name}</option>{/each}
+    {#each REF_KINDS.filter(([k]) => hasKind(k)) as [k, name]}<option value={k}>{name}</option>{/each}
   </Select>
   <label for="refitem">Which one</label>
   <Select id="refitem" value={pick.id ?? ''} onchange={(e) => choose(e.currentTarget.value)}>

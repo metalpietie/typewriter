@@ -81,7 +81,7 @@ func outlineBlocks(chs, scenes, people, places []rec, opts ExportOptions) []bloc
 		for i, sc := range scenesOfChapter(c, scenes) {
 			name := str(sc, "title")
 			if name == "" {
-				name = fmt.Sprintf("Scene %d", i+1)
+				name = fmt.Sprintf("%s %d", opts.sceneWord(), i+1)
 			}
 			sum := str(sc, "summary")
 			if sum == "" && !opts.OutlineEmpty {

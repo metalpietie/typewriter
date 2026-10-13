@@ -114,6 +114,42 @@ export interface ExportOptions {
     "cover": string;
 
     /**
+     * Non-fiction
+     * print the title of each section as a sub-heading, and no mark between sections
+     */
+    "sectionHeadings": boolean;
+
+    /**
+     * print "Key takeaways" at the end of each chapter that has some
+     */
+    "takeaways": boolean;
+
+    /**
+     * "authordate" (the start), "numbered" or "notes"
+     */
+    "citationStyle": string;
+
+    /**
+     * print the list of the sources that were cited, after the last chapter
+     */
+    "bibliography": boolean;
+
+    /**
+     * print an index of the terms that are marked in the text, at the end
+     */
+    "indexPage": boolean;
+
+    /**
+     * print all the exercise boxes together, after the last chapter
+     */
+    "exerciseList": boolean;
+
+    /**
+     * the project is a non-fiction book: a scene is called a section
+     */
+    "nonfiction": boolean;
+
+    /**
      * The outline (what is "outline")
      * add the point of view and the place of each scene
      */

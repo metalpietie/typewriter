@@ -3,7 +3,7 @@
   import { Events } from '@wailsio/runtime';
   import { settle } from './lib/backupReminder';
   import { db } from './lib/db.svelte';
-  import { nav } from './lib/nav.svelte';
+  import { nav, type Tab } from './lib/nav.svelte';
   import { motion, applyMotion, cycleLevel, installRipple, animatePage, fadeWindow } from './lib/motion.svelte';
   import { LABEL } from './lib/motion-core';
   import Search from './lib/Search.svelte';
@@ -31,21 +31,21 @@
   import Checks from './views/Checks.svelte';
   import Statistics from './views/Statistics.svelte';
   import { findConflicts, openConflicts } from './lib/plotholes';
+  import { has, menu as projectMenu, tabOn } from './lib/projecttype.svelte';
+  import ProjectSettings from './lib/ProjectSettings.svelte';
   import Maps from './views/Maps.svelte';
   import Timeline from './views/Timeline.svelte';
   import Export from './views/Export.svelte';
+  import Sources from './views/Sources.svelte';
+  import Ideas from './views/Ideas.svelte';
 
-  // The menu: first a tab with no heading, then groups. Each group has a heading.
-  const menu = [
-    { items: [['home', 'Dashboard']] },
-    { title: 'Story', items: [['draft', 'Notes'], ['write', 'Write'], ['board', 'Board'], ['arcs', 'Story arcs']] },
-    { title: 'People', items: [['characters', 'Characters'], ['relationships', 'Relationships'], ['family', 'Family tree'], ['factions', 'Factions']] },
-    { title: 'Worldbuilding', items: [['world', 'World'], ['glossary', 'Glossary'], ['items', 'Items'], ['maps', 'Maps & Paths'], ['timeline', 'Timeline']] },
-    { title: 'Review', items: [['checks', 'Checks'], ['stats', 'Statistics'], ['export', 'Export & Backup']] },
-  ] as const;
+  // The menu comes from the type of the project: first a tab with no heading, then groups. Each group has a heading.
+  const menu = $derived(projectMenu());
+  // a tab of a tool that was switched off is not opened (for example after the type changed)
+  $effect(() => { if (db.ready && !tabOn(nav.tab)) nav.tab = 'home'; });
 
   // the number of open plot holes shows next to the Checks tab
-  const holes = $derived(db.ready ? openConflicts(findConflicts().conflicts).length : 0);
+  const holes = $derived(db.ready && has('characters') ? openConflicts(findConflicts().conflicts).length : 0);
 
   // the width of the list on the left of each screen, kept between runs
   const SIDE_KEY = 'typewriter-side-width', SIDE_MIN = 180, SIDE_MAX = 640, SIDE_DEFAULT = 260;
@@ -118,6 +118,7 @@
 {#if nav.calendar}<CalendarEditor />{/if}
 {#if nav.names}<NameGenerator />{/if}
 {#if nav.projects}<Projects />{/if}
+{#if nav.projectSettings}<ProjectSettings />{/if}
 {#if nav.dataFolder}<DataFolder />{/if}
 
 <div class="app" class:focus={nav.focus} bind:this={appEl}>
@@ -130,7 +131,7 @@
     {#each menu as group}
       {#if 'title' in group}<div class="group">{group.title}</div>{/if}
       {#each group.items as [id, label]}
-        <button class:on={nav.tab === id} onclick={() => (nav.tab = id)}>{label}{#if id === 'checks' && holes}<span class="count">{holes}</span>{/if}</button>
+        <button class:on={nav.tab === id} onclick={() => (nav.tab = id as Tab)}>{label}{#if id === 'checks' && holes}<span class="count">{holes}</span>{/if}</button>
       {/each}
     {/each}
     <div class="foot">
@@ -168,6 +169,8 @@
     {:else if nav.tab === 'timeline'}<Timeline />
     {:else if nav.tab === 'checks'}<Checks />
     {:else if nav.tab === 'stats'}<Statistics />
+    {:else if nav.tab === 'sources'}<Sources />
+    {:else if nav.tab === 'ideas'}<Ideas />
     {:else if nav.tab === 'export'}<Export />
     {/if}
   </main>

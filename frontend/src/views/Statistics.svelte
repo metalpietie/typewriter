@@ -4,6 +4,7 @@
   import Readability from '../lib/Readability.svelte';
   import CountUp from '../lib/CountUp.svelte';
   import { chapterWords, sceneWords, scenesOf, STATUSES } from '../lib/scenes';
+  import { has, word } from '../lib/projecttype.svelte';
   import { dailyGoal, lastDays, setDailyGoal, streak, wordsToday } from '../lib/progress';
 
   let range = $state(30);
@@ -116,12 +117,13 @@
       <div class="empty">No books yet.</div>
     {/each}
     <p class="muted" style="margin-bottom:0">
-      Scenes by stage: {#each status as x, i}{i ? ' · ' : ''}{x.s} {x.n}{/each}
+      {word('Scenes')} by stage: {#each status as x, i}{i ? ' · ' : ''}{x.s} {x.n}{/each}
     </p>
   </div>
 
   <Readability />
 
+  {#if has('characters')}
   <div class="card">
     <h3>Words per character</h3>
     <p class="muted" style="margin-top:0">The first number is the words in every scene they are in, as point of view or cast. “pov” is the words in scenes told through them.</p>
@@ -137,6 +139,7 @@
       <div class="empty">No characters yet.</div>
     {/each}
   </div>
+  {/if}
 </section>
 
 <style>
