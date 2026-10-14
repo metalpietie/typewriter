@@ -155,6 +155,13 @@ The Write tab reopens the book, chapter, and scene you had open last. This also 
 
 Chapters you wrote before the editor existed open as plain paragraphs. They convert when you edit them.
 
+### The sidebar tabs
+
+Both sidebars of the Write tab have tabs, and a white marker slides to the tab you pick. The app remembers your last tab.
+
+- **Left sidebar:** **Chapters** (your chapters and scenes) and **Book** (title, order in the series, synopsis, goals, finish date, revision passes, and **Delete book**).
+- **Right sidebar:** **Chapter** (word goal, who is in it, summary), **Scene** (status, point of view, place, time, notes, word goal, move to another chapter), **Story** (tags, mood board, revision passes, story arcs, who is in the scene) and **Comments**. A small number on **Comments** is the count of open comments. A small number on **Story** is the count of characters that are named in the text but not in the cast. In a non-fiction project the second tab is **Section**, and **Story** is called **Details** when the story tools are hidden.
+
 ### Finish date
 
 In the book panel of the Write tab, set a **Book goal (words)** and a **Finish by** date. The app then says how many words to write each day to finish on time.
@@ -205,7 +212,7 @@ Focus mode uses the same choices.
 
 ### Tags on scenes
 
-In the **Scene** panel (right side of the Write tab), under the story time, type a tag and press **Enter** or **,** to add it. Examples: flashback, dream, fight. Tags are lower case. The tags you used on other scenes show below as small buttons: press one to add it here. Press **✕** on a tag to take it off.
+On the **Story** tab (right side of the Write tab), type a tag and press **Enter** or **,** to add it. Examples: flashback, dream, fight. Tags are lower case. The tags you used on other scenes show below as small buttons: press one to add it here. Press **✕** on a tag to take it off.
 
 - When at least one scene has a tag, the left side of the Write tab shows **Show scenes tagged**. Pick a tag to list only those scenes. Chapters without such a scene are dimmed, and each chapter says how many scenes it has with the tag. Pick **All scenes** to see everything again.
 - The **Board** has the same list at the top, and each card shows its tags.
@@ -218,7 +225,7 @@ A pass is one round of revising a book: plot, characters, dialogue, line edit, p
 1. In the Write tab, pick a book and open **Revision passes** in the book panel (left side).
 2. Type a name and press **Enter**, or press **Add the usual passes** (Plot, Characters, Dialogue, Line edit, Proofread). Each book has its own passes.
 3. Click a name to rename it. **↑** and **↓** change the order. **✕** deletes the pass (press it twice). Next to each name you see how many scenes are done, for example **12/30**.
-4. Open a scene. In the **Scene** panel (right side), under **Tags**, tick the passes that are done for that scene.
+4. Open a scene. On the **Story** tab (right side), under **Revision passes**, tick the passes that are done for that scene.
 5. On the **Board**, pick **Pass: …** at the top. Each card gets a tick box. Cards that are done turn faint. Each chapter says how many scenes are still to do. **Hide scenes that are done** keeps only the work that is left. Without a pass picked, each card shows how many passes it has, for example **2/5 passes**.
 
 Deleting a pass takes its ticks off the scenes. Passes go with the book when you delete it.
@@ -292,7 +299,7 @@ Select some text in a scene. A small menu opens above it. It stays while the sel
 
 ### Comments
 
-Select some text in a scene and press **💬** in the toolbar. The text is marked, and a note card opens in the **Comments** panel at the top of the right side. Type your note.
+Select some text in a scene and press **💬** in the toolbar. The text is marked, and a note card opens in the **Comments** tab on the right side. Type your note.
 
 - Click the quote on a card to jump to its text. Click the marked text to find its card.
 - **Resolve** hides the mark on the text and moves the card to the "resolved" list. **Reopen** brings it back.
@@ -313,7 +320,7 @@ Type **@** in a scene (or press **@** in the toolbar). A list opens with your ch
 
 ### Name check
 
-If a scene names a character who is not in its cast (and is not its point of view), the Scene panel shows a warning and the scene list shows ⚠.
+If a scene names a character who is not in its cast (and is not its point of view), the **Story** tab shows a warning and the scene list shows ⚠.
 
 - It looks for the full name, the first name, and each name in "Also called". Whole words only, so "Aldric" does not match "Aldrich".
 - **Add to cast** puts the character in the scene.
@@ -365,7 +372,7 @@ The bottom of each character shows their relationships, their chapters, and how 
 
 ## Mood board
 
-A mood board is a set of pictures and short notes. Each **character**, each **place** (World tab) and each **scene** (the Scene panel in the Write tab) has one, under **Mood board**.
+A mood board is a set of pictures and short notes. Each **character**, each **place** (World tab) and each **scene** (the **Story** tab in the Write tab) has one, under **Mood board**.
 
 - Drop pictures on it, paste a picture (Ctrl+V), or press **+ Pictures**. Press **+ Note** for a card with only words.
 - Each card has a short note under the picture. Click a picture to see it larger. Press **Esc** or click to close it.

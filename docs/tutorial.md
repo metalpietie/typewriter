@@ -15,6 +15,8 @@ It takes about 45 minutes. You can stop at any step and come back. The app saves
 
 When you want to know more about a screen, open the [guide to every screen](using-the-app.md).
 
+The pictures in this tutorial show a small demo book called "The Last Letter". Your screen will look the same, with your own words in it.
+
 ---
 
 ## Before you start
@@ -43,6 +45,9 @@ On the left is the **menu**. It has groups:
 | **Worldbuilding** | **World** (lore notes and places), **Glossary**, **Items**, **Maps & Paths**, **Timeline** |
 | **Review** | **Checks**, **Statistics**, **Export & Backup** |
 
+
+![The Dashboard, with the menu on the left](images/dashboard.png)
+
 Click a name to open a screen. Try a few. Then come back to the **Dashboard**.
 
 Three more things to know:
@@ -62,6 +67,10 @@ Three more things to know:
 3. Type the **Book title** in the box below. Leave **Order in series** as `1`. (If you write a series, book two gets `2`, and so on.)
 4. Press **+ Chapter**. The new chapter appears in the list under the book.
 5. Click the chapter. You see **Scene 1** under it. Click **Scene 1**.
+
+The left side of the Write screen has two tabs. **Chapters** shows your chapters and scenes. **Book** shows the title, the synopsis and the goals of the book. Click a tab to switch. The white marker slides to the tab you pick.
+
+![The Write screen, with a book, a chapter and a scene](images/write-book.png)
 
 Now you have a book, a chapter and a scene. In Typewriter:
 
@@ -88,6 +97,9 @@ Try these:
 - Look at the bottom of the window. It shows **Scene**, **Today** and **Chapter** word counts. They stay in view while you write.
 - Look for **Saved** near the toolbar. It means your words are safe.
 
+![The Write screen with the first scene typed in](images/write-text.png)
+
+
 ### Make it comfortable
 
 - Press **Look** above the editor. You can change the font, the text size, the line spacing and the page width. The page changes while you click.
@@ -107,6 +119,9 @@ Characters live in the **Characters** screen.
 
 Want a picture? Press **Add portrait** and choose a file. The app cuts a square out of the middle and makes it small.
 
+
+![The Characters screen with Mara filled in](images/characters.png)
+
 Add a second character the same way, for example `Old Tom`.
 
 > **Tip:** stuck for a name? Press **Name generator…** on this screen. It makes names in styles such as Elvish or Norse. Click a name to copy it, or press **＋ Character** to make a character with that name.
@@ -122,6 +137,9 @@ Places live in the **World** screen.
 3. Press **+ New**, and type a name, for example `The clock shop`.
 4. Pick a type (city, village, ruin, and so on). Add a short description if you like.
 
+
+![The World screen, on the Places list](images/places.png)
+
 **Lore notes** (the other button) are for facts about your world: history, magic, religion, politics. You can add one later.
 
 ---
@@ -136,14 +154,22 @@ Go back to **Write** and open your scene. Now you tell Typewriter who is in the 
 2. A list opens with your characters, places and notes. Type a few letters (`Ma`) to narrow it.
 3. Press **Enter** (or click) to pick `Mara`. The name goes into the text as a link. It prints as normal text.
 
+
+![Typing @Ma in the text opens a list of names](images/link.png)
+
 **Hold Ctrl and click** the link to open that character. On the character's page, **Appears in** lists every scene that names them.
 
-**Fill in the Scene panel.** It is on the right side of the Write screen. It has:
+**Fill in the Scene panel.** The right side of the Write screen has four tabs: **Chapter**, **Scene**, **Story** and **Comments**. Click **Scene**. It has:
 
 - **Status:** idea, draft, revised or final. Start with `draft`.
 - **Point of view:** whose eyes we see the scene through.
 - **Place:** pick `The clock shop`.
-- **Who is in this scene:** tick `Mara`.
+- **Who is in this scene:** tick `Mara`. This one is on the **Story** tab.
+
+
+![The Scene tab on the right side of the Write screen](images/scene-panel.png)
+
+The **Story** tab has your tags, the story arcs and the list of **Who is in this scene**. (Ticking the characters is on that tab.) A small number on the **Story** tab is a warning: a name is in the text but not in the cast.
 
 It looks like a lot of work, but it pays off. The Board, the Timeline, the Checks and the Statistics all use this information. And you can fill it in later.
 
@@ -164,9 +190,15 @@ Select some words in your scene, for example `the old clock`. A small menu opens
 | **📝 To a note** | Copy the words to a new page in **Notes**, or to a lore note. |
 | **🔍 Find** | Find these words everywhere in your book. |
 
+
+![The quick actions menu above selected text](images/quick-actions.png)
+
 Press **Esc** to close the menu.
 
-Try **💬 Comment** now. Type a note, such as `Who wrote this letter?`. A card appears in the **Comments** panel at the top of the right side. When you have an answer, press **Resolve**. The mark on your text goes away.
+Try **💬 Comment** now. Type a note, such as `Who wrote this letter?`. A card appears in the **Comments** tab on the right side. When you have an answer, press **Resolve**. The mark on your text goes away.
+
+![The Comments tab, with one comment](images/comments.png)
+
 
 ---
 
@@ -178,6 +210,9 @@ Not every thought belongs in the book. The **Notes** screen is a notepad for ide
 2. Press **+ New**, and give the page a title, such as `What is in the letter?`.
 3. Write anything. It uses the same editor as the Write screen, so `@` links work too.
 
+![The Notes screen](images/notes.png)
+
+
 ---
 
 ## Step 9: See your book as cards
@@ -188,6 +223,9 @@ Click **Board**. Each chapter is a column. Each scene is a card, with its title,
 - **Drag the grip ⠿** on a card to move it up, down, or into another chapter. The order changes in your book too.
 - Click a card's **title** to open that scene in the Write screen.
 
+
+![The Board, with a card for each scene](images/board.png)
+
 Add a few more scenes with **+ Scene** and watch the Board grow. It is a good way to see the shape of your story.
 
 ---
@@ -195,6 +233,9 @@ Add a few more scenes with **+ Scene** and watch the Board grow. It is a good wa
 ## Step 10: Set a writing goal
 
 Click **Statistics**. Under **Daily writing goal**, type a number of words, for example `300`. Press **Enter**.
+
+
+![The Statistics screen, with the daily goal](images/statistics.png)
 
 The Dashboard and the Write screen now show your words for today against the goal. The **streak** counts the days in a row that you reached it. A day that you miss only breaks the streak when the day ends.
 
@@ -215,6 +256,9 @@ Once you have a few scenes, open **Checks**. It has lists that find problems you
 | **Style** | How much of your text is dialogue, very long sentences, and weak words. |
 | **Loose characters** | Characters who are in no scene, in only one, or gone for many chapters. |
 
+
+![The Checks screen, on the Unfinished list](images/checks.png)
+
 These are hints, not rules. If a row is fine as it is, press **Skip** or **It is fine**.
 
 ---
@@ -226,6 +270,9 @@ The app makes a copy of your data each day and keeps the last 7. But those copie
 1. Click **Export & Backup**.
 2. Scroll to the **Backup** section. Press **Back up my data…**.
 3. Pick a place, such as a USB drive, and save the file.
+
+
+![The Backup section of the Export & Backup screen](images/backup.png)
 
 The app reminds you on the Dashboard when your last backup is old.
 
@@ -250,6 +297,9 @@ The app reminds you on the Dashboard when your last backup is old.
    - **Markdown (.md)** for other writing tools.
 6. Press **Export…** and pick where to save the file. Open it to see your book.
 
+
+![The Export screen, with Pages and style open](images/export.png)
+
 Each chapter starts on a new page. A table of contents comes after the title page. You can turn it off with the **Table of contents** tick box.
 
 ---
@@ -262,6 +312,9 @@ Typewriter also works for a book about real things: a how-to, self-help, a histo
 2. Look at the menu. The story tools are gone. You see **Notes**, **Write**, the **Outline board**, **Glossary**, **Sources** and **Ideas and quotes**. Nothing is deleted when you hide a tool.
 3. In **Write**, add a book, a chapter and a **section**. A section has a title that prints as a heading, and a **key point**: what the reader should take away. Fill in the **chapter promise** and the **key takeaways** of the chapter.
 4. Open **Sources** and add a book that you read. Then go back to Write, select a sentence, and press **Cite** in the quick actions menu. Pick the source and type a page number. The citation shows as (Author, Year, p. 45).
+
+![The Sources screen, with one book selected](images/sources.png)
+
 5. Press **Footnote** in the toolbar for a side remark. Press **Box…** for a **Key idea** or an **Exercise** box.
 6. Open **Export**, tick **Print a bibliography**, pick how citations look, and export to Word. Your sources are listed at the end.
 

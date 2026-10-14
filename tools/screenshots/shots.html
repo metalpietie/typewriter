@@ -1,0 +1,57 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>shots</title>
+<style>html,body{margin:0;height:100%;background:#0f1014}iframe{position:fixed;inset:0;width:100%;height:100%;border:0}</style></head>
+<body><iframe id="f"></iframe>
+<script>
+// Drives the app in the frame to one screen, for one screenshot. Which one comes from ?s=name.
+const name = new URLSearchParams(location.search).get('s');
+localStorage.setItem('typewriter-motion', 'off');
+localStorage.setItem('typewriter-theme', 'dark');
+localStorage.setItem('__nf', name === 'sources' ? '1' : '0');
+const W = (ms) => new Promise((r) => setTimeout(r, ms));
+const f = document.getElementById('f');
+let d;
+const btn = (t, root = d) => [...root.querySelectorAll('button')].find((b) => b.textContent.trim().startsWith(t));
+const go = async (label) => { [...d.querySelectorAll('.nav button')].find((b) => b.textContent.trim().startsWith(label)).click(); await W(900); };
+const openWrite = async () => { btn('Continue writing').click(); await W(1300); };
+const tab = async (bar, i) => { [...d.querySelectorAll('.tabs2')][bar].querySelectorAll('button')[i].click(); await W(400); };
+const pm = () => d.querySelector('.ProseMirror');
+const select = (text) => {
+  pm().focus();
+  const w = d.createTreeWalker(pm(), NodeFilter.SHOW_TEXT); let n;
+  while ((n = w.nextNode())) { const i = n.data.indexOf(text); if (i >= 0) { const r = d.createRange(); r.setStart(n, i); r.setEnd(n, i + text.length); const s = d.defaultView.getSelection(); s.removeAllRanges(); s.addRange(r); d.dispatchEvent(new Event('selectionchange')); return; } }
+};
+
+const SHOTS = {
+  dashboard: async () => {},
+  'write-book': async () => { await openWrite(); await tab(1, 0); },
+  'write-text': async () => { await openWrite(); await tab(1, 0); },
+  characters: async () => { await go('Characters'); d.querySelector('.list .item').click(); await W(500); },
+  places: async () => { await go('World'); btn('Places').click(); await W(500); d.querySelector('.list .item').click(); await W(500); },
+  link: async () => {
+    await openWrite(); await tab(1, 1); pm().focus();
+    const p = pm().querySelectorAll('p')[1]; const s = d.defaultView.getSelection(); s.selectAllChildren(p); s.collapseToEnd();
+    d.execCommand('insertText', false, ' @Ma'); await W(800);
+  },
+  'scene-panel': async () => { await openWrite(); await tab(1, 1); },
+  'quick-actions': async () => { await openWrite(); await tab(1, 3); select('The paper was yellow'); await W(900); },
+  comments: async () => { await openWrite(); await tab(1, 3); },
+  notes: async () => { await go('Notes'); },
+  board: async () => { await go('Board'); },
+  statistics: async () => { await go('Statistics'); },
+  checks: async () => { await go('Checks'); btn('Unfinished').click(); await W(600); },
+  backup: async () => { await go('Export'); const h = [...d.querySelectorAll('h2,h3')].find((e) => e.textContent.trim().startsWith('Backup')); h?.scrollIntoView({ block: 'start' }); await W(400); },
+  export: async () => { await go('Export'); d.querySelector('details.pages').open = true; await W(400); },
+  sources: async () => { await go('Sources'); d.querySelector('.list .item').click(); await W(500); },
+};
+
+f.addEventListener('load', async () => {
+  if (f.contentWindow.location.href === 'about:blank') return;
+  await W(1800);
+  d = f.contentDocument;
+  await SHOTS[name]();
+  await W(500);
+  document.title = 'ready';
+});
+f.src = '/index.html';
+</script></body></html>
