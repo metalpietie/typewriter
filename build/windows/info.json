@@ -1,13 +1,13 @@
 {
 	"fixed": {
-		"file_version": "1.7.1"
+		"file_version": "1.7.2"
 	},
 	"info": {
 		"0000": {
-			"ProductVersion": "1.7.1",
-			"CompanyName": "My Company",
+			"ProductVersion": "1.7.2",
+			"CompanyName": "MetalPietie",
 			"FileDescription": "Write books. Track worlds, people and paths.",
-			"LegalCopyright": "(c) 2025, My Company",
+			"LegalCopyright": "(c) 2026, MetalPietie",
 			"ProductName": "Typewriter",
 			"Comments": "Some Product Comments"
 		}

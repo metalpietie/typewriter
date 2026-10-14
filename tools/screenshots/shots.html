@@ -37,6 +37,7 @@ const SHOTS = {
   'quick-actions': async () => { await openWrite(); await tab(1, 3); select('The paper was yellow'); await W(900); },
   comments: async () => { await openWrite(); await tab(1, 3); },
   notes: async () => { await go('Notes'); },
+  projects: async () => { d.querySelector('.project-btn').click(); await W(700); },
   board: async () => { await go('Board'); },
   statistics: async () => { await go('Statistics'); },
   checks: async () => { await go('Checks'); btn('Unfinished').click(); await W(600); },

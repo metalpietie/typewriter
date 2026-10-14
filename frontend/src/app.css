@@ -176,3 +176,5 @@ h3 { text-transform: none; letter-spacing: 0; font-size: .85rem; color: var(--te
 /* A screen with a list on the left: the list is lighter, and the area next to it is darker, as on the Relationships screen. */
 .split > .pane { background: var(--stage); }
 .split > .pane .rich-bar, .split > .pane .statusbar { background: var(--stage); }
+/* In a list, a long second line is cut with "…" so that it does not squeeze the title. */
+.list .item small { max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 1; }

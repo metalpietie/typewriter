@@ -78,7 +78,7 @@
           <button class="small primary" onclick={() => rename(p)}>Save</button>
           <button class="small" onclick={() => (editing = null)}>Cancel</button>
         {:else}
-          <span class="name">{p.name}{#if p.current} <em class="muted">(open{projectType() === 'fiction' ? '' : ', ' + typeName(projectType()).toLowerCase()})</em>{/if}</span>
+          <span class="name">{p.name}{#if p.current}{' '}<em class="muted">(open{projectType() === 'fiction' ? '' : ', ' + typeName(projectType()).toLowerCase()})</em>{/if}</span>
           <span class="muted fit">{size(p.size)}</span>
           {#if !p.current}<button class="small primary" disabled={busy} onclick={() => open(p)}>Open</button>{/if}
           <button class="small" disabled={busy} onclick={() => { editing = p.id; editName = p.name; }}>Rename</button>
