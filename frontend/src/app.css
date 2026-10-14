@@ -173,3 +173,6 @@ input, select, textarea { border-radius: 8px; background: var(--panel); padding:
 .chip { border-radius: 99px; border-color: transparent; }
 h2 { font-size: 1.2rem; }
 h3 { text-transform: none; letter-spacing: 0; font-size: .85rem; color: var(--text); }
+/* A screen with a list on the left: the list is lighter, and the area next to it is darker, as on the Relationships screen. */
+.split > .pane { background: var(--stage); }
+.split > .pane .rich-bar, .split > .pane .statusbar { background: var(--stage); }
