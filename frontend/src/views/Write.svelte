@@ -26,6 +26,7 @@
   import SceneTags from '../lib/SceneTags.svelte';
   import { has, word, isNonfiction } from '../lib/projecttype.svelte';
   import { EXERCISE_TEMPLATE } from '../lib/boxes-core';
+  import Tabs from '../lib/Tabs.svelte';
   import MoodBoard from '../lib/MoodBoard.svelte';
   import ReferencePane from '../lib/ReferencePane.svelte';
   import { cleanPick, refKindOf, type RefPick } from '../lib/reference-core';
@@ -77,6 +78,14 @@
   let showHistory = $state(false);
   let showSnaps = $state(false);
   let rich = $state<any>(); // the open editor, to point at a comment
+
+  // Tabs on both sidebars. The choice is kept on this computer.
+  const TABS_KEY = 'typewriter-write-tabs';
+  const savedTabs = (() => { try { return JSON.parse(localStorage.getItem(TABS_KEY) ?? '{}'); } catch { return {}; } })();
+  let lTab = $state<string>(savedTabs.l === 'book' ? 'book' : 'chapters');
+  let rTab = $state<string>(typeof savedTabs.r === 'string' ? savedTabs.r : 'section');
+  $effect(() => { try { localStorage.setItem(TABS_KEY, JSON.stringify({ l: lTab, r: rTab })); } catch { /* fine without it */ } });
+  const lTabs = [{ id: 'chapters', label: 'Chapters' }, { id: 'book', label: 'Book' }];
   let activeComment = $state<number | null>(null);
   let rev = $state(0); // bump to reload the editor after the text was changed from outside it
 
@@ -332,6 +341,17 @@
     rev++; // show the joined text
     say(`Merged. The text of the next ${word('scene')} now follows this text. The old text is saved in History.`);
   }
+  // The tabs of the right sidebar. A tab is shown when it has something to show for the open scene or chapter.
+  const rTabs = $derived([
+    ...(chap ? [{ id: 'chapter', label: 'Chapter' }] : []),
+    ...(scene ? [
+      { id: 'section', label: word('Scene') },
+      { id: 'story', label: has('arcs') || has('characters') ? 'Story' : 'Details', badge: miss.length || undefined },
+      { id: 'comments', label: 'Comments', badge: openComments(scene.id) || undefined },
+    ] : []),
+  ]);
+  const rTabNow = $derived(rTabs.some((t) => t.id === rTab) ? rTab : rTabs[0]?.id);
+
   // An idea or a quote from the Ideas tab goes at the end of the text that is open.
   $effect(() => {
     const i = nav.insert;
@@ -373,6 +393,8 @@
     </Select><button class="primary" onclick={addBook}>+ Book</button></div>
 
     {#if book}
+      <Tabs tabs={lTabs} bind:value={lTab} label="Book and chapters" />
+      {#if lTab === 'book'}
       <label>Book title</label><input bind:value={book.title} oninput={saveBook} />
       <label>Order in series</label><input type="number" bind:value={book.order} oninput={saveBook} />
       <label>Synopsis</label><textarea bind:value={book.synopsis} oninput={saveBook}></textarea>
@@ -391,6 +413,8 @@
         <div class="muted" style="font-size:.8rem;margin-top:.2rem">{total.toLocaleString()} / {Number(book.goal).toLocaleString()} words{pctText(total, book.goal)}</div>
       {/if}
       <RevisionPasses bookId={book.id} />
+      {/if}
+      {#if lTab === 'chapters'}
       {#if bookTags.length}
         <label for="tagfilter">Show {word('scenes')} tagged</label>
         <Select id="tagfilter" bind:value={tagFilter}>
@@ -429,7 +453,10 @@
           </div>
         {:else}<div class="empty">No chapters yet.</div>{/each}
       </div>
+      {/if}
+      {#if lTab === 'book'}
       <div style="margin-top:1rem"><ConfirmButton label="Delete book" onconfirm={delBook} /></div>
+      {/if}
     {/if}
   </aside>
 
@@ -483,9 +510,13 @@
   {/if}
 
   <aside class="side right">
+    {#if rTabs.length}<Tabs tabs={rTabs} bind:value={rTab} label="Panels" />{/if}
     {#if scene}
+      {#if rTabNow === 'comments'}
       <Comments sceneId={scene.id} body={scene.body ?? ''} active={activeComment} onshow={(id) => { activeComment = id; rich?.showComment(id); }} onremove={removeComment} />
-      <div class="head" style="margin-top:1.4rem"><h3 style="margin:0">{word('Scene')}</h3>
+      {/if}
+      {#if rTabNow === 'section'}
+      <div class="head" style="margin-top:.2rem"><h3 style="margin:0">{word('Scene')}</h3>
         <span class="row fit" style="gap:.2rem">
           <button class="small" title="Move up" onclick={() => swapOrder('scene', scenes, scene, -1)}>↑</button>
           <button class="small" title="Move down" onclick={() => swapOrder('scene', scenes, scene, 1)}>↓</button>
@@ -509,6 +540,8 @@
         </Select>
       {/if}
       {#if has('timeline')}<DateField bind:time={scene.time} bind:when={scene.when} onchange={saveScene} />{/if}
+      {/if}
+      {#if rTabNow === 'story'}
       <label>Tags</label>
       {#key scene.id}<SceneTags {scene} onchange={saveScene} />{/key}
       {#key scene.id}<MoodBoard owner={scene.id} />{/key}
@@ -563,6 +596,8 @@
         </div>
       {/if}
       {/if}
+      {/if}
+      {#if rTabNow === 'section'}
       <label>{isNonfiction() ? 'Key point' : 'Notes and plan'}</label>
       <textarea bind:value={scene.summary} oninput={saveScene} placeholder={isNonfiction() ? word('summaryhint') : 'What happens? What must the reader learn?'}></textarea>
       <label>Word goal for this {word('scene')}</label>
@@ -571,10 +606,11 @@
       <Select value={scene.chapter} onchange={(e) => moveScene(+e.currentTarget.value)}>
         {#each chapters as c}<option value={c.id}>{c.order}. {c.title}</option>{/each}
       </Select>
+      {/if}
     {/if}
 
-    {#if chap}
-      <div class="head" style="margin-top:1.4rem"><h3 style="margin:0">Chapter</h3>
+    {#if chap && rTabNow === 'chapter'}
+      <div class="head" style="margin-top:.2rem"><h3 style="margin:0">Chapter</h3>
         <span class="row fit" style="gap:.2rem">
           <button class="small" title="Move up" onclick={() => swapOrder('chapter', chapters, chap, -1)}>↑</button>
           <button class="small" title="Move down" onclick={() => swapOrder('chapter', chapters, chap, 1)}>↓</button>
@@ -626,7 +662,7 @@
   .list :global(.item) { flex-wrap: wrap; row-gap: .1rem; }
   .ct { flex: 1 1 100%; min-width: 0; overflow-wrap: anywhere; }
   .list :global(.item small.cw) { flex: 1 1 100%; margin-left: 0; font-size: .75rem; }
-  .scenes { margin: 0 0 .5rem 1rem; padding-left: .6rem; border-left: 2px solid var(--line); display: flex; flex-direction: column; gap: 2px; }
+  .scenes { margin: .45rem 0 .5rem 1rem; padding-left: .6rem; border-left: 2px solid var(--line); display: flex; flex-direction: column; gap: 2px; }
   .scene { display: flex; align-items: center; gap: .45rem; text-align: left; background: none; border: 1px solid transparent; padding: .25rem .5rem; font-size: .85rem; }
   .list :global(.item.nomatch) { opacity: .45; }
   .scene.on { background: var(--panel-2); border-color: var(--line); }

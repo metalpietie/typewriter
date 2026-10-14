@@ -126,11 +126,11 @@
     name: 'caption',
     group: 'block',
     content: 'inline*',
-    priority: 1001, // before the plain paragraph, which also reads a <p>
+    // The paragraph must stay the first block, because the editor makes it when it needs an empty block (an empty page, a line after a box).
     addAttributes() {
       return { kind: { default: 'figure', parseHTML: (el) => el.getAttribute('data-caption') || 'figure', renderHTML: (a) => ({ 'data-caption': String(a.kind) }) } };
     },
-    parseHTML() { return [{ tag: 'p[data-caption]' }]; },
+    parseHTML() { return [{ tag: 'p[data-caption]', priority: 100 }]; }, // before the plain paragraph, which also reads a <p>
     renderHTML({ HTMLAttributes }) { return ['p', mergeAttributes({ class: 'caption' }, HTMLAttributes), 0]; },
   });
 
@@ -403,6 +403,20 @@
     return false;
   }
 
+  /** A caption with no text is never wanted. Older text may have one at the end, so take them out when the text opens. */
+  function dropEmptyCaptions() {
+    if (!editor) return;
+    const gone: [number, number][] = [];
+    editor.state.doc.descendants((node, pos) => {
+      if (node.type.name === 'caption' && node.content.size === 0) gone.push([pos, pos + node.nodeSize]);
+    });
+    if (!gone.length) return;
+    const tr = editor.state.tr;
+    for (const [from, to] of gone.reverse()) tr.delete(from, to);
+    if (tr.doc.childCount === 0) return;
+    editor.view.dispatch(tr.setMeta('addToHistory', false));
+  }
+
   onMount(() => {
     editor = new Editor({
       element: host,
@@ -440,6 +454,7 @@
       onSelectionUpdate: ({ editor }) => { tick++; onfocuscomment?.(editor.getAttributes('comment').id ?? null); checkSuggest(); },
       onBlur: () => setTimeout(() => (sug = null), 150),
     });
+    dropEmptyCaptions();
     window.addEventListener('scroll', follow, true); // capture: the page scrolls inside a panel
     const onKeyUp = (e: KeyboardEvent) => { if (NAV_KEYS.has(e.key)) keepCentred(); };
     host.addEventListener('keyup', onKeyUp);

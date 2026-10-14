@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { SHAPES, SIZES, MIN_SIDE, MAX_SIDE, DEFAULT_SHAPE, DEFAULT_SIZE, mapDims } from '../lib/mapsize-core';
   import Select from '../lib/Select.svelte';
   import { db, PLACE_TYPES, CHARACTER_COLORS } from '../lib/db.svelte';
   import { center, inside, nearestEdge, type Pt } from '../lib/regions';
@@ -157,9 +158,13 @@
     mapId = m.id; input.value = '';
   }
   let editing = $state(false);
-  let drawSize = $state('2400x1500');
+  // the shape and size of a new map. The start is square and medium: 2000 × 2000.
+  let shape = $state(DEFAULT_SHAPE);
+  let sizeKey = $state(DEFAULT_SIZE);
+  let custom = $state({ w: 2000, h: 2000 });
+  const dims = $derived(mapDims(shape, sizeKey, custom));
   async function drawNew() {
-    const [w, h] = drawSize.split('x').map(Number);
+    const { w, h } = dims;
     const m = await db.save('map', { name: 'New drawn map', image: '', w, h, bg: '#a8cbd8', notes: '', drawn: true, style: 'classic' });
     mapId = m.id; selPin = selPoint = null; editing = true;
   }
@@ -176,7 +181,7 @@
     if (row) await db.remove('mapdoc', row.id, false);
   }
   async function blank() {
-    const m = await db.save('map', { name: 'New map', image: '', w: 1600, h: 1000, bg: '#2a3a2f', notes: '' });
+    const m = await db.save('map', { name: 'New map', image: '', w: dims.w, h: dims.h, bg: '#2a3a2f', notes: '' });
     mapId = m.id;
   }
   function saveMap() { if (map) db.queue('map', map); }
@@ -371,10 +376,22 @@
     </div>
     <div class="row" style="margin-top:.4rem">
       <button class="primary" onclick={drawNew}>✎ Draw a map</button>
-      <Select bind:value={drawSize} style="flex:0 0 6.5rem" title="Size of the new map">
-        <option value="1600x1000">Small</option><option value="2400x1500">Medium</option><option value="3200x2000">Large</option>
-      </Select>
     </div>
+    <label for="mapshape">Shape and size of a new map</label>
+    <div class="row">
+      <Select id="mapshape" bind:value={shape} title="Shape (aspect ratio) of the new map">{#each SHAPES as [k, name]}<option value={k}>{name}</option>{/each}</Select>
+      {#if shape !== 'custom'}
+        <Select bind:value={sizeKey} style="flex:0 0 6.5rem" title="Size of the new map">{#each SIZES as [k, name]}<option value={k}>{name}</option>{/each}</Select>
+      {/if}
+    </div>
+    {#if shape === 'custom'}
+      <div class="row" style="margin-top:.3rem">
+        <input type="number" min={MIN_SIDE} max={MAX_SIDE} aria-label="Width in pixels" bind:value={custom.w} />
+        <span class="fit muted">×</span>
+        <input type="number" min={MIN_SIDE} max={MAX_SIDE} aria-label="Height in pixels" bind:value={custom.h} />
+      </div>
+    {/if}
+    <p class="muted" style="margin:.3rem 0 0;font-size:.8rem">New map: {dims.w} × {dims.h} pixels. It is used by <b>Draw a map</b> and <b>+ Blank</b>.</p>
 
     {#if map}
       <label>Name</label><input bind:value={map.name} oninput={saveMap} />
