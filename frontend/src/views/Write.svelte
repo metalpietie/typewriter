@@ -108,6 +108,7 @@
     if (!scene) return null;
     const c = await db.save('comment', { scene: scene.id, quote: quote.slice(0, 200), text: '', resolved: false, at: new Date().toISOString() });
     activeComment = c.id;
+    rTab = 'comments'; // show the Comments tab, so the note can be typed
     return c.id;
   }
   async function removeComment(id: number) {
