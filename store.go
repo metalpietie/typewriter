@@ -29,12 +29,14 @@ type Store struct {
 	reg  registry
 	// problem is set when the chosen data folder could not be opened and the default one is used instead
 	problem string
+	// syncMu makes one sync with a phone run at a time
+	syncMu sync.Mutex
 }
 
 var kinds = map[string]bool{
 	"book": true, "chapter": true, "character": true, "relationship": true,
 	"location": true, "map": true, "pathpoint": true, "note": true, "event": true, "mapdoc": true, "scene": true, "version": true, "comment": true,
-	"faction": true, "membership": true, "factionrel": true, "item": true, "itemlog": true, "plotignore": true, "wordday": true, "todo": true, "setting": true, "region": true, "draft": true, "arc": true, "arcscene": true, "term": true, "snapshot": true, "pass": true, "mood": true, "cover": true, "source": true, "idea": true,
+	"faction": true, "membership": true, "factionrel": true, "item": true, "itemlog": true, "plotignore": true, "wordday": true, "todo": true, "setting": true, "region": true, "draft": true, "arc": true, "arcscene": true, "term": true, "snapshot": true, "pass": true, "mood": true, "cover": true, "source": true, "idea": true, "syncnote": true,
 }
 
 // cascades lists, per kind, the JSON links that must go when that item is deleted.

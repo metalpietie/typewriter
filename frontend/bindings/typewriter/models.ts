@@ -44,6 +44,16 @@ export interface DataFolderInfo {
 }
 
 /**
+ * DeviceInfo is a phone as the screen shows it.
+ */
+export interface DeviceInfo {
+    "id": string;
+    "name": string;
+    "added": string;
+    "last": string;
+}
+
+/**
  * Doc is one saved item. Data holds JSON text, so new fields never need a migration.
  */
 export interface Doc {
@@ -179,6 +189,32 @@ export interface FolderCheck {
 }
 
 /**
+ * PairingInfo is what the Add a phone window shows.
+ */
+export interface PairingInfo {
+    "code": string;
+
+    /**
+     * unix seconds
+     */
+    "expires": number;
+
+    /**
+     * a PNG as a data URL
+     */
+    "qr": string;
+    "payload": string;
+}
+
+/**
+ * ProjectInfo says which project the notes belong to.
+ */
+export interface ProjectInfo {
+    "id": string;
+    "name": string;
+}
+
+/**
  * ProjectItem is one project as the screen shows it.
  */
 export interface ProjectItem {
@@ -210,4 +246,22 @@ export interface RestoreResult {
      * where your old data was saved first
      */
     "safetyCopy": string;
+}
+
+/**
+ * SyncStatus is what the Sync section of the screen shows.
+ */
+export interface SyncStatus {
+    "on": boolean;
+    "port": number;
+    "addresses": string[] | null;
+    "devices": DeviceInfo[] | null;
+    "project": ProjectInfo;
+    "computer": string;
+    "fingerprint": string;
+
+    /**
+     * the computer can be found by name on the Wi-Fi
+     */
+    "announced": boolean;
 }

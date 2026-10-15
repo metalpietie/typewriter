@@ -34,6 +34,8 @@ Nothing open here.
 
 ## Done
 
+- [x] Phone sync, the computer side: switch it on, add a phone with a QR code, Notes pages copy both ways, clashes keep both versions (the phone app is next)
+
 - [x] Project types: a Fiction, Non-fiction or Mixed switch for each project, with its own tools and words
 - [x] Non-fiction tools: Sources and citations (three styles), footnotes, a bibliography, an index, callout boxes, captions, Ideas and quotes, and source checks
 

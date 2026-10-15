@@ -10,6 +10,8 @@
   const pages = $derived([...db.lists.draft].sort((a, b) => (a.order ?? a.id) - (b.order ?? b.id)));
   const shown = $derived(pages.filter((p) => (p.title + ' ' + p.body).toLowerCase().includes(search.toLowerCase())));
   const sel = $derived(db.get('draft', selId));
+  // a page that came from a phone says so
+  const origin = $derived(db.lists.syncnote.find((n) => n.draft === selId && !n.deleted)?.from || '');
 
   // Jump here when a search result is picked.
   $effect(() => {
@@ -71,7 +73,7 @@
         <button class="small" title="Move down in the list" disabled={pages.indexOf(sel) === pages.length - 1} onclick={() => move(1)}>↓</button>
         <ConfirmButton onconfirm={del} />
       </div>
-      <div class="muted count">{wordCount(sel.body)} words · a page of notes. It is not counted in your book.</div>
+      <div class="muted count">{wordCount(sel.body)} words · a page of notes. It is not counted in your book.{origin ? ' · From ' + origin : ''}</div>
       {#key sel.id}
         <RichEditor value={sel.body} onchange={change} placeholder="Write anything. Who is it about? What goes wrong? How does it end?" />
       {/key}

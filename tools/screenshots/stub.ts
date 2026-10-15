@@ -57,3 +57,17 @@ export const Store = {
   SwitchProject: async () => {}, NewProject: async () => 'p1', RenameProject: async () => {}, RemoveProject: async () => 'C:/x/removed.db',
 };
 export const Exporter = {};
+
+// The phone sync section, with a made-up computer and one added phone.
+let syncOn = false;
+const phones: any[] = [{ id: 'aaaaaaaa-0000-4000-8000-000000000001', name: 'Pixel 7', added: '2026-10-10T10:00:00Z', last: new Date(Date.now() - 3600e3).toISOString() }];
+const syncStatus = () => ({ on: syncOn, port: syncOn ? 47821 : 0, addresses: syncOn ? ['192.168.1.20'] : [], devices: phones, project: { id: 'default', name: nonfiction ? 'Small Habits' : 'The Last Letter' }, computer: 'DESKTOP-WRITER', fingerprint: 'ab'.repeat(32), announced: true });
+const fakeQR = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 21 21" shape-rendering="crispEdges"><rect width="21" height="21" fill="#fff"/>' + Array.from({ length: 21 * 21 }, (_, i) => { const x = i % 21, y = Math.floor(i / 21); const corner = (x < 7 && y < 7) || (x > 13 && y < 7) || (x < 7 && y > 13); return corner || ((x * 7 + y * 13 + x * y) % 5 < 2) ? `<rect x="${x}" y="${y}" width="1" height="1"/>` : ''; }).join('') + '</svg>');
+export const PhoneSync = {
+  Status: async () => syncStatus(),
+  Start: async () => { syncOn = true; return syncStatus(); },
+  Stop: async () => { syncOn = false; return syncStatus(); },
+  StartPairing: async () => ({ code: '482913', expires: Math.floor(Date.now() / 1000) + 290, qr: fakeQR, payload: '{}' }),
+  CancelPairing: async () => {},
+  RemoveDevice: async (id: string) => { const i = phones.findIndex((p) => p.id === id); if (i >= 0) phones.splice(i, 1); },
+};

@@ -31,6 +31,9 @@ func main() {
 
 	store.StartAutoBackup() // one copy of your data per day
 
+	phone := NewPhoneSync(store, nil) // notes from phones, over the Wi-Fi. It listens only when it is switched on.
+	defer phone.shutdown()
+
 	var win *application.WebviewWindow
 	app := application.New(application.Options{
 		Name:        "Typewriter",
@@ -38,6 +41,7 @@ func main() {
 		Services: []application.Service{
 			application.NewService(store),
 			application.NewService(&Exporter{store: store}),
+			application.NewService(phone),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),
@@ -56,6 +60,9 @@ func main() {
 			},
 		},
 	})
+
+	phone.emit = func(name string) { app.Event.Emit(name) } // a phone changed notes: the screen reads them again
+	phone.resume()
 
 	win = app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:            "Typewriter",

@@ -37,6 +37,7 @@ const SHOTS = {
   'quick-actions': async () => { await openWrite(); await tab(1, 3); select('The paper was yellow'); await W(900); },
   comments: async () => { await openWrite(); await tab(1, 3); },
   notes: async () => { await go('Notes'); },
+  phones: async () => { await go('Export'); localStorage.setItem('__noop', '1'); btn('Switch on').click(); await W(500); btn('Add a phone').click(); await W(600); const h = [...d.querySelectorAll('h3')].find((e) => e.textContent.trim().startsWith('Phones')); h?.scrollIntoView({ block: 'start' }); await W(400); },
   projects: async () => { d.querySelector('.project-btn').click(); await W(700); },
   board: async () => { await go('Board'); },
   statistics: async () => { await go('Statistics'); },

@@ -107,6 +107,8 @@
   function toggleTheme() { theme = theme === 'dark' ? 'light' : 'dark'; setTheme(theme); }
 
   // The window is closing: save what is waiting, then tell the app that it may close.
+  // a phone changed some notes: read them again, after saving what is waiting
+  onMount(() => Events.On('typewriter:synced', async () => { db.flush(); await db.load(); }));
   onMount(() => Events.On('typewriter:flush', async () => { try { await settle(); } finally { Events.Emit('typewriter:flushed'); } }));
   onMount(() => { db.load().then(migrateChapters).catch((e) => (error = String(e))); });
 </script>

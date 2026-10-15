@@ -31,6 +31,7 @@ New to Typewriter? Start with the [tutorial](tutorial.md). It walks you through 
 - [Checks](#checks)
 - [Search](#search)
 - [Export & Backup](#export--backup)
+- [Phones](#phones)
 - [Deleting things](#deleting-things)
 
 ## The basics
@@ -749,6 +750,19 @@ Open **Pages and style** on the Export screen (manuscripts only). Your choices a
 - **Key takeaways** (non-fiction): print the takeaways of each chapter at the end of it.
 - **Citations, bibliography, index and exercises:** see [Sources](#sources) and [Boxes, captions and the index](#boxes-captions-and-the-index).
 - The table of contents comes after the copyright and dedication pages. In an e-book, each front page has its own page file. These choices work in Word, PDF, e-book and Markdown.
+
+### Phones
+
+Under **Phones** on the Export & Backup screen you can copy your **Notes** pages to a phone and back, over your home Wi-Fi. The phone app is not built yet, so for now this is the computer's side. [How the phone talks to the computer](phone-sync-protocol.md) is written down for the app.
+
+- **Switch on:** Typewriter listens on your Wi-Fi, and the computer can be found by name. It listens only while this is on, and only while Typewriter is open. Windows may ask once to let Typewriter use the network: choose **private networks**. A guest Wi-Fi often stops phones from reaching the computer.
+- **Add a phone:** press **Add a phone…**. A QR code and a 6-digit code show. Scan the QR code with the Typewriter app on the phone. The code works once, for 5 minutes. A phone that is added shows in the list with its last sync, and **Remove** forgets it, so it cannot sync again.
+- **What is copied:** Notes pages, both ways. A note made on the phone becomes a page in Notes, and the page says "From Pixel 7". A page that you change in Typewriter changes on the phone.
+- **The project:** only the project that is open is synced. The screen says which one. To sync another project, open it first.
+- **Both changed it:** the newest stays as the note, and the other is kept as a new page ("… (copy from Pixel 7)" or "… (earlier version)"). Nothing is lost.
+- **Deleting:** the phone cannot delete notes. A page that you delete in Typewriter is removed from the phone at the next sync, and it cannot be brought back from the phone, so use **Undo** or a backup. If you changed that note on the phone after its last sync, your edit comes back as a new page, "… (restored from Pixel 7)".
+- **Links and comments:** a page that has links to characters, comments, citations, footnotes, boxes or underline shows on the phone, and can only be changed in Typewriter. The phone edits paragraphs, headings, bold, italic, lists and quotes.
+- **Private:** nothing goes over the internet. The connection is encrypted, and each phone has its own key. The keys are in the app's data folder, not in a project, so a project backup does not carry them.
 
 ### Backup and restore
 
