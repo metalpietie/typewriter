@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/grandcat/zeroconf"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -392,6 +393,18 @@ func TestAnnouncedOnTheNetwork(t *testing.T) {
 			}
 		case <-ctx.Done():
 			t.Skip("did not see the announcement on this network (multicast may be blocked)")
+		}
+	}
+}
+
+func TestAddressOrder(t *testing.T) {
+	if addressRank(net.ParseIP("192.168.0.2").To4()) >= addressRank(net.ParseIP("10.0.0.5").To4()) ||
+		addressRank(net.ParseIP("10.0.0.5").To4()) >= addressRank(net.ParseIP("172.28.224.1").To4()) {
+		t.Fatal("192.168 first, then 10, then the rest")
+	}
+	for _, a := range localAddresses() {
+		if strings.HasPrefix(a, "169.254.") {
+			t.Fatalf("a link-local address is listed: %s", a)
 		}
 	}
 }

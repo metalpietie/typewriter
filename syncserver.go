@@ -174,9 +174,22 @@ func fingerprintOf(certPEM string) string {
 	return hex.EncodeToString(sum[:])
 }
 
-// localAddresses are the addresses of this computer on a home network.
+// addressRank puts the addresses that are most likely your home network first: 192.168.x.x, then 10.x.x.x, then the rest.
+// Link-local addresses (169.254.x.x) are left out: they are what a network card gives itself when it has no network.
+func addressRank(ip net.IP) int {
+	switch {
+	case ip[0] == 192 && ip[1] == 168:
+		return 0
+	case ip[0] == 10:
+		return 1
+	default:
+		return 2
+	}
+}
+
+// localAddresses are the addresses of this computer on a home network, the likeliest first.
 func localAddresses() []string {
-	var out []string
+	var ips []net.IP
 	ifs, _ := net.Interfaces()
 	for _, ifc := range ifs {
 		if ifc.Flags&net.FlagUp == 0 || ifc.Flags&net.FlagLoopback != 0 {
@@ -188,12 +201,21 @@ func localAddresses() []string {
 			if !ok {
 				continue
 			}
-			if ip4 := ipn.IP.To4(); ip4 != nil && (ip4.IsPrivate() || ip4.IsLinkLocalUnicast()) {
-				out = append(out, ip4.String())
+			if ip4 := ipn.IP.To4(); ip4 != nil && ip4.IsPrivate() && !ip4.IsLinkLocalUnicast() {
+				ips = append(ips, ip4)
 			}
 		}
 	}
-	sort.Strings(out)
+	sort.SliceStable(ips, func(i, j int) bool {
+		if ri, rj := addressRank(ips[i]), addressRank(ips[j]); ri != rj {
+			return ri < rj
+		}
+		return ips[i].String() < ips[j].String()
+	})
+	out := make([]string, 0, len(ips))
+	for _, ip := range ips {
+		out = append(out, ip.String())
+	}
 	return out
 }
 

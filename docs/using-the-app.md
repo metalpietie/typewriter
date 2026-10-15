@@ -753,10 +753,10 @@ Open **Pages and style** on the Export screen (manuscripts only). Your choices a
 
 ### Phones
 
-Under **Phones** on the Export & Backup screen you can copy your **Notes** pages to a phone and back, over your home Wi-Fi. The phone app is not built yet, so for now this is the computer's side. [How the phone talks to the computer](phone-sync-protocol.md) is written down for the app.
+Under **Phones** on the Export & Backup screen you can copy your **Notes** pages to a phone and back, over your home Wi-Fi. The phone app is in the folder `mobile` ([how to build and install it](../mobile/README.md)). It is an Android app, made with Flutter. [How the phone talks to the computer](phone-sync-protocol.md) is written down.
 
 - **Switch on:** Typewriter listens on your Wi-Fi, and the computer can be found by name. It listens only while this is on, and only while Typewriter is open. Windows may ask once to let Typewriter use the network: choose **private networks**. A guest Wi-Fi often stops phones from reaching the computer.
-- **Add a phone:** press **Add a phone…**. A QR code and a 6-digit code show. Scan the QR code with the Typewriter app on the phone. The code works once, for 5 minutes. A phone that is added shows in the list with its last sync, and **Remove** forgets it, so it cannot sync again.
+- **Add a phone:** press **Add a phone…**. A QR code and a 6-digit code show. Scan the QR code with the Typewriter Notes app on the phone (the computer icon, then **Scan the QR code**). If the camera cannot scan, pick the computer in the app, check that it shows the same fingerprint as Typewriter, and type the code. The code works once, for 5 minutes. A phone that is added shows in the list with its last sync, and **Remove** forgets it, so it cannot sync again.
 - **What is copied:** Notes pages, both ways. A note made on the phone becomes a page in Notes, and the page says "From Pixel 7". A page that you change in Typewriter changes on the phone.
 - **The project:** only the project that is open is synced. The screen says which one. To sync another project, open it first.
 - **Both changed it:** the newest stays as the note, and the other is kept as a new page ("… (copy from Pixel 7)" or "… (earlier version)"). Nothing is lost.

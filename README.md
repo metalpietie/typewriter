@@ -17,7 +17,7 @@ Built with [Wails 3](https://v3.wails.io/) (Go), Svelte, and SQLite.
 - **Write fiction or non-fiction:** a project has a type. A non-fiction project hides the story tools and adds sources and citations, footnotes, a bibliography, an index, callout boxes, and ideas and quotes.
 - **Know your world:** characters, relationships, a family tree, factions, items, places, lore notes, a glossary, maps you can draw, and a timeline with your own calendar.
 - **Check your work:** plot holes, loose ends, spelling of names, repeated words, style, reading level, and loose characters.
-- **Notes on your phone:** a phone app (coming) copies your Notes pages both ways over your home Wi-Fi. The computer's side is built. See [the protocol](docs/phone-sync-protocol.md).
+- **Notes on your phone:** an Android app ([mobile](mobile/README.md)) copies your Notes pages both ways over your home Wi-Fi. See [the protocol](docs/phone-sync-protocol.md).
 - **Share it:** export to Word, PDF, e-book and Markdown, with front and back pages.
 - **Stay safe:** your data is one file on your computer, with a backup every day and a backup button for a copy of your own.
 

@@ -47,6 +47,8 @@
   async function closePairing() { pairing = null; await PhoneSync.CancelPairing().catch(() => {}); }
   async function remove(id: string) { try { await PhoneSync.RemoveDevice(id); await refresh(); } catch (e) { say(e, true); } }
 
+  // the first letters of the certificate fingerprint, in groups: a phone that is added by typing the code shows the same, to be checked by eye
+  const fingerprint = $derived((status?.fingerprint ?? '').slice(0, 16).match(/.{1,4}/g)?.join(' ') ?? '');
   const left = $derived(pairing ? Math.max(0, Math.round((pairing.expires * 1000 - now) / 1000)) : 0);
   const ago = (iso: string) => {
     if (!iso) return 'never';
@@ -94,7 +96,7 @@
           <div class="qr"><img src={pairing.qr} alt="A QR code to scan with the Typewriter app on your phone" /></div>
           <div>
             <p style="margin:0 0 .4rem"><b>Open the Typewriter app on your phone, press “Add a computer”, and scan this code.</b></p>
-            <p class="muted" style="margin:0 0 .4rem">If it cannot scan, pick this computer in the app and type the code: <b class="code">{pairing.code}</b></p>
+            <p class="muted" style="margin:0 0 .4rem">If it cannot scan, pick this computer in the app, check that it shows the fingerprint <b class="code" style="font-size:1rem;letter-spacing:.08em">{fingerprint}</b>, and type the code: <b class="code">{pairing.code}</b></p>
             <p class="muted" style="margin:0 0 .6rem">The code works once, for {Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')} more.</p>
             <button onclick={closePairing}>Cancel</button>
           </div>
