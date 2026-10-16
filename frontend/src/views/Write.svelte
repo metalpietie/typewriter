@@ -7,7 +7,7 @@
   import { flip } from 'svelte/animate';
   import { Window } from '@wailsio/runtime';
   import { db, toHtml, wordCount, type Item } from '../lib/db.svelte';
-  import { nav, openItem } from '../lib/nav.svelte';
+  import { nav, openItem, lastWriteKey } from '../lib/nav.svelte';
   import { STATUSES, scenesOf, sceneWords, chapterWords, chapterCast, addScene, sceneLabel } from '../lib/scenes';
   import { maybeAutoVersion, addVersion } from '../lib/versions';
   import Snapshots from '../lib/Snapshots.svelte';
@@ -37,12 +37,13 @@
   import { miniText } from '../lib/pomodoro.svelte';
   import { tagCounts, hasTag } from '../lib/tags-core';
 
-  // Reopen what you were writing last, also after the app was closed.
-  const LAST = 'typewriter.write';
+  // Reopen what you were writing last, also after the app was closed. Each project keeps its own place.
+  const LAST = lastWriteKey(db.projectId);
   function lastOpen(): { book: number | null; chapter: number | null; scene: number | null } {
     const none = { book: null, chapter: null, scene: null };
     try {
-      const saved = JSON.parse(localStorage.getItem(LAST) ?? 'null');
+      // before 1.10.1 there was one place for all projects; it is only trusted for the first project
+      const saved = JSON.parse(localStorage.getItem(LAST) ?? (db.projectId === 'default' ? localStorage.getItem('typewriter.write') : null) ?? 'null');
       if (!saved) return none;
       // the item may have been deleted since: fall back from scene to chapter to book
       const s = db.get('scene', saved.scene);
@@ -98,6 +99,7 @@
   onDestroy(() => { if (nav.focus) setFocus(false); });
 
   function onKey(e: KeyboardEvent) {
+    if (nav.shelf) return; // the bookshelf covers this page: its keys are not for here
     const ctrl = e.ctrlKey || e.metaKey;
     if (ctrl && e.key.toLowerCase() === 'h') { e.preventDefault(); showFind = true; }
     else if (e.key === 'F11' || (ctrl && e.shiftKey && e.key.toLowerCase() === 'f')) { e.preventDefault(); setFocus(!nav.focus); }
@@ -138,7 +140,16 @@
     if (nav.book == null || !db.ready) return;
     const id = nav.book;
     nav.book = null;
-    if (db.get('book', id)) { bookId = id; pickChapter(null); }
+    // the book that is open already keeps its chapter and scene
+    if (db.get('book', id) && id !== bookId) { bookId = id; pickChapter(null); }
+  });
+
+  // A book, chapter or scene that is gone (moved to another shelf, or deleted elsewhere) is let go of.
+  $effect(() => {
+    if (!db.ready) return;
+    if (bookId != null && !db.get('book', bookId)) { bookId = null; chapId = null; sceneId = null; }
+    else if (chapId != null && !db.get('chapter', chapId)) { chapId = null; sceneId = null; }
+    else if (sceneId != null && !db.get('scene', sceneId)) sceneId = scenesOf(chapId)[0]?.id ?? null;
   });
 
   function jumpToScene(id: number) {

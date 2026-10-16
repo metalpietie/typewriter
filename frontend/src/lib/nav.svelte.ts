@@ -11,6 +11,9 @@ function startTab(): Tab {
   return t === 'write' ? 'write' : 'home';
 }
 
+/** Where the Write tab keeps the book, chapter and scene that were open last. Each project has its own. */
+export const lastWriteKey = (projectId: string) => 'typewriter.write.' + projectId;
+
 /** Close the bookshelf. tab: the screen to show next. */
 export function closeShelf(tab?: Tab) {
   nav.shelf = false;
@@ -42,6 +45,7 @@ export const nav = $state<{ tab: Tab; shelf: boolean; book: number | null; pendi
 
 export function openItem(kind: Kind, id: number) {
   if (kind === 'scene') return openScene(id);
+  if (nav.shelf) closeShelf(); // a search result picked on the bookshelf opens in front of it
   nav.pending = { kind, id };
   nav.tab = kind === 'character' ? 'characters' : kind === 'faction' ? 'factions' : kind === 'item' ? 'items' : kind === 'event' ? 'timeline' : kind === 'pathpoint' ? 'maps' : kind === 'draft' ? 'draft' : kind === 'term' ? 'glossary' : kind === 'arc' ? 'arcs' : kind === 'source' ? 'sources' : kind === 'idea' ? 'ideas' : 'world';
   nav.searchOpen = false;
@@ -49,6 +53,7 @@ export function openItem(kind: Kind, id: number) {
 
 /** Go to the Write tab and open one scene. */
 export function openScene(id: number) {
+  if (nav.shelf) closeShelf();
   nav.scene = id;
   nav.tab = 'write';
   nav.searchOpen = false;

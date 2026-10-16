@@ -43,6 +43,9 @@ func (s *Store) backupDir() string {
 // autoBackupAt keeps one copy per day: the data as it was when that day first used the app.
 // That way a mistake made today is still absent from today's copy.
 func (s *Store) autoBackupAt(now time.Time) error {
+	// the count, the folder and the copy must all be of the same project, so no switch may happen in between
+	s.opMu.Lock()
+	defer s.opMu.Unlock()
 	var items int
 	if err := s.d().QueryRow(`SELECT count(*) FROM docs`).Scan(&items); err != nil {
 		return err

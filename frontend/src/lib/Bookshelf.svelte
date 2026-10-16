@@ -1,3 +1,9 @@
+<script module lang="ts">
+  // The first time in a run of the app, the shelf is just there, so the app does not show through while it fades in.
+  // When it is opened again later (the Bookshelf button), it fades in. This lives outside the component, which is made anew each time.
+  let firstShow = true;
+</script>
+
 <script lang="ts">
   import { onMount, tick } from 'svelte';
   import { flip } from 'svelte/animate';
@@ -5,7 +11,7 @@
   import { Store } from '../../bindings/typewriter';
   import type { Shelf as ApiShelf, ShelfBook } from '../../bindings/typewriter/models.js';
   import { db } from './db.svelte';
-  import { nav, closeShelf, reloadInto } from './nav.svelte';
+  import { nav, closeShelf, reloadInto, lastWriteKey } from './nav.svelte';
   import { params, veil, dialog } from './motion.svelte';
   import { bezier } from './motion-core';
   import { generatedCover, savedCover, forgetCovers } from './shelfcover';
@@ -21,9 +27,7 @@
   let saved = $state<Record<string, string>>({}); // covers that the writer made, by "project/book"
   let scroller = $state<HTMLElement>();
 
-  // The first time, the shelf is just there, so the app does not show through while it fades in. Later it fades in.
-  let first = true;
-  const arrive = (node: Element) => { if (first) { first = false; return { duration: 0 }; } return veil(node); };
+  const arrive = (node: Element) => { if (firstShow) { firstShow = false; return { duration: 0 }; } return veil(node); };
 
   const key = (project: string, book: number) => project + '/' + book;
 
@@ -37,13 +41,23 @@
       error = e?.message ?? String(e);
     }
   }
-  onMount(() => { load(); const t = setTimeout(() => (intro = false), 1500); return () => clearTimeout(t); });
+  onMount(() => {
+    forgetCovers(); // a cover may have changed in Export & Backup since the shelf was last open
+    load();
+    const t = setTimeout(() => (intro = false), 1500);
+    return () => clearTimeout(t);
+  });
+
+  // The Projects window (Manage shelves) and Project settings can rename or remove a shelf: read the shelves again when they close.
+  let windowOpen = false;
+  $effect(() => {
+    const open = nav.projects || nav.projectSettings;
+    if (windowOpen && !open) { saved = {}; forgetCovers(); load(); }
+    windowOpen = open;
+  });
 
   /** Wait until every edit has reached the data file, so nothing is lost when the file is changed from here. */
-  async function settle() {
-    db.flush();
-    for (let i = 0; i < 40 && db.waiting + db.busy > 0; i++) await new Promise((r) => setTimeout(r, 50));
-  }
+  const settle = () => db.settle();
 
   /** Run a change of the data. When the open project is touched, the app reads its data again afterwards. */
   async function mutate(projects: string[], job: () => Promise<void>): Promise<boolean> {
@@ -66,20 +80,30 @@
     return generatedCover(b.title, b.seed);
   }
 
+  let seeding = $state<Record<string, boolean>>({}); // a new cover is being saved for these books
   async function refresh(s: Shelf, b: ShelfBook) {
-    const seed = (b.seed || 0) + 1;
-    b.seed = seed;
-    await mutate([s.id], async () => {
+    const k = key(s.id, b.id);
+    if (seeding[k] || busy) return;
+    seeding[k] = true;
+    const before = b.seed || 0, seed = before + 1;
+    b.seed = seed; // show it at once
+    const ok = await mutate([s.id], async () => {
       await Store.SetBookSeed(s.id, b.id, seed);
       const mine = s.current ? db.get('book', b.id) : undefined;
       if (mine) mine.shelfSeed = seed;
     });
+    if (!ok) b.seed = before; // it was not saved: show the cover that is saved
+    seeding[k] = false;
   }
 
   // ---- opening a book ----
   async function open(s: Shelf, b: ShelfBook) {
     if (busy || drag) return;
-    try { localStorage.setItem('typewriter.write', JSON.stringify({ book: b.id, chapter: null, scene: null })); } catch { /* fine without it */ }
+    // the place that Write opens; the book you were writing in keeps its chapter and scene
+    try {
+      const place = lastWriteKey(s.id);
+      if (JSON.parse(localStorage.getItem(place) ?? 'null')?.book !== b.id) localStorage.setItem(place, JSON.stringify({ book: b.id, chapter: null, scene: null }));
+    } catch { /* fine without it */ }
     if (s.current) { nav.book = b.id; closeShelf('write'); return; }
     busy = true; error = '';
     try {
@@ -274,7 +298,8 @@
     if ((e.target as HTMLElement | null)?.closest?.('input, textarea')) return; // Escape in a text box only closes that box
     if (ask) { cancelMove(); return; }
     if (drag) { if (!drag.parked && !drag.settling) { endPress(); giveBack(); } return; }
-    if (adding || newShelf != null || renaming || nav.projects || nav.searchOpen) return;
+    // a window on top of the shelf closes first (each one listens for Esc itself)
+    if (adding || newShelf != null || renaming || nav.projects || nav.projectSettings || nav.searchOpen || nav.dataFolder || nav.calendar || nav.names) return;
     closeShelf();
   }
 
@@ -292,7 +317,8 @@
 
 <svelte:window onkeydown={keys} />
 
-<div class="screen" class:dragging={!!drag} bind:this={scroller} in:arrive|global out:veil|global>
+<div class="screen" class:dragging={!!drag} bind:this={scroller} in:arrive|global out:veil|global
+  onscroll={() => { if (drag && !drag.parked && !drag.settling) retarget(); }}>
   <div class="page">
     <header>
       <div>
@@ -329,7 +355,7 @@
               {:else}
                 {@const b = slot.book!}
                 <div class="book" role="button" tabindex="0" aria-label="{b.title || 'Untitled'}. Open to write."
-                  onpointerdown={(e) => down(e, s, b)} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(s, b); } }}
+                  onpointerdown={(e) => down(e, s, b)} onkeydown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); open(s, b); } }}
                   onclick={() => open(s, b)}>
                   <div class="cover">
                     {#key b.seed + '/' + (b.hasCover ? 'own' : 'made')}
@@ -391,7 +417,7 @@
     <div class="palette ask" transition:dialog|global role="dialog" aria-label="Move book">
       <h2>Move “{ask.book.title || 'Untitled'}” to “{ask.to.name}”?</h2>
       <p>The chapters, text, comments, snapshots and cover move with the book.</p>
-      <p class="muted">Characters, places, sources and arcs stay on “{ask.from.name}”. Links from this book to them will be cleared.</p>
+      <p class="muted">Characters, places, sources and arcs stay on “{ask.from.name}”. In the text, @ links to them lose their link (the name stays), and citations become plain text marked “needs a source”.</p>
       <div class="row-btns">
         <button onclick={cancelMove}>Cancel</button>
         <button class="primary" onclick={confirmMove}>Move the book</button>
