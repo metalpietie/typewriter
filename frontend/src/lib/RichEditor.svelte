@@ -1,6 +1,6 @@
 <script lang="ts">
   import { has, word } from './projecttype.svelte';
-  import { onMount, tick as nextTick } from 'svelte';
+  import { onMount, untrack, tick as nextTick } from 'svelte';
   import { Editor, Extension, Mark, Node, mergeAttributes } from '@tiptap/core';
   import Select from './Select.svelte';
   import { citeLabel, cleanSource, sourceLine } from './cite-core';
@@ -9,6 +9,9 @@
   import { Decoration, DecorationSet } from '@tiptap/pm/view';
   import { DOMSerializer } from '@tiptap/pm/model';
   import StarterKit from '@tiptap/starter-kit';
+  import { Vim, vimPluginKey } from 'tiptap-extension-vim';
+  import { VimExtras } from './vimextras';
+  import 'tiptap-extension-vim/style.css';
   import Placeholder from '@tiptap/extension-placeholder';
   import SaveIndicator from './SaveIndicator.svelte';
   import { db } from './db.svelte';
@@ -417,11 +420,16 @@
     editor.view.dispatch(tr.setMeta('addToHistory', false));
   }
 
-  onMount(() => {
+  let vimOn = false; // does the open editor have the Vim keys?
+  let vimWatch: MutationObserver | undefined;
+  let vimInfo = $state({ mode: 'normal', keyBuffer: '' }); // what the label shows
+  function create(content: string) {
+    vimOn = look.vim;
     editor = new Editor({
       element: host,
-      content: value, // parent remounts this component per chapter, so this is read once
+      content, // parent remounts this component per chapter, so the first text is read once
       extensions: [
+        ...(vimOn ? [Vim.configure({ defaultMode: 'normal' }), VimExtras] : []),
         StarterKit.configure({ strike: false, code: false, codeBlock: false, heading: { levels: [1, 2, 3] } }),
         Placeholder.configure({ placeholder }),
         Comment,
@@ -450,22 +458,55 @@
           },
         },
       },
+            onTransaction: () => { if (vimOn) queueMicrotask(syncVim); },
       onUpdate: ({ editor }) => { tick++; onchange(editor.isEmpty ? '' : editor.getHTML()); checkSuggest(); keepCentred(); },
-      onSelectionUpdate: ({ editor }) => { tick++; onfocuscomment?.(editor.getAttributes('comment').id ?? null); checkSuggest(); },
+      onSelectionUpdate: ({ editor }) => { tick++; if (vimOn) syncVim(); onfocuscomment?.(editor.getAttributes('comment').id ?? null); checkSuggest(); },
       onBlur: () => setTimeout(() => (sug = null), 150),
     });
     dropEmptyCaptions();
-    window.addEventListener('scroll', follow, true); // capture: the page scrolls inside a panel
-    const onKeyUp = (e: KeyboardEvent) => { if (NAV_KEYS.has(e.key)) keepCentred(); };
-    host.addEventListener('keyup', onKeyUp);
-    return () => { window.removeEventListener('scroll', follow, true); host.removeEventListener('keyup', onKeyUp); editor?.destroy(); };
+    // The extension puts the mode on the page as data-vim-mode, and it makes no change of the text when the mode changes.
+    // So the label watches that, and the keys that wait for more (such as the d of dd) are read after each key.
+    vimWatch?.disconnect();
+    vimWatch = undefined;
+    if (vimOn) {
+      vimWatch = new MutationObserver(syncVim);
+      vimWatch.observe(editor.view.dom, { attributes: true, attributeFilter: ['data-vim-mode'] });
+      syncVim();
+    }
+  }
+
+  /** The Vim keys were switched on or off: make the editor again, with the same text. */
+  $effect(() => {
+    const want = look.vim;
+    untrack(() => {
+      if (!editor || want === vimOn) return;
+      const html = editor.getHTML();
+      editor.destroy();
+      create(html);
+      editor?.commands.focus();
+    });
   });
 
+  onMount(() => {
+    create(value);
+    window.addEventListener('scroll', follow, true); // capture: the page scrolls inside a panel
+    const onKeyUp = (e: KeyboardEvent) => { if (NAV_KEYS.has(e.key)) keepCentred(); if (vimOn) syncVim(); };
+    host.addEventListener('keyup', onKeyUp);
+    return () => { window.removeEventListener('scroll', follow, true); host.removeEventListener('keyup', onKeyUp); vimWatch?.disconnect(); editor?.destroy(); };
+  });
+
+  /** Read the Vim mode and the keys that wait for more (such as the d of dd) into the label. */
+  function syncVim() {
+    // the state of the extension's plugin is right at once. Its storage can be behind (after i, for one)
+    const v = editor ? (vimPluginKey.getState(editor.state) as { mode?: string; keyBuffer?: string } | undefined) : undefined;
+    const mode = v?.mode ?? 'normal', keyBuffer = v?.keyBuffer ?? '';
+    if (mode !== vimInfo.mode || keyBuffer !== vimInfo.keyBuffer) vimInfo = { mode, keyBuffer };
+  }
   const is = (name: string, attrs?: object) => { tick; return !!editor?.isActive(name, attrs); };
   const run = () => editor!.chain().focus();
 </script>
 
-<div class="rich" class:autowidth={look.width === 'auto'} class:typewriter={look.typewriter} class:focusline={look.focusLine} style={lookVars(look)}>
+<div class="rich" class:vim={look.vim} class:autowidth={look.width === 'auto'} class:typewriter={look.typewriter} class:focusline={look.focusLine} style={lookVars(look)}>
   <div class="rich-bar" hidden={bare}>
     <button class:active={is('bold')} title="Bold (Ctrl+B)" onclick={() => run().toggleBold().run()}><b>B</b></button>
     <button class:active={is('italic')} title="Italic (Ctrl+I)" onclick={() => run().toggleItalic().run()}><i>I</i></button>
@@ -506,10 +547,13 @@
     <span class="rich-save"><SaveIndicator /></span>
   </div>
   <div class="rich-page" bind:this={host}></div>
+  {#if look.vim && editor}
+    <div class="vimmode" data-mode={vimInfo.mode} aria-live="off">-- {vimInfo.mode.replace('-', ' ').toUpperCase()} --{vimInfo.keyBuffer ? '  ' + vimInfo.keyBuffer : ''}</div>
+  {/if}
 </div>
 
 {#if editor}
-  <SelectionMenu {editor} redraw={tick} {source} {onfind} oncomment={oncomment ? addComment : undefined} oncite={addCitation} onfootnote={addFootnote} />
+  <SelectionMenu {editor} redraw={tick} {source} vim={look.vim} {onfind} oncomment={oncomment ? addComment : undefined} oncite={addCitation} onfootnote={addFootnote} />
 {/if}
 
 {#if piece}
@@ -560,6 +604,11 @@
     padding: .4rem 0; border-bottom: 1px solid var(--line); margin-bottom: .8rem;
   }
   .rich-bar[hidden] { display: none; }
+  /* Vim keys: the block cursor takes the colours of the app, and a label shows the mode */
+  .rich.vim { --vim-cursor-bg: var(--accent); --vim-cursor-fg: var(--on-accent); }
+  .vimmode { position: sticky; bottom: .5rem; margin-left: auto; width: fit-content; z-index: 3; font: .72rem ui-monospace, Consolas, monospace; letter-spacing: .04em; padding: .15rem .55rem; border-radius: 6px; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); pointer-events: none; }
+  .vimmode[data-mode='normal'] { color: var(--accent); border-color: var(--accent); }
+  .vimmode[data-mode='visual'], .vimmode[data-mode='visual-line'] { color: var(--danger); border-color: var(--danger); }
   .rich-bar button { padding: .2rem .55rem; min-width: 2rem; }
   .rich-save { margin-left: auto; }
   .sep { width: 1px; height: 1.4rem; background: var(--line); margin: 0 .3rem; }

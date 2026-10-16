@@ -34,6 +34,8 @@
         <span><b>Typewriter mode</b><small>The line you write on stays in the middle of the screen.</small></span></label>
       <label class="chk"><input type="checkbox" checked={look.focusLine} onchange={(e) => setLook({ focusLine: e.currentTarget.checked })} />
         <span><b>Focus line</b><small>Every paragraph but the one you write in is dimmed.</small></span></label>
+      <label class="chk"><input type="checkbox" checked={look.vim} onchange={(e) => setLook({ vim: e.currentTarget.checked })} />
+        <span><b>Vim keys</b><small>Move and edit with Vim keys. Esc for Normal mode, i to type. Try it, it is new.</small></span></label>
       <button class="small" disabled={isDefaultLook(look)} onclick={resetLook}>Back to normal</button>
     </div>
   {/if}

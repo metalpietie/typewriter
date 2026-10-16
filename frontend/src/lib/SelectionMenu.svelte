@@ -9,7 +9,7 @@
   import { titleOf, nameOf, pageHtml, loreText } from './selection-core';
 
   // The pop-up above selected text: quick actions. It lives with the editor and uses the editor's own selection.
-  let { editor, redraw, oncomment, onfind, oncite, onfootnote, source = '' }: {
+  let { editor, redraw, oncomment, onfind, oncite, onfootnote, source = '', vim = false }: {
     editor: Editor | undefined;
     redraw: number; // changes whenever the editor changes, so this menu redraws
     oncomment?: () => void;
@@ -17,6 +17,7 @@
     oncite?: () => void; // add a citation after the selected text
     onfootnote?: () => void; // add a footnote after the selected text
     source?: string; // where the text is from, for example "Book One, ch. 3, scene 2"
+    vim?: boolean; // the Vim keys are on: Escape must reach the editor, to leave the visual mode
   } = $props();
 
   let root = $state<HTMLElement>();
@@ -64,7 +65,7 @@
     const up = () => { if (pressing) setTimeout(() => (pressing = false), 0); };
     const scrolled = () => { if (show) place(); };
     const key = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && show) { e.stopPropagation(); hidden = true; editor?.commands.focus(); }
+      if (e.key === 'Escape' && show && !vim) { e.stopPropagation(); hidden = true; editor?.commands.focus(); }
     };
     const dom = editor?.view.dom;
     dom?.addEventListener('mousedown', down);

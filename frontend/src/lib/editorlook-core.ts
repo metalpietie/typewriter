@@ -1,6 +1,6 @@
 // How the writing page looks. No imports, so it can be tested alone.
 
-export type Look = { font: string; size: string; spacing: string; width: string; typewriter: boolean; focusLine: boolean };
+export type Look = { font: string; size: string; spacing: string; width: string; typewriter: boolean; focusLine: boolean; vim: boolean };
 type Choice = readonly [id: string, label: string, css: string];
 
 export const FONTS: Choice[] = [
@@ -14,7 +14,7 @@ export const SPACINGS: Choice[] = [['tight', 'Tight', '1.5'], ['normal', 'Normal
 // "auto" is how it always was: the whole page, and a narrow column in focus mode
 export const WIDTHS: Choice[] = [['auto', 'Auto', 'none'], ['narrow', 'Narrow', '34rem'], ['medium', 'Medium', '44rem'], ['wide', 'Wide', '56rem']];
 
-export const DEFAULT_LOOK: Look = { font: 'serif', size: 'normal', spacing: 'normal', width: 'auto', typewriter: false, focusLine: false };
+export const DEFAULT_LOOK: Look = { font: 'serif', size: 'normal', spacing: 'normal', width: 'auto', typewriter: false, focusLine: false, vim: false };
 
 const pick = (list: Choice[], id: unknown, fallback: string) => (list.some((c) => c[0] === id) ? String(id) : fallback);
 
@@ -29,6 +29,7 @@ export function cleanLook(raw: unknown): Look {
     width: pick(WIDTHS, r.width, d.width),
     typewriter: r.typewriter === true,
     focusLine: r.focusLine === true,
+    vim: r.vim === true,
   };
 }
 
