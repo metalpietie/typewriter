@@ -230,7 +230,248 @@ Press **Look** above the editor to change how the text looks. The page changes w
 - **Page width**: Narrow, Medium, or Wide. **Auto** is the old way: the whole page, and a narrow column in focus mode. The exports do not change.
 - **Typewriter mode**: the line you write on stays a little above the middle of the screen, and the page scrolls as you type. The first lines of a scene also sit in the middle.
 - **Focus line**: every paragraph but the one you write in is dimmed.
+- **Vim keys** (new, off at the start): the editor works like Vim. It starts in **Normal** mode: press `i` to type, and **Esc** to go back. A label at the bottom right shows the mode (**NORMAL**, **INSERT**, **VISUAL**) and any keys that wait for more, such as the `d` of `dd`. It works in every place that has the text editor (Write and Draft). Ctrl+K search and the other app shortcuts still work. It uses a small add-on that is still young, so some Vim keys are missing (see below). Switching it off keeps your text.
 - **Back to normal** puts all choices back.
+
+**Vim keys that work:** `h j k l`, `w b e` and `W B E`, `0 ^ $`, `f t F T ; ,`, `%`, `{ }`, `gg G`, counts (`3w`, `2dd`), `x r`, `d c y` with a motion, `dd cc yy D C Y s S`, `p P`, `o O`, `i a I A`, `v` and `V`, `u` and `Ctrl+r`.
+
+**Text objects** work after `d`, `c`, `y` and `v`: `iw aw` and `iW aW` (words), `is as` (sentences), `ip ap` (the paragraph), `i" a" i' a'` and the backtick (quotes, also typographic “ ”), and `i( a( ib ab`, `i{ a{ iB aB`, `i[ a[`, `i< a<` (brackets). For example `ciw` changes a word, `daw` deletes a word and its space, `yi"` copies what is in quotes, `vis` selects a sentence, `dip` deletes a paragraph. An apostrophe inside a word (it's) is not taken as a quote.
+
+**Moving the page:** `Ctrl+d` and `Ctrl+u` move half a page down and up, `Ctrl+f` and `Ctrl+b` a page. The cursor stays on the same row of the screen. The page also follows the cursor when it moves with `j`, `k`, `gg`, `G` and so on.
+
+Not there yet: `.` (repeat), `/` search, marks, macros, `:` commands, and text objects for tags.
+
+This guide explains every screen of the app, one by one. Use it to look things up.
+
+New to Typewriter? Start with the [tutorial](tutorial.md). It walks you through your first book, step by step. Come back here when you want to know more about a screen. The [README](../README.md) tells you how to build and run the app.
+
+## Contents
+
+- [The bookshelf](#the-bookshelf)
+- [Project type](#project-type-a-story-or-a-non-fiction-book)
+- [Notes](#notes)
+- [Write](#write)
+- [Board](#board)
+- [Story arcs](#story-arcs)
+- [Characters](#characters)
+- [Mood board](#mood-board)
+- [Name generator](#name-generator)
+- [Relationships](#relationships)
+- [World](#world)
+- [Glossary](#glossary)
+- [Sources](#sources)
+- [Ideas and quotes](#ideas-and-quotes)
+- [Boxes, captions and the index](#boxes-captions-and-the-index)
+- [Factions](#factions)
+- [Items](#items)
+- [Family tree](#family-tree)
+- [Maps & Paths](#maps--paths)
+- [Timeline](#timeline)
+- [Dashboard](#dashboard)
+- [Pomodoro timer](#pomodoro-timer)
+- [Statistics and daily goal](#statistics-and-daily-goal)
+- [Checks](#checks)
+- [Search](#search)
+- [Export & Backup](#export--backup)
+- [Phones](#phones)
+- [Deleting things](#deleting-things)
+
+## The basics
+
+Use the menu on the left to switch screens. Press **Ctrl+K** anywhere to search. The menu has headings (Story, People, Worldbuilding, Review) to keep the screens in groups. The outlined button at the bottom of the menu switches between dark and light theme.
+
+Most screens have a list on the left. Drag its right edge to make it wider or narrower. You can also click the edge and press the left or right arrow key. Double-click the edge to go back to the normal width. The app remembers the width.
+
+Where your data is kept, and how to use more than one project, are explained in the [README](../README.md#your-data).
+
+### Animations
+
+The app moves a little when you use it, so it feels alive. Press **Animations: …** at the bottom of the menu to change how much. Each press goes to the next choice: **Off**, **Calm**, **Smooth** (the start), **Lively**.
+
+- **Ripples** spread from the spot where you press a button.
+- **Menus and drop-down lists** fade and slide in, and out again. This includes the quick actions menu and the `@` list.
+- **Pages** fade and slide in when you open a tab, one part after another.
+- **The menu highlight** glides to the tab you open.
+- **Windows** (Search, History, Snapshots and so on) fade in and grow a little. **Messages** such as the **Undo** bar slide up.
+- **Cards on the Board** lift when you point at them. **Progress bars** fill smoothly. The box you type in gets a soft glow.
+- **Numbers on the Dashboard and Statistics** count up when the page opens.
+- The **Saved** mark pulses each time a save finishes.
+- Focus mode fades in and out.
+- The text of the editor never moves.
+
+If Windows or Linux is set to "reduce motion", the app starts with animations **Off** until you choose another level. The choice belongs to this computer, not to the project, so it is not in your backups.
+
+## The bookshelf
+
+The bookshelf is the first screen when you open the app. Each **shelf** is a project. The **books** of the project stand on it, as cards with a cover.
+
+![The bookshelf, with three shelves](images/bookshelf.png)
+
+- **Click a book** to write in it. If the book is in another project, that project opens first. The app reloads, and the **Write** screen opens on the book.
+- **Open … →** (top right) goes to the app without choosing a book. **Manage shelves…** opens the Projects window, where you rename, remove and set up projects.
+- **Bookshelf** in the menu (below the project button) brings you back to this screen at any time. Press **Esc** to leave it.
+- **Add** (the dotted outline with a plus) adds a book to that shelf. Type the title and press **Enter**. **+ New shelf** adds a new, empty project. Click the name of a shelf to rename it.
+- **Move a book:** hold the book, and drag it. The book lifts, the other books glide aside, and a dashed **Drop here** place shows where it will land. Drop it on another shelf to move it to that project. Typewriter asks first. Press **Esc** while you drag to put the book back.
+- **Put books in order:** drag a book to another place on the same shelf. The order is the same as the **Order in series** of the book.
+- **Covers:** if you made or chose a cover in **Export & Backup**, the shelf shows it. If not, Typewriter makes one from the title. Point at it and press **↻** to make another. The shelf remembers the one you like. The made-up cover is only for the shelf. It is not used when you export.
+- Each book shows its number of chapters and words.
+- **Progress bar:** a book shows one bar under its words. It uses the **Book goal**. If the book has no goal, it uses the **chapter goals** added together (a chapter with no goal of its own uses **Default per chapter**). If no chapter has a goal, it uses the **scene goals** added together. With no goal at all, there is no bar. Point at the bar to see what it counts.
+
+**What moves with a book:** its chapters, scenes, text, versions, comments, snapshots, revision passes and cover. **What stays:** characters, places, factions, items, arcs, sources and the like belong to a project, so they stay on the old shelf. Links from the moved book to them are cleared. The old copy is removed only after the new copy is safe.
+
+## Project type: a story or a non-fiction book
+
+Every project has a **type**. The type decides which tools are in the menu and which words the screens use. Nothing is deleted when you change it.
+
+| Type | Use it for | The menu shows |
+| --- | --- | --- |
+| **Fiction** | A story. This is the type of every project that you made before. | Everything, as before. |
+| **Non-fiction** | A how-to, self-help, history or any book about real things. | Notes, Write, the Outline board, Glossary, Sources, Ideas and quotes, Checks, Statistics, Export. |
+| **Mixed** | A memoir, or a story with real research behind it. | Everything, and Sources and Ideas and quotes too. |
+
+**Where to choose it:**
+
+- When you make a new project (the **Type** list under **New project** in the Projects window).
+- Later, in **Project settings…** (a button on the Dashboard and in the Projects window). It shows the type and a list of tools with a tick box for each. Tick a tool to show it, or clear the tick to hide it. A history book can be **Non-fiction** and still have the **Timeline** and **Maps & Paths** ticked. When you change the type, the ticks go back to what that type usually shows.
+
+**What changes in a non-fiction project:**
+
+- A **scene** is called a **section**. The **Board** is the **Outline board**. A scene summary is a **key point**. A chapter summary is the **chapter promise**. The Mood board is **Ideas and pictures**.
+- The **Section** panel in the Write tab has no point of view, place, time, cast or story arcs. A chapter also has **Key takeaways**: a short list, one on each line.
+- The quick actions menu has no **@ Link** and **Make new** for tools that are hidden.
+- **Checks** has no **Plot holes** and **Loose characters**. **Statistics** has no **Words per character**. The Dashboard has no plot hole count.
+- **Export** has no **Story bible**. The section titles print as headings instead of a mark between scenes, and chapter headings start on **The title**.
+
+A hidden tool keeps its data. A backup keeps the type and the tool ticks, and a restore brings them back. A project from an older version has no type saved, so it opens as **Fiction** and looks as it always did.
+
+## Sources
+
+(Non-fiction and Mixed projects.) The **Sources** screen is your library of the books, articles, web pages, reports and interviews that you use.
+
+- Press **+ New**. Give the **title**, the **type**, the **authors**, the **year**, and the details that the type needs (the journal and pages of an article, the website and address of a web page, the publisher of a book).
+- Write the authors one on each line as **Last, First**. A group goes with a comma at the end, such as `World Health Organization,`.
+- **Status** (to read, read, quoted) helps you see what you have used. The list can be filtered by it.
+- **Cited in** lists the sections that cite the source. Click one to open it.
+- If you delete a source that is cited, the app asks. You can **delete and remove the citations**, or delete and keep them (they print as **[?]**).
+
+### Citations
+
+In the Write tab, press **Cite** in the toolbar, or select text and press **Cite** in the quick actions menu. Pick a source (or **+ A new source…** to make one on the spot) and type the page or place if you want one (`45`, `45-47` or `ch. 3`). The citation goes after the selected text. It shows as `(Clear, 2018, p. 45)`. Click a citation to change or remove it.
+
+The **Export** screen has **How citations look**:
+
+| Style | In the text | At the end |
+| --- | --- | --- |
+| **Author and year** (the start) | (Clear, 2018, p. 45) | Bibliography in alphabetical order |
+| **Numbers** | [1] or [1, p. 45] | Bibliography in the order of the first citation |
+| **Notes** | A footnote for each citation. The first note for a source is long, later ones are short. | Bibliography in alphabetical order |
+
+Tick **Print a bibliography** to add the sources that you cited after the last chapter. The **Sources** export (under **What to export**) is the list of all your sources. These are a few simple styles, not every academic style. Check them against the style that your publisher asks for.
+
+### Footnotes
+
+Press **Footnote** in the toolbar (or **Ctrl+Alt+F**, or the button in the quick actions menu), and type the note. The number is set for you. Click a number to change the note or remove it.
+
+- **Word:** real footnotes at the bottom of the page. Word shows them in its own footnote area.
+- **PDF and e-book:** the notes are printed at the end of each chapter. In the e-book each number links to its note and back.
+- **Markdown:** `[^1]` notes.
+- Footnote text is not counted in the word count.
+
+## Ideas and quotes
+
+(Non-fiction and Mixed projects.) A place for short items: an **idea**, a **quote**, an **anecdote**, a **statistic**. A quote or a statistic can name its **source** and a page. Press **Put it in the text** and the item goes at the end of the section that is open in the Write tab, with its citation. A quote becomes a block quote. Then move it where it belongs.
+
+## Boxes, captions and the index
+
+(Non-fiction and Mixed projects.) These are in the Write toolbar.
+
+- **Box…** puts a coloured box around paragraphs: **Key idea**, **Story**, **Example**, **Exercise**, **Warning** or **Quote**. Pick **Take the box off** to remove it. Boxes print in Word, PDF, e-book and Markdown (as a quote with a bold label).
+- **Caption…** makes a paragraph a caption of a **Figure**, **Table** or **Chart**. The export numbers it by chapter: *Figure 3.2: text*. There are no pictures in the text yet, so a caption goes with a table or a figure that you describe in words.
+- **Index:** select a word or phrase and press **Index** in the quick actions menu. Tick **Print an index** on the Export screen. The index is at the very end, in alphabetical order, with the chapters of each term. It lists chapters, not page numbers.
+- **Print all the exercise boxes together** adds a chapter at the end that collects every **Exercise** box under its chapter title.
+- In the **Chapter** panel, **+ Exercise box at the end** adds an Exercises heading and an empty exercise box to the last section.
+
+### Source checks
+
+The **Checks** tab has a **Sources** page. Select a claim and press **Needs a source** in the quick actions menu. The claim shows with a red wavy line. The page lists every marked claim that has no citation after it in the same paragraph. It also lists citations of a source that is gone, and sources that you never cited. A word that is spelled two ways is on the **Names** page, which uses your Glossary.
+
+## Notes
+
+The **Notes** tab is a rough notepad for your story ideas and thoughts. It has no link to the scene status "draft". Nothing here is part of the book.
+
+- Press **+ New** to add a page. Give it a title, such as "Idea", "Ending" or "What if".
+- Write in the same editor as the Write tab: bold, italic, headings, lists, and `@` links.
+- Use the **↑** and **↓** buttons to put the pages in order.
+- The search box above the list looks at the title and the text of every page.
+- Notes pages are not counted in your word counts, checks or exports.
+
+## Write
+
+The Write tab reopens the book, chapter, and scene you had open last. This also works after you close the app.
+
+1. Press **+ Book**, then give the book a title and a place in the series.
+2. Press **+ Chapter**. A chapter holds one or more **scenes**. The new chapter starts with Scene 1.
+3. Write in the editor. It looks like the page you will export. The toolbar has bold, italic, underline, three heading sizes, lists, quotes, a scene break (`* * *`), and undo/redo. The usual shortcuts work: Ctrl+B, Ctrl+I, Ctrl+U. The word count updates as you type.
+4. Reorder by dragging. Drag a chapter or a scene in the left list and drop it where you want it. A line shows the spot. You can also use the ↑ and ↓ buttons in the right panel.
+
+Chapters you wrote before the editor existed open as plain paragraphs. They convert when you edit them.
+
+### The sidebar tabs
+
+Both sidebars of the Write tab have tabs, and a white marker slides to the tab you pick. The app remembers your last tab.
+
+- **Left sidebar:** **Chapters** (your chapters and scenes) and **Book** (title, order in the series, synopsis, goals, finish date, revision passes, and **Delete book**).
+- **Right sidebar:** **Chapter** (word goal, who is in it, summary), **Scene** (status, point of view, place, time, notes, word goal, move to another chapter), **Story** (tags, mood board, revision passes, story arcs, who is in the scene) and **Comments**. A small number on **Comments** is the count of open comments. A small number on **Story** is the count of characters that are named in the text but not in the cast. In a non-fiction project the second tab is **Section**, and **Story** is called **Details** when the story tools are hidden.
+
+### Goal bars
+
+Under the text, the **Write** screen shows a bar for each word goal that is set: the **book**, the **chapter** and the **scene**. A level with no goal has no bar. If two levels have the same goal, they share one bar. For example: the book has a goal of 500, and the chapter and the scene have 300. Then you see one bar for the book, and one bar for the chapter and the scene together. A shared bar counts the words of the wider level (the chapter, in this example).
+
+### Finish date
+
+In the book panel of the Write tab, set a **Book goal (words)** and a **Finish by** date. The app then says how many words to write each day to finish on time.
+
+- Today and the finish day both count as days to write.
+- It compares the number with what you wrote on a normal day: the average of the 7 days before today. It says **On track**, or **Behind** with the day you would finish at that pace.
+- It counts all your writing, not one book, so with several books the pace is for your whole writing.
+- When the goal is reached, it says so. When the date has passed, it says how long ago, and you can pick a new date.
+- Books with a finish date also show a **Finish line** card on the Dashboard.
+
+### Scenes
+
+A scene is a part of a chapter with its own place, point of view, time, and cast. Use scenes when a chapter jumps around.
+
+- In the left list, the open chapter shows its scenes. Press **+ Scene** to add one. Click a scene to write it.
+- The **Scene** panel on the right holds the status (idea, draft, revised, final), point of view, place, story time, a timeline number, who is in it, notes and plan, and a word goal.
+- A scene with only notes and no text is a plan. Fill in the text later.
+- **Drag a scene** up or down to reorder it. Drop it on another chapter's name to move it to the end of that chapter. **Move to chapter** in the panel does the same.
+- The **Chapter** panel holds the chapter goal and summary, and shows everyone who appears in any of its scenes.
+- The scene title is for you. It does not print.
+- Older chapters that had their own text, cast, and place are converted once, when the app starts. The text becomes Scene 1 of that chapter.
+
+Scenes also show up elsewhere: each scene is its own row on the **Timeline**, **Who's where** counts a character as present in a chapter if they are in any scene, a character's page lists their scenes, and a map path step can name a chapter and a scene.
+
+When you export, the scenes of a chapter are joined with a scene break (`* * *`). The first paragraph of each scene has no indent.
+
+### Split and merge scenes
+
+Two buttons above the text, next to **History**, change how a chapter is cut into scenes.
+
+- **Split here** cuts the open scene in two at the cursor. The text before the cursor stays. The text after it becomes a new scene right after this one, and the new scene opens. The new scene copies the status, point of view, place, time, cast and tags. A comment on text that moved goes with the text. Put the cursor inside the text, with words before it and after it.
+- **Merge with next** joins the open scene to the next scene of the same chapter. Press it twice (it asks "Sure?"). The text of the second scene goes after the first. Cast and tags are joined. A pass counts as done only when it was done for both. The comments, arcs, item steps and History of the second scene move to the joined scene. A merge does not add a scene break. Press **―** in the toolbar if you want one.
+- Both buttons first save the old text in **History** ("Before splitting", "Before merging"), so you can go back.
+- In a PDF, Word file or e-book, the scenes of a chapter are always joined with a scene break. You can choose its look in the Export tab (see **Pages and style**). The **―** button in the toolbar puts a scene break inside the text of one scene.
+
+### Look of the page
+
+Press **Look** above the editor to change how the text looks. The page changes while you click. The choice belongs to this computer, not to the project, so it is not in your backups.
+
+- **Font**: Serif, Book, Sans, or Typewriter.
+- **Text size** and **Line spacing**.
+- **Page width**: Narrow, Medium, or Wide. **Auto** is the old way: the whole page, and a narrow column in focus mode. The exports do not change.
+- **Typewriter mode**: the line you write on stays a little above the middle of the screen, and the page scrolls as you type. The first lines of a scene also sit in the middle.
+- **Focus line**: every paragraph but the one you write in is dimmed.
+, `f t F T ; ,`, `%`, `{ }`, `gg G`, counts (`3w`, `2dd`), `x r`, `d c y` with a motion, `dd cc yy D C Y s S`, `p P`, `o O`, `i a I A`, `v` and `V`, `u` and `Ctrl+r`. Not there yet: `.` (repeat), text objects such as `diw`, `/` search, marks, macros and `:` commands.
 
 Focus mode uses the same choices.
 

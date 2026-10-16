@@ -17,7 +17,8 @@
     "@tiptap/starter-kit": "^3.31.4",
     "@types/d3-force": "^3.0.10",
     "@wailsio/runtime": "latest",
-    "d3-force": "^3.0.0"
+    "d3-force": "^3.0.0",
+    "tiptap-extension-vim": "^0.1.2"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.0.0",
