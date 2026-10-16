@@ -24,10 +24,7 @@
   onMount(refresh);
 
   /** Wait until every edit has reached the data file, so nothing is lost when the file changes. */
-  async function settle() {
-    db.flush();
-    for (let i = 0; i < 40 && db.waiting + db.busy > 0; i++) await new Promise((r) => setTimeout(r, 50));
-  }
+  const settle = () => db.settle(); // stops with an error when a change could not be saved
 
   /** Run one change. After a project opens, reload the screen so it shows the new data. */
   async function run(job: () => Promise<unknown>, reload = false) {
@@ -96,7 +93,7 @@
     <Select id="newtype" bind:value={newType}>{#each TYPES as [t, name]}<option value={t}>{name}</option>{/each}</Select>
     <p class="muted" style="font-size:.8rem;margin:.3rem 0 0">{TYPES.find(([k]) => k === newType)?.[2]} You can change it later in Project settings.</p>
     <p class="muted" style="font-size:.8rem;margin-bottom:0">
-      Opening a project reloads the app. Remove does not delete the file. It moves to the folder <code>projects\removed</code> in the app data folder.
+      Opening a project reloads the app. Remove does not delete the file. It moves to the folder <code>projects\removed</code> in your data folder, with the date and time in its name.
     </p>
     {#if message}<p style:color={failed ? 'var(--danger)' : 'var(--ok)'} style="word-break:break-all">{message}</p>{/if}
   </div>

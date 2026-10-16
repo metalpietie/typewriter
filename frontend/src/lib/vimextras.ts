@@ -1,13 +1,16 @@
 import { Extension } from '@tiptap/core';
 import { Plugin, TextSelection } from '@tiptap/pm/state';
 import type { EditorView } from '@tiptap/pm/view';
-import { changeLine, changeRange, deleteLine, deleteRange, vimPluginKey, yankLine, yankRange, type CommandContext, type VimState } from 'tiptap-extension-vim';
+import { changeLine, changeRange, deleteChar, deleteLine, deleteRange, moveDown, moveLeft, moveToFirstNonWhitespace, vimPluginKey, yankLine, yankRange, type CommandContext, type VimState } from 'tiptap-extension-vim';
 import { textObject } from './textobjects-core';
 
 // What the Vim add-on (tiptap-extension-vim) does not have, and that a writer needs:
 //  - text objects: viw, ciw, daw, yi", ci(, dis, dip ... (d, c, y and v, then i or a, then the object)
 //  - Ctrl+d and Ctrl+u (half a page), Ctrl+f and Ctrl+b (a page)
 //  - the page follows the cursor when it moves with j, k, gg, G and so on
+//  - Enter, Backspace, Delete and Tab do what they do in Vim, and never change the text outside the insert mode
+//  - an Esc that the Vim keys use does not also reach the page (it would leave focus mode)
+//  - keys typed with AltGr ({ [ ~ on many keyboards) reach the Vim keys
 // It runs before the add-on, and it only takes the keys that it knows. Everything else goes on to the add-on.
 
 /** Keys that are only a modifier, or the first half of a typed character. */
@@ -112,8 +115,9 @@ export const VimExtras = Extension.create({
         return true;
       }
 
-      // the text of the block, one character for each inline thing that is not text (a citation, a footnote), so places match
-      const text = block.textBetween(0, block.content.size, '', '￼');
+      // the text of the block, one character for each inline thing that is not text, so places match:
+      // a line break (Shift+Enter) is white space, a citation or a footnote is a mark
+      const text = block.textBetween(0, block.content.size, '', (leaf) => (leaf.type.name === 'hardBreak' ? '\n' : '\ufffc'));
       const r = textObject(text, at - $p.start(), kind, key, count);
       if (!r) return false;
       const from = $p.start() + r[0], to = $p.start() + r[1];
@@ -167,24 +171,84 @@ export const VimExtras = Extension.create({
         view.dispatch(view.state.tr.setSelection(TextSelection.create(doc, pos)));
         ctx.updateVimState({ desiredColumn: null });
       }
+      ctx.resetBuffer(); // a d or c that waited is dropped, as in Vim
+    }
+
+    /**
+     * Enter, Backspace, Delete and Tab outside the insert mode. Without this, the editor's own keys would split, join or
+     * delete text. In the normal mode they do what Vim does: Enter goes to the start of the next line, Backspace goes left,
+     * Delete deletes the character. In the visual mode Delete deletes the selection. Anything else does nothing.
+     */
+    function editKey(view: EditorView, vs: VimState, key: string) {
+      const ctx = context(view, editor);
+      const visual = vs.mode === 'visual' || vs.mode === 'visual-line';
+      const count = vs.count ?? 1;
+      if (vs.pendingOperator || vs.pendingFind) { ctx.resetBuffer(); return; }
+      if (visual) {
+        if (key === 'Delete') {
+          const { from, to } = view.state.selection;
+          deleteRange(ctx, from, to, vs.mode === 'visual-line');
+          ctx.updateVimState({ mode: 'normal', visualAnchor: null, visualHead: null });
+        }
+        return;
+      }
+      const state = view.state, at = state.selection.from;
+      if (key === 'Enter') {
+        const down = moveDown(view, state, at, count, null).pos;
+        view.dispatch(state.tr.setSelection(TextSelection.create(state.doc, onChar(state.doc, moveToFirstNonWhitespace(state, down)))));
+        ctx.updateVimState({ desiredColumn: null });
+        ctx.resetBuffer();
+      } else if (key === 'Backspace') {
+        view.dispatch(state.tr.setSelection(TextSelection.create(state.doc, moveLeft(state, at, count))));
+        ctx.resetBuffer();
+      } else if (key === 'Delete') {
+        deleteChar(ctx, count);
+      } else ctx.resetBuffer();
     }
 
     return [new Plugin({
       props: {
         handleKeyDown(view, e) {
           const vs = vimPluginKey.getState(view.state);
-          if (!vs || e.metaKey || e.altKey) return false;
-          if (vs.mode === 'insert' || e.key === 'Escape') { wait = null; return false; }
+          if (!vs) return false;
+          const visual = vs.mode === 'visual' || vs.mode === 'visual-line';
+          if (e.key === 'Escape') {
+            // An Esc that ends the insert or visual mode, or drops a command, is for the Vim keys only. It must not also
+            // reach the page, where it would leave focus mode. Esc in the normal mode with nothing waiting goes on as usual.
+            if (vs.mode !== 'normal' || vs.keyBuffer || vs.pendingOperator || vs.pendingFind || wait) e.stopPropagation();
+            wait = null;
+            return false;
+          }
+          if (vs.mode === 'insert') { wait = null; return false; }
+          if (e.metaKey) return false;
+          if (e.altKey) {
+            // AltGr is Ctrl+Alt on Windows. A character typed with it ({ [ ~ on many keyboards) is given to the Vim keys
+            // as a plain key, because the add-on ignores every key that has Alt.
+            if (!e.ctrlKey || e.key.length !== 1) return false;
+            const plain = new KeyboardEvent('keydown', { key: e.key });
+            const done = view.someProp('handleKeyDown', (f) => f(view, plain));
+            if (done) e.preventDefault();
+            return !!done;
+          }
           // A key like " or $ is typed with Shift, and the browser sends the Shift key first. The add-on takes that as a key that
           // means nothing, and drops the command that waits (d$, f(, vi" ...). So a modifier key is not passed on.
           if (MODIFIERS.has(e.key)) return true;
 
           if (e.ctrlKey) {
+            if (e.shiftKey) return false; // Ctrl+Shift+F and the like are the app's own keys
             const k = e.key.toLowerCase();
             if (k !== 'd' && k !== 'u' && k !== 'f' && k !== 'b') return false;
+            if (k === 'b' && visual) return false; // in the visual mode Ctrl+B makes the selection bold
             e.preventDefault();
             wait = null;
             page(view, vs, k === 'd' || k === 'f', k === 'd' || k === 'u' ? 0.5 : 0.9);
+            return true;
+          }
+
+          if (e.key === 'Enter' || e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Tab') {
+            e.preventDefault();
+            wait = null;
+            editKey(view, vs, e.key);
             return true;
           }
 
@@ -197,7 +261,6 @@ export const VimExtras = Extension.create({
             return true;
           }
 
-          const visual = vs.mode === 'visual' || vs.mode === 'visual-line';
           const operator = vs.pendingOperator === 'd' || vs.pendingOperator === 'c' || vs.pendingOperator === 'y';
           if ((e.key === 'i' || e.key === 'a') && (operator || visual) && !vs.pendingFind) {
             e.preventDefault();

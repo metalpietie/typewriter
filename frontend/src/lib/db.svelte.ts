@@ -20,6 +20,7 @@ class Db {
   ready = $state(false);
   dataPath = $state('');
   project = $state(''); // name of the open project
+  projectId = $state(''); // id of the open project
   version = $state(''); // the app version
   folderProblem = $state(''); // set when the chosen data folder could not be opened
   lastBackup = $state(''); // when you last saved a copy with the Backup button, such as 2026-10-04T15:04:05Z. Empty: never
@@ -46,7 +47,9 @@ class Db {
     this.version = await Store.Version();
     this.folderProblem = (await Store.DataFolder()).problem;
     this.lastBackup = await Store.LastBackup().catch(() => '');
-    this.project = ((await Store.Projects()) ?? []).find((p) => p.current)?.name ?? '';
+    const open = ((await Store.Projects()) ?? []).find((p) => p.current);
+    this.project = open?.name ?? '';
+    this.projectId = open?.id ?? '';
     this.ready = true;
   }
 
@@ -89,6 +92,17 @@ class Db {
       this.waiting--;
       this.save(w.kind, w.item).catch(() => {});
     }
+  }
+
+  /**
+   * Save every waiting edit now, and wait until the saves are done. Use it before the data file changes under the app
+   * (another project opens, a book moves). It stops with an error when something could not be saved, so nothing is lost.
+   */
+  async settle() {
+    this.flush();
+    for (let i = 0; i < 100 && this.waiting + this.busy > 0; i++) await new Promise((r) => setTimeout(r, 50));
+    if (this.waiting + this.busy > 0) throw new Error('Your last changes are still being saved. Try again in a moment.');
+    if (this.saveError) throw new Error(`Some changes could not be saved (${this.saveError}). Fix that first, so nothing is lost.`);
   }
 
   /** Save after a short pause. Use this while the user types. */

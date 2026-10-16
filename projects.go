@@ -108,7 +108,11 @@ func (s *Store) Projects() ([]ProjectItem, error) {
 }
 
 // switchTo opens another project. The screen must reload after this, so it shows the new data.
+// It waits for a phone sync and for bookshelf jobs that use the open file, so none of them is cut off half way.
 func (s *Store) switchTo(id string) error {
+	s.syncMu.Lock()
+	s.opMu.Lock()
+	release := func() { s.opMu.Unlock(); s.syncMu.Unlock() }
 	s.mu.Lock()
 	p, ok := s.reg.find(id)
 	if !ok {
@@ -117,11 +121,13 @@ func (s *Store) switchTo(id string) error {
 	}
 	if p.ID == s.reg.Current {
 		s.mu.Unlock()
+		release()
 		return nil
 	}
 	db, path, err := s.openProject(p)
 	if err != nil {
 		s.mu.Unlock()
+		release()
 		return fmt.Errorf("could not open that project: %w", err)
 	}
 	old := s.db
@@ -130,6 +136,7 @@ func (s *Store) switchTo(id string) error {
 	err = saveRegistry(s.dir, s.reg)
 	s.mu.Unlock()
 	old.Close() // this also folds the old file's write log into the file
+	release()
 	s.autoBackupAt(time.Now())
 	return err
 }
@@ -144,8 +151,8 @@ func (s *Store) NewProject(name string) (string, error) {
 		name = "New project"
 	}
 	s.mu.Lock()
-	id := fmt.Sprintf("p%d", time.Now().UnixMilli())
-	s.reg.Projects = append(s.reg.Projects, Project{ID: id, Name: name})
+	id := newProjectID(s.reg, s.dir)
+	s.reg.Projects = append(append([]Project{}, s.reg.Projects...), Project{ID: id, Name: name}) // a new list: readers may still hold the old one
 	err := saveRegistry(s.dir, s.reg)
 	s.mu.Unlock()
 	if err != nil {
@@ -164,7 +171,9 @@ func (s *Store) RenameProject(id, name string) error {
 	defer s.mu.Unlock()
 	for i := range s.reg.Projects {
 		if s.reg.Projects[i].ID == id {
-			s.reg.Projects[i].Name = name
+			list := append([]Project{}, s.reg.Projects...) // a new list: readers may still hold the old one
+			list[i].Name = name
+			s.reg.Projects = list
 			return saveRegistry(s.dir, s.reg)
 		}
 	}
@@ -200,8 +209,22 @@ func (s *Store) RemoveProject(id string) (string, error) {
 	} else {
 		dest = ""
 	}
-	s.reg.Projects = append(s.reg.Projects[:idx], s.reg.Projects[idx+1:]...)
+	list := append([]Project{}, s.reg.Projects[:idx]...) // a new list: readers may still hold the old one
+	s.reg.Projects = append(list, s.reg.Projects[idx+1:]...)
 	return dest, saveRegistry(s.dir, s.reg)
+}
+
+// newProjectID makes an id that no project has, and whose file does not exist yet.
+func newProjectID(reg registry, dir string) string {
+	base := fmt.Sprintf("p%d", time.Now().UnixMilli())
+	id := base
+	for n := 2; ; n++ {
+		_, taken := reg.find(id)
+		if _, err := os.Stat(projectFile(dir, id)); !taken && os.IsNotExist(err) {
+			return id
+		}
+		id = fmt.Sprintf("%s-%d", base, n)
+	}
 }
 
 // shut closes the open data file (the tests use this).

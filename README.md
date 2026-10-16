@@ -2,7 +2,7 @@
 
 A desktop app for writing a book or a book series. It keeps your story world in one place: characters, how they relate, places, lore, maps, character routes, and a timeline.
 
-It runs on your computer. Your data stays in one file. No account and no internet needed.
+It runs on your computer. Your data stays in a file on your computer, one for each project. No account and no internet needed.
 
 Built with [Wails 3](https://v3.wails.io/) (Go), Svelte, and SQLite.
 
@@ -19,7 +19,7 @@ Built with [Wails 3](https://v3.wails.io/) (Go), Svelte, and SQLite.
 - **Check your work:** plot holes, loose ends, spelling of names, repeated words, style, reading level, and loose characters.
 - **Notes on your phone:** an Android app ([mobile](mobile/README.md)) copies your Notes pages both ways over your home Wi-Fi. See [the protocol](docs/phone-sync-protocol.md).
 - **Share it:** export to Word, PDF, e-book and Markdown, with front and back pages.
-- **Stay safe:** your data is one file on your computer, with a backup every day and a backup button for a copy of your own.
+- **Stay safe:** your data is in files on your computer (one for each project), with a backup every day and a backup button for a copy of your own.
 
 ## Run it
 
@@ -105,7 +105,7 @@ A **project** is one book or one series. Each project has its own data file, so 
 - **Open** switches to another project. The app reloads and shows that project.
 - **New project** makes an empty project and opens it.
 - **Rename** changes the name.
-- **Remove** (then **Sure?**) takes a project off the list. The file is not deleted. It moves to `%APPDATA%\typewriter\projects\removed`. To get it back, move the file to `%APPDATA%\typewriter\projects` and ask for help adding it to `projects.json`.
+- **Remove** (then **Sure?**) takes a project off the list. The file is not deleted. It moves to the folder `projects\removed` in your data folder (normally `%APPDATA%\typewriter`, or the folder you chose with **Change folder…**). Its name gets the date and time, for example `p1760000000000-20261016-221500.db`. To get it back: make a new project, close the app, and replace that project's file in `projects` with the removed file, renamed to the new project's file name. The first project is different: its file is `typewriter.db` in the data folder itself, not in `projects`.
 - You cannot remove the project that is open.
 
 Your first project is the old file, `typewriter.db`. New projects are files in `%APPDATA%\typewriter\projects`. The list is in `%APPDATA%\typewriter\projects.json`. The app opens the project you used last.

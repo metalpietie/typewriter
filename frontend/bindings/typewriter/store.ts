@@ -22,7 +22,8 @@ export function AddBook(project: string, title: string): $CancellablePromise<num
 }
 
 /**
- * AddProject adds an empty shelf. Unlike NewProject, it does not open it.
+ * AddProject adds an empty shelf. Unlike NewProject, it does not open it. Its data file is made at once,
+ * so a file that goes missing later can be told apart from a shelf that is new.
  */
 export function AddProject(name: string): $CancellablePromise<string> {
     return $Call.ByID(3552569299, name);
@@ -108,7 +109,8 @@ export function ListBy(kind: string, field: string, id: number): $CancellablePro
 
 /**
  * MoveBook moves a book, with its chapters, scenes, versions, comments, snapshots, passes and cover, to another project.
- * The copy is made first. The old one is removed only after the copy is safe.
+ * The copy is made first. The old one is removed only after the copy is safe. If the old one cannot be removed,
+ * the copy is taken out again, so the book is never in two places.
  */
 export function MoveBook($from: string, book: number, to: string): $CancellablePromise<number> {
     return $Call.ByID(1816588179, $from, book, to);

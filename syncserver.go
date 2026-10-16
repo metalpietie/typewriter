@@ -134,7 +134,12 @@ func (p *PhoneSync) save() error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(p.path(), b, 0o600)
+	// write to a temporary file first: a half-written sync.json would forget every phone
+	tmp := p.path() + ".tmp"
+	if err := os.WriteFile(tmp, b, 0o600); err != nil {
+		return err
+	}
+	return os.Rename(tmp, p.path())
 }
 
 // makeCert makes a certificate for the computer. It is kept, so the phones can keep its fingerprint.

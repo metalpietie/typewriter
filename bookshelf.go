@@ -4,11 +4,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"html"
+	"os"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 )
 
 // The bookshelf is the first screen. Each project is a shelf, and the books of the project stand on it.
@@ -38,18 +39,29 @@ type Shelf struct {
 	Books   []ShelfBook `json:"books"`
 }
 
-var tagRe = regexp.MustCompile(`<[^>]*>`)
+var (
+	tagRe = regexp.MustCompile(`<[^>]*>`)
+	// the ends of blocks and line breaks count as a space, as in the app (db.svelte.ts plainText)
+	blockEndRe = regexp.MustCompile(`(?i)</(p|h[1-6]|li|blockquote)>|<br\s*/?>|<hr\s*/?>`)
+)
 
-// shelfWords counts the words of a scene. The text is HTML, or plain text in old data.
+// shelfWords counts the words of a text the same way as the app does: a tag inside a word does not split it,
+// and &nbsp; and the like are read as the characters they stand for.
 func shelfWords(body string) int {
 	if strings.HasPrefix(strings.TrimSpace(body), "<") {
-		body = tagRe.ReplaceAllString(body, " ")
+		body = blockEndRe.ReplaceAllString(body, " ")
+		body = tagRe.ReplaceAllString(body, "")
+		body = html.UnescapeString(body)
 	}
 	return len(strings.Fields(body))
 }
 
 // withProject runs fn on the data file of a project. The open project uses the open file. Another one is opened and closed again.
-func (s *Store) withProject(id string, fn func(*sql.DB) error) error {
+// It holds opMu, so the open project cannot be switched (and its file closed) while fn uses it.
+// When the file of a project that is not open is missing, it is an error, unless create is true (a book is being added to it).
+func (s *Store) withProject(id string, create bool, fn func(*sql.DB) error) error {
+	s.opMu.Lock()
+	defer s.opMu.Unlock()
 	s.mu.RLock()
 	reg, dir, cur, curDB := s.reg, s.dir, s.reg.Current, s.db
 	s.mu.RUnlock()
@@ -59,6 +71,10 @@ func (s *Store) withProject(id string, fn func(*sql.DB) error) error {
 	}
 	if p.ID == cur {
 		return fn(curDB)
+	}
+	path := projectFile(dir, p.ID)
+	if _, err := os.Stat(path); os.IsNotExist(err) && !create {
+		return fmt.Errorf("its data file is missing (%s). If you moved it, put it back", path)
 	}
 	d, _, err := openProjectIn(dir, p)
 	if err != nil {
@@ -100,7 +116,8 @@ func readShelf(d *sql.DB) ([]ShelfBook, error) {
 	// the chapters, and the scenes with their words, for the chapter and scene goals
 	chapterBook := map[int64]int64{}
 	chapterGoal := map[int64]int{}
-	cr, err := d.Query(`SELECT id, json_extract(data, '$.book'), CAST(json_extract(data, '$.goal') AS REAL) FROM docs WHERE kind = 'chapter'`)
+	chapterOwn := map[int64]int{} // the words of an old chapter that still holds its own text
+	cr, err := d.Query(`SELECT id, json_extract(data, '$.book'), CAST(json_extract(data, '$.goal') AS REAL), json_extract(data, '$.body') FROM docs WHERE kind = 'chapter'`)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +125,8 @@ func readShelf(d *sql.DB) ([]ShelfBook, error) {
 		var id int64
 		var b sql.NullInt64
 		var goal sql.NullFloat64
-		if err := cr.Scan(&id, &b, &goal); err != nil {
+		var body sql.NullString
+		if err := cr.Scan(&id, &b, &goal, &body); err != nil {
 			cr.Close()
 			return nil, err
 		}
@@ -116,11 +134,13 @@ func readShelf(d *sql.DB) ([]ShelfBook, error) {
 			books[i].Chapters++
 			chapterBook[id] = b.Int64
 			chapterGoal[id] = int(goal.Float64)
+			chapterOwn[id] = shelfWords(body.String)
 		}
 	}
 	cr.Close()
 
 	chapterWords := map[int64]int{}
+	hasScenes := map[int64]bool{}
 	sceneParts := map[int64][]Part{}
 	sr, err := d.Query(`SELECT json_extract(data, '$.book'), json_extract(data, '$.chapter'), CAST(json_extract(data, '$.goal') AS REAL), json_extract(data, '$.body') FROM docs WHERE kind = 'scene'`)
 	if err != nil {
@@ -138,6 +158,7 @@ func readShelf(d *sql.DB) ([]ShelfBook, error) {
 			w := shelfWords(body.String)
 			books[i].Words += w
 			chapterWords[ch.Int64] += w
+			hasScenes[ch.Int64] = true
 			sceneParts[b.Int64] = append(sceneParts[b.Int64], Part{Goal: int(goal.Float64), Words: w})
 		}
 	}
@@ -145,11 +166,16 @@ func readShelf(d *sql.DB) ([]ShelfBook, error) {
 
 	chapterParts := map[int64][]Part{}
 	for id, b := range chapterBook {
+		words := chapterWords[id]
+		if !hasScenes[id] { // as in the app: a chapter with no scenes counts its own text
+			words = chapterOwn[id]
+			books[at[b]].Words += words
+		}
 		g := chapterGoal[id]
 		if g <= 0 {
 			g = goals[b].perChapter
 		}
-		chapterParts[b] = append(chapterParts[b], Part{Goal: g, Words: chapterWords[id]})
+		chapterParts[b] = append(chapterParts[b], Part{Goal: g, Words: words})
 	}
 	for i := range books {
 		id := books[i].ID
@@ -190,7 +216,7 @@ func (s *Store) Shelves() ([]Shelf, error) {
 	out := []Shelf{}
 	for _, p := range reg.Projects {
 		sh := Shelf{ID: p.ID, Name: p.Name, Current: p.ID == reg.Current, Books: []ShelfBook{}}
-		err := s.withProject(p.ID, func(d *sql.DB) error {
+		err := s.withProject(p.ID, false, func(d *sql.DB) error {
 			books, err := readShelf(d)
 			sh.Books = books
 			return err
@@ -206,7 +232,7 @@ func (s *Store) Shelves() ([]Shelf, error) {
 // BookCover returns the cover of a book as a picture (a data URL), or "" when the book has none.
 func (s *Store) BookCover(project string, book int64) (string, error) {
 	image := ""
-	err := s.withProject(project, func(d *sql.DB) error {
+	err := s.withProject(project, false, func(d *sql.DB) error {
 		var data string
 		err := d.QueryRow(`SELECT data FROM docs WHERE kind = 'cover' AND json_extract(data, '$.book') = ? ORDER BY id LIMIT 1`, book).Scan(&data)
 		if err == sql.ErrNoRows {
@@ -227,7 +253,7 @@ func (s *Store) BookCover(project string, book int64) (string, error) {
 
 // SetBookSeed saves the number that decides how the generated cover of a book looks.
 func (s *Store) SetBookSeed(project string, book int64, seed int) error {
-	return s.withProject(project, func(d *sql.DB) error {
+	return s.withProject(project, false, func(d *sql.DB) error {
 		res, err := d.Exec(`UPDATE docs SET data = json_set(data, '$.shelfSeed', ?), updated_at = datetime('now') WHERE kind = 'book' AND id = ?`, seed, book)
 		if err != nil {
 			return err
@@ -241,7 +267,7 @@ func (s *Store) SetBookSeed(project string, book int64, seed int) error {
 
 // SetBookOrder puts the books of one shelf in the order of the list.
 func (s *Store) SetBookOrder(project string, ids []int64) error {
-	return s.withProject(project, func(d *sql.DB) error {
+	return s.withProject(project, false, func(d *sql.DB) error {
 		tx, err := d.Begin()
 		if err != nil {
 			return err
@@ -256,6 +282,15 @@ func (s *Store) SetBookOrder(project string, ids []int64) error {
 	})
 }
 
+// nextOrder is the order for a book that is put at the end of a shelf: one more than the highest.
+func nextOrder(q interface {
+	QueryRow(string, ...any) *sql.Row
+}) (int, error) {
+	var top sql.NullFloat64
+	err := q.QueryRow(`SELECT MAX(CAST(json_extract(data, '$.order') AS REAL)) FROM docs WHERE kind = 'book'`).Scan(&top)
+	return int(top.Float64) + 1, err
+}
+
 // AddBook puts a new, empty book on a shelf (a project that does not have to be open).
 func (s *Store) AddBook(project, title string) (int64, error) {
 	title = strings.TrimSpace(title)
@@ -263,12 +298,12 @@ func (s *Store) AddBook(project, title string) (int64, error) {
 		title = "New book"
 	}
 	var id int64
-	err := s.withProject(project, func(d *sql.DB) error {
-		var n int
-		if err := d.QueryRow(`SELECT count(*) FROM docs WHERE kind = 'book'`).Scan(&n); err != nil {
+	err := s.withProject(project, true, func(d *sql.DB) error {
+		order, err := nextOrder(d)
+		if err != nil {
 			return err
 		}
-		data, _ := json.Marshal(map[string]any{"title": title, "synopsis": "", "order": n + 1})
+		data, _ := json.Marshal(map[string]any{"title": title, "synopsis": "", "order": order})
 		res, err := d.Exec(`INSERT INTO docs(kind, data) VALUES('book', ?)`, string(data))
 		if err != nil {
 			return err
@@ -279,7 +314,8 @@ func (s *Store) AddBook(project, title string) (int64, error) {
 	return id, err
 }
 
-// AddProject adds an empty shelf. Unlike NewProject, it does not open it.
+// AddProject adds an empty shelf. Unlike NewProject, it does not open it. Its data file is made at once,
+// so a file that goes missing later can be told apart from a shelf that is new.
 func (s *Store) AddProject(name string) (string, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
@@ -287,9 +323,14 @@ func (s *Store) AddProject(name string) (string, error) {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	id := fmt.Sprintf("p%d", time.Now().UnixMilli())
-	s.reg.Projects = append(s.reg.Projects, Project{ID: id, Name: name})
-	return id, saveRegistry(s.dir, s.reg)
+	p := Project{ID: newProjectID(s.reg, s.dir), Name: name}
+	d, _, err := openProjectIn(s.dir, p)
+	if err != nil {
+		return "", fmt.Errorf("could not make the data file of the new shelf: %w", err)
+	}
+	d.Close()
+	s.reg.Projects = append(append([]Project{}, s.reg.Projects...), p) // a new list: readers may still hold the old one
+	return p.ID, saveRegistry(s.dir, s.reg)
 }
 
 // ---- moving a book ----
@@ -299,7 +340,11 @@ type bundle struct {
 	book                                    Doc
 	passes, chapters, scenes, snaps, covers []Doc
 	versions, comments, moods               []Doc
+	sources                                 map[int64]citeSource // the sources of the old project, to write out the citations
 }
+
+// citeSource is what a citation needs to be written as plain text.
+type citeSource struct{ Title, Authors, Year string }
 
 func readBundle(d *sql.DB, id int64, b *bundle) error {
 	tx, err := d.Begin()
@@ -334,6 +379,32 @@ func readBundle(d *sql.DB, id int64, b *bundle) error {
 			*g.to = append(*g.to, found...)
 		}
 	}
+	b.sources = map[int64]citeSource{}
+	rows, err := tx.Query(`SELECT id, data FROM docs WHERE kind = 'source'`)
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		var sid int64
+		var data string
+		if err := rows.Scan(&sid, &data); err != nil {
+			rows.Close()
+			return err
+		}
+		var f citeSource
+		var raw struct {
+			Title   string `json:"title"`
+			Authors string `json:"authors"`
+			Year    any    `json:"year"`
+		}
+		json.Unmarshal([]byte(data), &raw)
+		f.Title, f.Authors = raw.Title, raw.Authors
+		if raw.Year != nil {
+			f.Year = strings.TrimSpace(fmt.Sprint(raw.Year))
+		}
+		b.sources[sid] = f
+	}
+	rows.Close()
 	return tx.Commit()
 }
 
@@ -353,8 +424,71 @@ func idOf(v any) int64 {
 	return int64(f)
 }
 
+var (
+	citeRe    = regexp.MustCompile(`<span[^>]*\sdata-cite="(\d+)"[^>]*>(?:</span>)?`)
+	citeLocRe = regexp.MustCompile(`\sdata-loc="([^"]*)"`)
+	refAttrRe = regexp.MustCompile(`\s(?:data-ref="[^"]*"|class="ref")`)
+	commentRe = regexp.MustCompile(`\sdata-comment="(\d+)"`)
+)
+
+// movedCiteText is a citation written out as plain text, such as (Clear, 2018, p. 45): who wrote it (or the title), the year, the place.
+func movedCiteText(src citeSource, ok bool, loc string) string {
+	who := ""
+	if ok {
+		first := strings.TrimSpace(strings.SplitN(src.Authors, "\n", 2)[0])
+		who = strings.TrimSpace(strings.SplitN(first, ",", 2)[0])
+		if who == "" {
+			who = strings.TrimSpace(src.Title)
+		}
+	}
+	if who == "" {
+		who = "source"
+	}
+	parts := []string{who}
+	if ok && src.Year != "" {
+		parts = append(parts, src.Year)
+	}
+	if loc = strings.TrimSpace(loc); loc != "" {
+		if _, err := strconv.Atoi(strings.SplitN(loc, "-", 2)[0]); err == nil {
+			loc = "p. " + loc
+		}
+		parts = append(parts, loc)
+	}
+	return "(" + strings.Join(parts, ", ") + ")"
+}
+
+// moveText fixes the links inside the text of a moved scene, version or snapshot:
+//   - a citation points at a source of the old project: it becomes plain text, marked "needs a source", so the writer can cite again
+//   - an @ link points at a character or place of the old project: the link is taken off, the name stays
+//   - a comment mark gets the new id of its comment; a mark whose comment did not come along is taken off
+func moveText(body string, sources map[int64]citeSource, comments map[int64]int64) string {
+	if !strings.Contains(body, "data-") {
+		return body
+	}
+	body = citeRe.ReplaceAllStringFunc(body, func(tag string) string {
+		m := citeRe.FindStringSubmatch(tag)
+		id, _ := strconv.ParseInt(m[1], 10, 64)
+		loc := ""
+		if l := citeLocRe.FindStringSubmatch(tag); l != nil {
+			loc = html.UnescapeString(l[1])
+		}
+		src, ok := sources[id]
+		return `<span class="needs" data-needs="1">` + html.EscapeString(movedCiteText(src, ok, loc)) + `</span>`
+	})
+	body = refAttrRe.ReplaceAllString(body, "")
+	body = commentRe.ReplaceAllStringFunc(body, func(attr string) string {
+		id, _ := strconv.ParseInt(commentRe.FindStringSubmatch(attr)[1], 10, 64)
+		if n, ok := comments[id]; ok {
+			return fmt.Sprintf(` data-comment="%d"`, n)
+		}
+		return ""
+	})
+	return body
+}
+
 // writeBundle puts a copy of the book in another project. Every item gets a new id, and the links between them are set again.
-// Links to things that live in the old project (characters, places, arcs, sources) cannot come along. They are cleared.
+// Links to things that live in the old project (characters, places, arcs, sources) cannot come along. They are cleared,
+// also inside the text (see moveText). It returns the id of the new book.
 func writeBundle(d *sql.DB, b *bundle) (int64, error) {
 	tx, err := d.Begin()
 	if err != nil {
@@ -372,15 +506,25 @@ func writeBundle(d *sql.DB, b *bundle) (int64, error) {
 		}
 		return res.LastInsertId()
 	}
-	var have int
-	if err := tx.QueryRow(`SELECT count(*) FROM docs WHERE kind = 'book'`).Scan(&have); err != nil {
+	order, err := nextOrder(tx)
+	if err != nil {
 		return 0, err
 	}
-	book, err := insert(b.book, func(m map[string]any) { m["order"] = have + 1 })
+	book, err := insert(b.book, func(m map[string]any) { m["order"] = order })
 	if err != nil {
 		return 0, err
 	}
 	toBook := func(m map[string]any) { m["book"] = book }
+	noCast := func(m map[string]any) { // characters and places live in the old project
+		for _, k := range []string{"pov", "location"} {
+			if _, ok := m[k]; ok {
+				m[k] = nil
+			}
+		}
+		if _, ok := m["characters"]; ok {
+			m["characters"] = []any{}
+		}
+	}
 
 	passes := map[int64]int64{}
 	for _, p := range b.passes {
@@ -390,7 +534,7 @@ func writeBundle(d *sql.DB, b *bundle) (int64, error) {
 	}
 	chapters := map[int64]int64{}
 	for _, c := range b.chapters {
-		if chapters[c.ID], err = insert(c, toBook); err != nil {
+		if chapters[c.ID], err = insert(c, func(m map[string]any) { m["book"] = book; noCast(m) }); err != nil {
 			return 0, err
 		}
 	}
@@ -399,7 +543,7 @@ func writeBundle(d *sql.DB, b *bundle) (int64, error) {
 		if scenes[sc.ID], err = insert(sc, func(m map[string]any) {
 			m["book"] = book
 			m["chapter"] = chapters[idOf(m["chapter"])]
-			m["pov"], m["location"], m["characters"] = nil, nil, []any{}
+			noCast(m)
 			if old, ok := m["passes"].([]any); ok {
 				keep := []any{}
 				for _, p := range old {
@@ -413,30 +557,81 @@ func writeBundle(d *sql.DB, b *bundle) (int64, error) {
 			return 0, err
 		}
 	}
-	for _, g := range []struct {
-		docs  []Doc
-		field string
-	}{{b.versions, "scene"}, {b.comments, "scene"}, {b.moods, "owner"}} {
-		for _, x := range g.docs {
-			if _, err := insert(x, func(m map[string]any) { m[g.field] = scenes[idOf(m[g.field])] }); err != nil {
+	versions := map[int64]int64{}
+	for _, v := range b.versions {
+		if versions[v.ID], err = insert(v, func(m map[string]any) { m["scene"] = scenes[idOf(m["scene"])] }); err != nil {
+			return 0, err
+		}
+	}
+	comments := map[int64]int64{}
+	for _, c := range b.comments {
+		if comments[c.ID], err = insert(c, func(m map[string]any) { m["scene"] = scenes[idOf(m["scene"])] }); err != nil {
+			return 0, err
+		}
+	}
+	for _, x := range b.moods {
+		if _, err := insert(x, func(m map[string]any) { m["owner"] = scenes[idOf(m["owner"])] }); err != nil {
+			return 0, err
+		}
+	}
+
+	// the text of the scenes and versions: only now are the new ids of the comments known
+	fixBody := func(m map[string]any) {
+		if body, ok := m["body"].(string); ok {
+			m["body"] = moveText(body, b.sources, comments)
+		}
+	}
+	for _, group := range []struct {
+		docs []Doc
+		ids  map[int64]int64
+	}{{b.scenes, scenes}, {b.chapters, chapters}, {b.versions, versions}} {
+		for _, x := range group.docs {
+			// the item as it was saved above, with its other links already set; only the body changes here
+			var now string
+			if err := tx.QueryRow(`SELECT data FROM docs WHERE id = ?`, group.ids[x.ID]).Scan(&now); err != nil {
+				return 0, err
+			}
+			fixed, err := rewrite(now, fixBody)
+			if err != nil {
+				return 0, err
+			}
+			if _, err := tx.Exec(`UPDATE docs SET data = ? WHERE id = ?`, fixed, group.ids[x.ID]); err != nil {
 				return 0, err
 			}
 		}
 	}
-	for _, sn := range b.snaps { // a snapshot holds a copy of the scenes, with their old ids
+
+	// A snapshot holds a copy of the scenes, with their old ids. A scene or chapter that was deleted since the snapshot
+	// has no new id: it gets a negative one of its own, so two of them are never taken for the same.
+	gone := map[string]int64{}
+	newID := func(kind string, ids map[int64]int64, old int64) int64 {
+		if n, ok := ids[old]; ok {
+			return n
+		}
+		key := kind + strconv.FormatInt(old, 10)
+		if n, ok := gone[key]; ok {
+			return n
+		}
+		gone[key] = -int64(len(gone) + 1)
+		return gone[key]
+	}
+	for _, sn := range b.snaps {
 		if _, err := insert(sn, func(m map[string]any) {
 			m["book"] = book
 			if list, ok := m["chapters"].([]any); ok {
 				for _, c := range list {
 					if cm, ok := c.(map[string]any); ok {
-						cm["id"] = chapters[idOf(cm["id"])]
+						cm["id"] = newID("c", chapters, idOf(cm["id"]))
 					}
 				}
 			}
 			if list, ok := m["scenes"].([]any); ok {
 				for _, c := range list {
 					if cm, ok := c.(map[string]any); ok {
-						cm["id"], cm["chapter"] = scenes[idOf(cm["id"])], chapters[idOf(cm["chapter"])]
+						cm["id"], cm["chapter"] = newID("s", scenes, idOf(cm["id"])), newID("c", chapters, idOf(cm["chapter"]))
+						if body, ok := cm["body"].(string); ok {
+							cm["body"] = moveText(body, b.sources, comments)
+						}
 					}
 				}
 			}
@@ -453,25 +648,33 @@ func writeBundle(d *sql.DB, b *bundle) (int64, error) {
 }
 
 // MoveBook moves a book, with its chapters, scenes, versions, comments, snapshots, passes and cover, to another project.
-// The copy is made first. The old one is removed only after the copy is safe.
+// The copy is made first. The old one is removed only after the copy is safe. If the old one cannot be removed,
+// the copy is taken out again, so the book is never in two places.
 func (s *Store) MoveBook(from string, book int64, to string) (int64, error) {
 	if from == to {
 		return book, nil
 	}
 	var b bundle
-	if err := s.withProject(from, func(d *sql.DB) error { return readBundle(d, book, &b) }); err != nil {
+	if err := s.withProject(from, false, func(d *sql.DB) error { return readBundle(d, book, &b) }); err != nil {
 		return 0, err
 	}
 	var moved int64
-	if err := s.withProject(to, func(d *sql.DB) (err error) { moved, err = writeBundle(d, &b); return }); err != nil {
+	if err := s.withProject(to, true, func(d *sql.DB) (err error) { moved, err = writeBundle(d, &b); return }); err != nil {
 		return 0, fmt.Errorf("nothing was moved: %w", err)
 	}
-	err := s.withProject(from, func(d *sql.DB) error {
+	err := s.withProject(from, false, func(d *sql.DB) error {
 		_, err := deleteIn(d, "book", book)
 		return err
 	})
 	if err != nil {
-		return 0, fmt.Errorf("the book was copied, but the old copy could not be removed: %w", err)
+		undo := s.withProject(to, false, func(d *sql.DB) error {
+			_, err := deleteIn(d, "book", moved)
+			return err
+		})
+		if undo != nil {
+			return 0, fmt.Errorf("the book was copied, but the old copy could not be removed (%v), and the new copy could not be taken out again (%v). It is now on both shelves", err, undo)
+		}
+		return 0, fmt.Errorf("nothing was moved: the old copy could not be removed: %w", err)
 	}
 	return moved, nil
 }

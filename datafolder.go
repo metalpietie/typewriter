@@ -289,11 +289,15 @@ func (s *Store) switchDir(dir string) error {
 		db.Close()
 		return fmt.Errorf("could not save the new folder, so nothing was changed: %w", err)
 	}
+	s.syncMu.Lock() // wait for a phone sync and for bookshelf jobs that use the open file (see switchTo)
+	s.opMu.Lock()
 	s.mu.Lock()
 	old := s.db
 	s.db, s.path, s.dir, s.reg, s.problem = db, path, dir, reg, ""
 	s.mu.Unlock()
 	old.Close()
+	s.opMu.Unlock()
+	s.syncMu.Unlock()
 	s.autoBackupAt(time.Now())
 	return nil
 }

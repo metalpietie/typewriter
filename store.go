@@ -29,8 +29,11 @@ type Store struct {
 	reg  registry
 	// problem is set when the chosen data folder could not be opened and the default one is used instead
 	problem string
-	// syncMu makes one sync with a phone run at a time
+	// syncMu makes one sync with a phone run at a time. A project switch waits for it, so a sync never writes into two projects.
 	syncMu sync.Mutex
+	// opMu is held while the open data file is used for longer than one call (the bookshelf, the daily copy)
+	// and while it is switched, so the file is never closed under a job that still uses it.
+	opMu sync.Mutex
 }
 
 var kinds = map[string]bool{
@@ -288,6 +291,29 @@ func deleteIn(d *sql.DB, kind string, id int64) ([]Doc, error) {
 	}
 	if _, err := tx.Exec(`DELETE FROM docs WHERE id = ? AND kind = ?`, id, kind); err != nil {
 		return nil, err
+	}
+	if kind == "book" || kind == "chapter" || kind == "scene" {
+		// an item log entry or a path step that pointed at a scene or chapter that just went loses that link (the rest stays).
+		// They are returned as they were, so Restore puts the link back.
+		for _, l := range [][3]string{{"itemlog", "scene", "scene"}, {"pathpoint", "chapter", "chapter"}} {
+			cond := `kind = ? AND json_type(data, '$.` + l[1] + `') = 'integer' AND json_extract(data, '$.` + l[1] + `') NOT IN (SELECT id FROM docs WHERE kind = ?)`
+			rows, err := tx.Query(`SELECT id, kind, data, updated_at FROM docs WHERE `+cond, l[0], l[2])
+			if err != nil {
+				return nil, err
+			}
+			for rows.Next() {
+				var d Doc
+				if err := rows.Scan(&d.ID, &d.Kind, &d.Data, &d.UpdatedAt); err != nil {
+					rows.Close()
+					return nil, err
+				}
+				removed = append(removed, d)
+			}
+			rows.Close()
+			if _, err := tx.Exec(`UPDATE docs SET data = json_set(data, '$.`+l[1]+`', json('null')) WHERE `+cond, l[0], l[2]); err != nil {
+				return nil, err
+			}
+		}
 	}
 	return removed, tx.Commit()
 }

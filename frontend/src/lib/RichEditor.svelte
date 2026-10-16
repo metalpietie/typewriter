@@ -229,6 +229,8 @@
   /** Open, move or close the pop-up, depending on the text before the cursor. */
   function checkSuggest() {
     if (!editor || !onopenref) { sug = null; return; }
+    // with the Vim keys, the @ list belongs to the insert mode only: in the normal mode Enter must not put in a link
+    if (vimOn && vimPluginKey.getState(editor.state)?.mode !== 'insert') { sug = null; return; }
     const { selection } = editor.state;
     if (!selection.empty) { sug = null; return; }
     const before = selection.$from.parent.textBetween(0, selection.$from.parentOffset, undefined, '￼');
@@ -481,9 +483,12 @@
     untrack(() => {
       if (!editor || want === vimOn) return;
       const html = editor.getHTML();
+      const { from, to } = editor.state.selection; // the cursor stays where it was (the undo history cannot come along)
       editor.destroy();
       create(html);
-      editor?.commands.focus();
+      if (!editor) return;
+      const size = editor.state.doc.content.size;
+      editor.chain().focus().setTextSelection({ from: Math.min(from, size), to: Math.min(to, size) }).run();
     });
   });
 
@@ -553,7 +558,8 @@
 </div>
 
 {#if editor}
-  <SelectionMenu {editor} redraw={tick} {source} vim={look.vim} {onfind} oncomment={oncomment ? addComment : undefined} oncite={addCitation} onfootnote={addFootnote} />
+  <!-- made again when the editor is made again (the Vim keys switched), so it listens to the new one -->
+  {#key editor}<SelectionMenu {editor} redraw={tick} {source} vim={look.vim} {onfind} oncomment={oncomment ? addComment : undefined} oncite={addCitation} onfootnote={addFootnote} />{/key}
 {/if}
 
 {#if piece}

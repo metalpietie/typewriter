@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -190,3 +191,163 @@ func TestBookshelfGoals(t *testing.T) {
 }
 
 func mustInt(s string) int { n, _ := strconv.Atoi(s); return n }
+
+func TestBookshelfMoveFixesLinksInText(t *testing.T) {
+	s, _ := OpenStoreIn(t.TempDir())
+	t.Cleanup(s.shut)
+	other, _ := s.AddProject("Two")
+	src := mustSave(t, s, "source", `{"title":"Atomic Habits","authors":"Clear, James","year":"2018"}`)
+	mara := mustSave(t, s, "character", `{"name":"Mara"}`)
+	book := mustSave(t, s, "book", `{"title":"B","order":1}`)
+	chap := mustSave(t, s, "chapter", `{"book":`+itoa(book.ID)+`,"order":1}`)
+	sc := mustSave(t, s, "scene", `{"book":`+itoa(book.ID)+`,"chapter":`+itoa(chap.ID)+`,"order":1,"body":""}`)
+	com := mustSave(t, s, "comment", `{"scene":`+itoa(sc.ID)+`,"text":"hm"}`)
+	body := `<p>Habits <span class="cite" data-cite="` + itoa(src.ID) + `" data-loc="45"></span> matter to <span class="ref" data-ref="character:` + itoa(mara.ID) + `">Mara</span>. ` +
+		`<span class="cmt" data-comment="` + itoa(com.ID) + `">Look</span> and <span class="cmt" data-comment="999">gone</span>.</p>`
+	data, _ := json.Marshal(map[string]any{"book": book.ID, "chapter": chap.ID, "order": 1, "body": body})
+	if _, err := s.Save(Doc{ID: sc.ID, Kind: "scene", Data: string(data)}); err != nil {
+		t.Fatal(err)
+	}
+	mustSave(t, s, "version", `{"scene":`+itoa(sc.ID)+`,"body":"<p><span data-comment=\"`+itoa(com.ID)+`\">x</span></p>"}`)
+
+	if _, err := s.MoveBook(defaultProject, book.ID, other); err != nil {
+		t.Fatal(err)
+	}
+	s.SwitchProject(other)
+	scenes, _ := s.List("scene")
+	coms, _ := s.List("comment")
+	vers, _ := s.List("version")
+	got := fieldOf(t, scenes[0], "body").(string)
+	if strings.Contains(got, "data-cite") || strings.Contains(got, "data-ref") || strings.Contains(got, `class="ref"`) {
+		t.Fatalf("links to the old project must go: %s", got)
+	}
+	if !strings.Contains(got, `<span class="needs" data-needs="1">(Clear, 2018, p. 45)</span>`) {
+		t.Fatalf("the citation must become text that needs a source: %s", got)
+	}
+	if !strings.Contains(got, ">Mara</span>") {
+		t.Fatalf("the name must stay: %s", got)
+	}
+	if !strings.Contains(got, `data-comment="`+itoa(coms[0].ID)+`"`) || strings.Contains(got, `data-comment="999"`) {
+		t.Fatalf("comment marks: %s", got)
+	}
+	if v := fieldOf(t, vers[0], "body").(string); !strings.Contains(v, `data-comment="`+itoa(coms[0].ID)+`"`) {
+		t.Fatalf("version comment mark: %s", v)
+	}
+}
+
+func TestBookshelfSnapshotOfDeletedScenes(t *testing.T) {
+	s, _ := OpenStoreIn(t.TempDir())
+	t.Cleanup(s.shut)
+	other, _ := s.AddProject("Two")
+	book := mustSave(t, s, "book", `{"title":"B","order":1}`)
+	chap := mustSave(t, s, "chapter", `{"book":`+itoa(book.ID)+`,"order":1}`)
+	// the snapshot knows two scenes and a chapter that no longer exist (ids 901, 902, 950)
+	mustSave(t, s, "snapshot", `{"book":`+itoa(book.ID)+`,"chapters":[{"id":`+itoa(chap.ID)+`},{"id":950}],"scenes":[{"id":901,"chapter":950},{"id":902,"chapter":950}]}`)
+	if _, err := s.MoveBook(defaultProject, book.ID, other); err != nil {
+		t.Fatal(err)
+	}
+	s.SwitchProject(other)
+	snaps, _ := s.List("snapshot")
+	var snap struct {
+		Chapters []struct{ ID int64 }          `json:"chapters"`
+		Scenes   []struct{ ID, Chapter int64 } `json:"scenes"`
+	}
+	json.Unmarshal([]byte(snaps[0].Data), &snap)
+	a, b := snap.Scenes[0], snap.Scenes[1]
+	if a.ID >= 0 || b.ID >= 0 || a.ID == b.ID {
+		t.Fatalf("deleted scenes need their own negative ids: %+v", snap.Scenes)
+	}
+	if a.Chapter != b.Chapter || a.Chapter >= 0 || snap.Chapters[1].ID != a.Chapter {
+		t.Fatalf("the deleted chapter must keep one id everywhere: %+v", snap)
+	}
+}
+
+func TestBookshelfMissingFileAndOrder(t *testing.T) {
+	dir := t.TempDir()
+	s, _ := OpenStoreIn(dir)
+	t.Cleanup(s.shut)
+	other, _ := s.AddProject("Two")
+	if _, err := os.Stat(projectFile(dir, other)); err != nil {
+		t.Fatal("AddProject must make the data file at once")
+	}
+	gone, _ := s.AddProject("Gone")
+	os.Remove(projectFile(dir, gone))
+	sh, _ := s.Shelves()
+	if !strings.Contains(sh[2].Problem, "missing") {
+		t.Fatalf("a missing file must show as a problem: %+v", sh[2])
+	}
+	if _, err := os.Stat(projectFile(dir, gone)); err == nil {
+		t.Fatal("reading the shelf must not make an empty file")
+	}
+	// orders 1, 2, 3; the first moves away; a new book goes after the highest, not to a taken number
+	a, _ := s.AddBook(other, "a")
+	s.AddBook(other, "b")
+	s.AddBook(other, "c")
+	if _, err := s.MoveBook(other, a, defaultProject); err != nil {
+		t.Fatal(err)
+	}
+	s.AddBook(other, "d")
+	sh, _ = s.Shelves()
+	var orders []float64
+	for _, b := range sh[1].Books {
+		orders = append(orders, b.Order)
+	}
+	if len(orders) != 3 || orders[0] != 2 || orders[1] != 3 || orders[2] != 4 {
+		t.Fatalf("orders: %v", orders)
+	}
+	// two shelves made at once get different ids
+	x, _ := s.AddProject("x")
+	y, _ := s.AddProject("y")
+	if x == y {
+		t.Fatal("project ids must differ")
+	}
+}
+
+func TestShelfWordsMatchTheApp(t *testing.T) {
+	for in, want := range map[string]int{
+		"<p>wo<em>rd</em> two</p>":                2,
+		"<p>a&nbsp;b</p>":                         2,
+		"<p>one</p><p>two</p>":                    2,
+		"<p>line<br>break</p>":                    2,
+		`<p>fact<span data-cite="1"></span>.</p>`: 1,
+		"plain old text":                          3,
+	} {
+		if got := shelfWords(in); got != want {
+			t.Errorf("%q: got %d, want %d", in, got, want)
+		}
+	}
+}
+
+func TestDeleteClearsLinksToGoneScenes(t *testing.T) {
+	s, _ := OpenStoreIn(t.TempDir())
+	t.Cleanup(s.shut)
+	book := mustSave(t, s, "book", `{"title":"B"}`)
+	chap := mustSave(t, s, "chapter", `{"book":`+itoa(book.ID)+`}`)
+	sc := mustSave(t, s, "scene", `{"book":`+itoa(book.ID)+`,"chapter":`+itoa(chap.ID)+`}`)
+	log := mustSave(t, s, "itemlog", `{"item":1,"scene":`+itoa(sc.ID)+`,"note":"found"}`)
+	step := mustSave(t, s, "pathpoint", `{"character":1,"chapter":`+itoa(chap.ID)+`}`)
+	mustSave(t, s, "itemlog", `{"item":1,"scene":null}`) // a log entry with no scene stays as it is
+	removed, err := s.Delete("book", book.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	logs, _ := s.List("itemlog")
+	steps, _ := s.List("pathpoint")
+	if len(logs) != 2 || len(steps) != 1 {
+		t.Fatal("the log entries and path steps themselves must stay")
+	}
+	for _, d := range append(logs, steps...) {
+		if (d.ID == log.ID && fieldOf(t, d, "scene") != nil) || (d.ID == step.ID && fieldOf(t, d, "chapter") != nil) {
+			t.Fatalf("the link to the gone scene or chapter must be cleared: %s", d.Data)
+		}
+	}
+	if err := s.Restore(removed); err != nil {
+		t.Fatal(err)
+	}
+	logs, _ = s.List("itemlog")
+	for _, d := range logs {
+		if d.ID == log.ID && fieldOf(t, d, "scene") != float64(sc.ID) {
+			t.Fatalf("undo must put the link back: %s", d.Data)
+		}
+	}
+}
