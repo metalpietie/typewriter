@@ -12,6 +12,7 @@
   import { maybeAutoVersion, addVersion } from '../lib/versions';
   import Snapshots from '../lib/Snapshots.svelte';
   import DateField from '../lib/DateField.svelte';
+  import GoalBars from '../lib/GoalBars.svelte';
   import { addWords, dailyGoal, wordsToday } from '../lib/progress';
   import { missingCast } from '../lib/mentions';
   import Comments from '../lib/Comments.svelte';
@@ -130,6 +131,14 @@
     const id = nav.scene;
     nav.scene = null;
     jumpToScene(id);
+  });
+
+  // the bookshelf asked for a book
+  $effect(() => {
+    if (nav.book == null || !db.ready) return;
+    const id = nav.book;
+    nav.book = null;
+    if (db.get('book', id)) { bookId = id; pickChapter(null); }
   });
 
   function jumpToScene(id: number) {
@@ -489,7 +498,7 @@
         <div class="focus-hud">{#if miniText()}<span>{miniText()}</span>{/if}{words.toLocaleString()} words · today {wordsToday().toLocaleString()}{dailyGoal() ? ' / ' + dailyGoal().toLocaleString() : ''} <SaveIndicator /> <span>Esc to leave</span></div>
       {:else}
         <div class="statusbar">
-        {#if Number(scene.goal) > 0}<div style="margin-top:.6rem"><ProgressBar value={words} goal={Number(scene.goal)} /></div>{/if}
+        <GoalBars levels={[{ scope: 'book', words: total, goal: Number(book?.goal) || 0 }, { scope: 'chapter', words: chapWords, goal: chap ? goalOf(chap) : 0 }, { scope: 'scene', words, goal: Number(scene.goal) || 0 }]} />
         <p class="muted">
           {word('Scene')}: {words.toLocaleString()}{Number(scene.goal) ? ' / ' + Number(scene.goal).toLocaleString() : ''} words{pctText(words, Number(scene.goal))}
           · Today: {wordsToday().toLocaleString()}{dailyGoal() ? ' / ' + dailyGoal().toLocaleString() : ''}

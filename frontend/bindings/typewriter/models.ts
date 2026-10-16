@@ -249,6 +249,50 @@ export interface RestoreResult {
 }
 
 /**
+ * Shelf is one project with its books.
+ */
+export interface Shelf {
+    "id": string;
+    "name": string;
+    "current": boolean;
+
+    /**
+     * set when the data file of this project could not be read
+     */
+    "problem": string;
+    "books": ShelfBook[] | null;
+}
+
+/**
+ * ShelfBook is one book as the bookshelf shows it.
+ */
+export interface ShelfBook {
+    "id": number;
+    "title": string;
+    "order": number;
+    "chapters": number;
+    "words": number;
+
+    /**
+     * changes the generated cover (the refresh button)
+     */
+    "seed": number;
+
+    /**
+     * the book has a cover that the writer made or chose
+     */
+    "hasCover": boolean;
+
+    /**
+     * The one progress bar of the book: the book goal, else the chapter goals together, else the scene goals together.
+     * "book", "chapter", "scene", or "" when there is no goal
+     */
+    "goalKind": string;
+    "goal": number;
+    "goalWords": number;
+}
+
+/**
  * SyncStatus is what the Sync section of the screen shows.
  */
 export interface SyncStatus {

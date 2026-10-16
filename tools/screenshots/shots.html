@@ -6,6 +6,7 @@
 // Drives the app in the frame to one screen, for one screenshot. Which one comes from ?s=name.
 const name = new URLSearchParams(location.search).get('s');
 localStorage.setItem('typewriter-motion', 'off');
+if (name !== 'bookshelf') sessionStorage.setItem('typewriter.shelfSeen', '1'); // the bookshelf shows first. The other pictures skip it.
 localStorage.setItem('typewriter-theme', 'dark');
 localStorage.setItem('__nf', name === 'sources' ? '1' : '0');
 const W = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -23,6 +24,7 @@ const select = (text) => {
 };
 
 const SHOTS = {
+  bookshelf: async () => { await W(300); },
   dashboard: async () => {},
   'write-book': async () => { await openWrite(); await tab(1, 0); },
   'write-text': async () => { await openWrite(); await tab(1, 0); },
