@@ -15,6 +15,20 @@ import { Call as $Call, CancellablePromise as $CancellablePromise } from "@wails
 import * as $models from "./models.js";
 
 /**
+ * AddBook puts a new, empty book on a shelf (a project that does not have to be open).
+ */
+export function AddBook(project: string, title: string): $CancellablePromise<number> {
+    return $Call.ByID(4099520823, project, title);
+}
+
+/**
+ * AddProject adds an empty shelf. Unlike NewProject, it does not open it.
+ */
+export function AddProject(name: string): $CancellablePromise<string> {
+    return $Call.ByID(3552569299, name);
+}
+
+/**
  * AutoBackups lists the daily copies, newest first.
  */
 export function AutoBackups(): $CancellablePromise<$models.AutoBackup[] | null> {
@@ -27,6 +41,13 @@ export function AutoBackups(): $CancellablePromise<$models.AutoBackup[] | null> 
  */
 export function Backup(): $CancellablePromise<string> {
     return $Call.ByID(197060861);
+}
+
+/**
+ * BookCover returns the cover of a book as a picture (a data URL), or "" when the book has none.
+ */
+export function BookCover(project: string, book: number): $CancellablePromise<string> {
+    return $Call.ByID(4036718689, project, book);
 }
 
 /**
@@ -83,6 +104,14 @@ export function List(kind: string): $CancellablePromise<$models.Doc[] | null> {
  */
 export function ListBy(kind: string, field: string, id: number): $CancellablePromise<$models.Doc[] | null> {
     return $Call.ByID(1503808682, kind, field, id);
+}
+
+/**
+ * MoveBook moves a book, with its chapters, scenes, versions, comments, snapshots, passes and cover, to another project.
+ * The copy is made first. The old one is removed only after the copy is safe.
+ */
+export function MoveBook($from: string, book: number, to: string): $CancellablePromise<number> {
+    return $Call.ByID(1816588179, $from, book, to);
 }
 
 /**
@@ -158,6 +187,27 @@ export function RestoreBackup(): $CancellablePromise<$models.RestoreResult> {
  */
 export function Save(d: $models.Doc): $CancellablePromise<$models.Doc> {
     return $Call.ByID(624024658, d);
+}
+
+/**
+ * SetBookOrder puts the books of one shelf in the order of the list.
+ */
+export function SetBookOrder(project: string, ids: number[] | null): $CancellablePromise<void> {
+    return $Call.ByID(2515722552, project, ids);
+}
+
+/**
+ * SetBookSeed saves the number that decides how the generated cover of a book looks.
+ */
+export function SetBookSeed(project: string, book: number, seed: number): $CancellablePromise<void> {
+    return $Call.ByID(1945150485, project, book, seed);
+}
+
+/**
+ * Shelves lists every project with the books in it.
+ */
+export function Shelves(): $CancellablePromise<$models.Shelf[] | null> {
+    return $Call.ByID(3494159813);
 }
 
 /**

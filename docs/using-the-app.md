@@ -6,6 +6,7 @@ New to Typewriter? Start with the [tutorial](tutorial.md). It walks you through 
 
 ## Contents
 
+- [The bookshelf](#the-bookshelf)
 - [Project type](#project-type-a-story-or-a-non-fiction-book)
 - [Notes](#notes)
 - [Write](#write)
@@ -58,6 +59,24 @@ The app moves a little when you use it, so it feels alive. Press **Animations: �
 - The text of the editor never moves.
 
 If Windows or Linux is set to "reduce motion", the app starts with animations **Off** until you choose another level. The choice belongs to this computer, not to the project, so it is not in your backups.
+
+## The bookshelf
+
+The bookshelf is the first screen when you open the app. Each **shelf** is a project. The **books** of the project stand on it, as cards with a cover.
+
+![The bookshelf, with three shelves](images/bookshelf.png)
+
+- **Click a book** to write in it. If the book is in another project, that project opens first. The app reloads, and the **Write** screen opens on the book.
+- **Open … →** (top right) goes to the app without choosing a book. **Manage shelves…** opens the Projects window, where you rename, remove and set up projects.
+- **Bookshelf** in the menu (below the project button) brings you back to this screen at any time. Press **Esc** to leave it.
+- **Add** (the dotted outline with a plus) adds a book to that shelf. Type the title and press **Enter**. **+ New shelf** adds a new, empty project. Click the name of a shelf to rename it.
+- **Move a book:** hold the book, and drag it. The book lifts, the other books glide aside, and a dashed **Drop here** place shows where it will land. Drop it on another shelf to move it to that project. Typewriter asks first. Press **Esc** while you drag to put the book back.
+- **Put books in order:** drag a book to another place on the same shelf. The order is the same as the **Order in series** of the book.
+- **Covers:** if you made or chose a cover in **Export & Backup**, the shelf shows it. If not, Typewriter makes one from the title. Point at it and press **↻** to make another. The shelf remembers the one you like. The made-up cover is only for the shelf. It is not used when you export.
+- Each book shows its number of chapters and words.
+- **Progress bar:** a book shows one bar under its words. It uses the **Book goal**. If the book has no goal, it uses the **chapter goals** added together (a chapter with no goal of its own uses **Default per chapter**). If no chapter has a goal, it uses the **scene goals** added together. With no goal at all, there is no bar. Point at the bar to see what it counts.
+
+**What moves with a book:** its chapters, scenes, text, versions, comments, snapshots, revision passes and cover. **What stays:** characters, places, factions, items, arcs, sources and the like belong to a project, so they stay on the old shelf. Links from the moved book to them are cleared. The old copy is removed only after the new copy is safe.
 
 ## Project type: a story or a non-fiction book
 
@@ -162,6 +181,10 @@ Both sidebars of the Write tab have tabs, and a white marker slides to the tab y
 
 - **Left sidebar:** **Chapters** (your chapters and scenes) and **Book** (title, order in the series, synopsis, goals, finish date, revision passes, and **Delete book**).
 - **Right sidebar:** **Chapter** (word goal, who is in it, summary), **Scene** (status, point of view, place, time, notes, word goal, move to another chapter), **Story** (tags, mood board, revision passes, story arcs, who is in the scene) and **Comments**. A small number on **Comments** is the count of open comments. A small number on **Story** is the count of characters that are named in the text but not in the cast. In a non-fiction project the second tab is **Section**, and **Story** is called **Details** when the story tools are hidden.
+
+### Goal bars
+
+Under the text, the **Write** screen shows a bar for each word goal that is set: the **book**, the **chapter** and the **scene**. A level with no goal has no bar. If two levels have the same goal, they share one bar. For example: the book has a goal of 500, and the chapter and the scene have 300. Then you see one bar for the book, and one bar for the chapter and the scene together. A shared bar counts the words of the wider level (the chapter, in this example).
 
 ### Finish date
 

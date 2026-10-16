@@ -21,5 +21,7 @@ export type {
     ProjectInfo,
     ProjectItem,
     RestoreResult,
+    Shelf,
+    ShelfBook,
     SyncStatus
 } from "./models.js";

@@ -215,10 +215,15 @@ func rowsWhere(tx *sql.Tx, kind, field string, id int64) ([]Doc, error) {
 // Delete removes an item and the items that point at it.
 // It returns all of them as they were, so Restore can bring them back.
 func (s *Store) Delete(kind string, id int64) ([]Doc, error) {
+	return deleteIn(s.d(), kind, id)
+}
+
+// deleteIn does the work of Delete on one data file. The bookshelf uses it for a project that is not open.
+func deleteIn(d *sql.DB, kind string, id int64) ([]Doc, error) {
 	if !kinds[kind] {
 		return nil, fmt.Errorf("unknown kind %q", kind)
 	}
-	tx, err := s.d().Begin()
+	tx, err := d.Begin()
 	if err != nil {
 		return nil, err
 	}

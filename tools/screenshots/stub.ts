@@ -36,7 +36,40 @@ if (!nonfiction) {
   add('source', { type: 'web', title: 'Sleep and health', authors: 'World Health Organization,', year: '2022', container: 'WHO', publisher: '', volume: '', issue: '', pages: '', url: 'https://who.int/sleep', accessed: '2026-01-02', edition: '', status: 'quoted', note: '' });
 }
 
+// The bookshelf: three shelves (projects) with books. Changes stay in memory, so dragging a book can be tried.
+type FakeBook = { id: number; title: string; order: number; chapters: number; words: number; seed: number; hasCover: boolean; goalKind: string; goal: number; goalWords: number };
+const shelfData: { id: string; name: string; current: boolean; problem: string; books: FakeBook[] }[] = [
+  { id: 'default', name: nonfiction ? 'Small Habits' : 'The Clockmaker series', current: true, problem: '', books: [
+    { id: rows.find((r) => r.kind === 'book')!.id, title: nonfiction ? 'Small Habits' : 'The Last Letter', order: 1, chapters: 2, words: 412, seed: 0, hasCover: false, goalKind: 'book', goal: 60000, goalWords: 412 },
+    { id: 901, title: 'Winter Clocks', order: 2, chapters: 14, words: 61250, seed: 0, hasCover: false, goalKind: 'chapter', goal: 70000, goalWords: 61250 },
+    { id: 902, title: 'The Brass Key and the Very Long Night of Whispering Gears', order: 3, chapters: 3, words: 8800, seed: 0, hasCover: false, goalKind: '', goal: 0, goalWords: 0 },
+  ] },
+  { id: 'p2', name: 'Short stories', current: false, problem: '', books: [
+    { id: 11, title: 'Salt', order: 1, chapters: 5, words: 12040, seed: 0, hasCover: false, goalKind: 'scene', goal: 20000, goalWords: 12040 },
+    { id: 12, title: 'Ten Small Doors', order: 2, chapters: 10, words: 33100, seed: 0, hasCover: false, goalKind: '', goal: 0, goalWords: 0 },
+  ] },
+  { id: 'p3', name: 'Ideas for later', current: false, problem: '', books: [] },
+];
+let fakeId = 1000;
+const shelfOf = (id: string) => shelfData.find((s) => s.id === id)!;
+const bookOf = (p: string, id: number) => shelfOf(p).books.find((b) => b.id === id)!;
+const shelfStub = {
+  Shelves: async () => JSON.parse(JSON.stringify(shelfData)),
+  BookCover: async () => '',
+  SetBookSeed: async (p: string, id: number, seed: number) => { bookOf(p, id).seed = seed; },
+  SetBookOrder: async (p: string, ids: number[]) => { const s = shelfOf(p); s.books = ids.map((id, i) => ({ ...s.books.find((b) => b.id === id)!, order: i + 1 })); },
+  AddBook: async (p: string, title: string) => { const id = fakeId++; const s = shelfOf(p); s.books.push({ id, title: title.trim() || 'New book', order: s.books.length + 1, chapters: 0, words: 0, seed: 0, hasCover: false, goalKind: '', goal: 0, goalWords: 0 }); return id; },
+  AddProject: async (name: string) => { const id = 'p' + fakeId++; shelfData.push({ id, name, current: false, problem: '', books: [] }); return id; },
+  MoveBook: async (from: string, id: number, to: string) => {
+    await new Promise((r) => setTimeout(r, 400));
+    const a = shelfOf(from), b = shelfOf(to), i = a.books.findIndex((x) => x.id === id);
+    const [book] = a.books.splice(i, 1); const nid = fakeId++;
+    b.books.push({ ...book, id: nid, order: b.books.length + 1 }); return nid;
+  },
+};
+
 export const Store = {
+  ...shelfStub,
   List: async (k: string) => rows.filter((r) => r.kind === k).map((r) => ({ ...r })),
   ListBy: async (k: string, f: string, id: number) => rows.filter((r) => r.kind === k && JSON.parse(r.data)[f] === id).map((r) => ({ ...r })).reverse(),
   Save: async (d: any) => { if (!d.id) { d.id = next++; rows.push({ ...d }); } else { rows.find((r) => r.id === d.id).data = d.data; } return { ...d, updatedAt: 'y' }; },
@@ -48,13 +81,13 @@ export const Store = {
   RestoreAuto: async () => ({ restored: true, items: 5, safetyCopy: 'x' }),
   OpenBackupFolder: async () => {},
   DataFolder: async () => ({ path: 'C:/data', default: 'C:/data', isDefault: true, problem: '' }),
-  Version: async () => '1.8.0',
+  Version: async () => '1.9.0',
   ChooseDataFolder: async () => '',
   InspectDataFolder: async (p: string) => ({ path: p, same: false, hasData: false }),
   MoveDataFolder: async () => {},
   DataPath: async () => 'C:\\Users\\you\\AppData\\Roaming\\typewriter\\typewriter.db',
   Projects: async () => [{ id: 'default', name: nonfiction ? 'Small Habits' : 'The Last Letter', size: 40960, current: true }],
-  SwitchProject: async () => {}, NewProject: async () => 'p1', RenameProject: async () => {}, RemoveProject: async () => 'C:/x/removed.db',
+  SwitchProject: async () => {}, NewProject: async () => 'p1', RenameProject: async (id: string, name: string) => { shelfOf(id).name = name; }, RemoveProject: async () => 'C:/x/removed.db',
 };
 export const Exporter = {};
 

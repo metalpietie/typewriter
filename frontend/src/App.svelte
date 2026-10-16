@@ -10,6 +10,7 @@
   import CalendarEditor from './lib/CalendarEditor.svelte';
   import NameGenerator from './lib/NameGenerator.svelte';
   import Projects from './lib/Projects.svelte';
+  import Bookshelf from './lib/Bookshelf.svelte';
   import DataFolder from './lib/DataFolder.svelte';
   import UndoToast from './lib/UndoToast.svelte';
   import PomodoroTimer from './lib/PomodoroTimer.svelte';
@@ -119,6 +120,7 @@
 <PomodoroAlert />
 {#if nav.calendar}<CalendarEditor />{/if}
 {#if nav.names}<NameGenerator />{/if}
+{#if nav.shelf}<Bookshelf />{/if}
 {#if nav.projects}<Projects />{/if}
 {#if nav.projectSettings}<ProjectSettings />{/if}
 {#if nav.dataFolder}<DataFolder />{/if}
@@ -128,6 +130,7 @@
     <span class="navpill" class:show={pill.show} class:glide={pill.glide} style:transform="translateY({pill.y}px)" style:height="{pill.h}px" aria-hidden="true"></span>
     <div class="brand"><img src="/logo.svg" alt="" />Typewriter</div>
     <button class="project-btn" title="Switch or add a project (a book or series)" onclick={() => (nav.projects = true)}>▾ {db.project || 'Projects'}</button>
+    <button class="shelf-btn" title="Show all projects and books on the bookshelf" onclick={() => (nav.shelf = true)}>▤ Bookshelf</button>
     <PomodoroTimer />
     <button class="search-btn" onclick={() => (nav.searchOpen = true)}>Search <kbd>Ctrl+K</kbd></button>
     {#each menu as group}

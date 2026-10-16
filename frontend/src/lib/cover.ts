@@ -67,10 +67,11 @@ export async function pictureToPhoto(file: File): Promise<string> {
 const SERIF = 'Georgia, "Times New Roman", serif';
 const SANS = '"Segoe UI", Helvetica, Arial, sans-serif';
 
-/** Draw a cover on a canvas of COVER_W by COVER_H. photo is the background picture, if there is one. */
-export function drawCover(canvas: HTMLCanvasElement, spec: Spec, photo: HTMLImageElement | null) {
-  canvas.width = COVER_W; canvas.height = COVER_H;
+/** Draw a cover on a canvas of COVER_W by COVER_H (times scale, for a small picture). photo is the background picture, if there is one. */
+export function drawCover(canvas: HTMLCanvasElement, spec: Spec, photo: HTMLImageElement | null, scale = 1) {
+  canvas.width = Math.round(COVER_W * scale); canvas.height = Math.round(COVER_H * scale);
   const g = canvas.getContext('2d')!;
+  g.scale(scale, scale); // the drawing below always uses the full size
   const W = COVER_W, H = COVER_H;
   g.fillStyle = spec.bg;
   g.fillRect(0, 0, W, H);

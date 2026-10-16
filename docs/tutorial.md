@@ -33,7 +33,11 @@ Three things that make it easy to relax:
 
 ## Step 1: Look around
 
-The first screen is the **Dashboard**. It is empty now. Later it shows your words for today, your streak, and a **Continue writing** button.
+The first screen is the **Bookshelf**. Each shelf is a project, and the books of the project stand on it. It has one shelf and no books now. Press **Open … →** at the top right to go to the app. (You can come back at any time with **Bookshelf** in the menu.)
+
+![The bookshelf](images/bookshelf.png)
+
+The next screen is the **Dashboard**. It is empty now. Later it shows your words for today, your streak, and a **Continue writing** button.
 
 On the left is the **menu**. It has groups:
 

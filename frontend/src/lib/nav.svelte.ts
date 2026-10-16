@@ -2,9 +2,32 @@ import type { Kind } from './db.svelte';
 
 export type Tab = 'home' | 'draft' | 'write' | 'board' | 'arcs' | 'characters' | 'relationships' | 'world' | 'glossary' | 'factions' | 'items' | 'family' | 'checks' | 'stats' | 'maps' | 'timeline' | 'export' | 'sources' | 'ideas';
 
+// The bookshelf shows when the app starts. After the app reloads itself (a project was opened), it does not show again.
+const SEEN = 'typewriter.shelfSeen', START = 'typewriter.startTab';
+function fromSession(key: string): string | null { try { return sessionStorage.getItem(key); } catch { return null; } }
+function startTab(): Tab {
+  const t = fromSession(START);
+  try { sessionStorage.removeItem(START); } catch { /* fine */ }
+  return t === 'write' ? 'write' : 'home';
+}
+
+/** Close the bookshelf. tab: the screen to show next. */
+export function closeShelf(tab?: Tab) {
+  nav.shelf = false;
+  if (tab) nav.tab = tab;
+  try { sessionStorage.setItem(SEEN, '1'); } catch { /* fine */ }
+}
+
+/** Remember that the next load (after a reload) should not show the bookshelf, and which screen it opens on. */
+export function reloadInto(tab: Tab) {
+  try { sessionStorage.setItem(SEEN, '1'); sessionStorage.setItem(START, tab); } catch { /* fine */ }
+}
+
 /** Shared screen state, so search can jump to an item on another tab. */
-export const nav = $state<{ tab: Tab; pending: { kind: Kind; id: number } | null; searchOpen: boolean; focus: boolean; scene: number | null; calendar: boolean; names: '' | 'person' | 'place'; projects: boolean; dataFolder: boolean; projectSettings: boolean; insert: { kind: string; text: string; source: number | null; loc: string } | null }>({
-  tab: 'home',
+export const nav = $state<{ tab: Tab; shelf: boolean; book: number | null; pending: { kind: Kind; id: number } | null; searchOpen: boolean; focus: boolean; scene: number | null; calendar: boolean; names: '' | 'person' | 'place'; projects: boolean; dataFolder: boolean; projectSettings: boolean; insert: { kind: string; text: string; source: number | null; loc: string } | null }>({
+  tab: startTab(),
+  shelf: fromSession(SEEN) == null, // the bookshelf is on screen
+  book: null, // a book the Write tab should open
   pending: null,
   searchOpen: false,
   focus: false, // focus mode: only the text is on screen
