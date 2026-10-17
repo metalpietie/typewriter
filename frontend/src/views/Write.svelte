@@ -501,7 +501,7 @@
         <input class="scenetitle" bind:value={scene.title} oninput={saveScene} placeholder={isNonfiction() ? 'Section title (printed as a heading)' : 'Scene title (only you see this)'} />
       {/if}
       {#key scene.id + ':' + rev}
-        <RichEditor bind:this={rich} bare={nav.focus} onfind={() => (showFind = true)} onbeside={showBeside} source={[book?.title, sceneLabel(scene)].filter(Boolean).join(', ')} onopenref={(k, id) => { db.flush(); openItem(k, id); }} oncomment={newComment} onfocuscomment={(id) => { if (id) activeComment = id; }} value={toHtml(scene.body ?? '')}
+        <RichEditor bind:this={rich} autofocus bare={nav.focus} onfind={() => (showFind = true)} onbeside={showBeside} source={[book?.title, sceneLabel(scene)].filter(Boolean).join(', ')} onopenref={(k, id) => { db.flush(); openItem(k, id); }} oncomment={newComment} onfocuscomment={(id) => { if (id) activeComment = id; }} value={toHtml(scene.body ?? '')}
           onchange={(html) => { const before = scene.body ?? ''; scene.body = html; saveScene(); maybeAutoVersion(scene.id, before); addWords(wordCount(html) - wordCount(before)); }} />
       {/key}
       {@const words = sceneWords(scene)}
