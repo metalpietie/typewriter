@@ -1,5 +1,5 @@
 // The texts of the page. Change them here, not in the components.
-import write from '../assets/screens/write-text.png';
+import nameCard from '../assets/screens/name-card.png';
 import board from '../assets/screens/board.png';
 import characters from '../assets/screens/characters.png';
 import maps from '../assets/screens/maps.png';
@@ -14,9 +14,9 @@ export const marquee = ['Chapters & scenes', 'Index-card board', 'Family trees',
 
 // The books on the shelf. h and w: the size of the spine. r: a small lean. from/to: the cover colours. glow: the light around it.
 export const books = [
-  { id: 'write', spine: 'Write', icon: '✎', tip: 'the editor', from: '#6d6fff', to: '#3b34b8', glow: '#8082ff', h: 290, w: 68, shot: write,
+  { id: 'write', spine: 'Write', icon: '✎', tip: 'the editor', from: '#6d6fff', to: '#3b34b8', glow: '#8082ff', h: 290, w: 68, shot: nameCard,
     title: 'An editor that stays out of your way.', text: 'Chapters and scenes, with word goals for the book, the chapter and the scene.',
-    list: ['Focus mode and typewriter mode', 'History, snapshots and comments', 'Vim keys and a Code font'] },
+    list: ['Point at a name to see who it is', 'Focus mode, typewriter mode and Vim keys', 'History, snapshots and comments'] },
   { id: 'plan', spine: 'Plan', icon: '▦', tip: 'the board', from: '#1fb5c4', to: '#0d5c74', glow: '#2ee6f0', h: 250, shot: board,
     title: 'Move the story around on a board.', text: 'Every scene is an index card. Drag them until the story works.',
     list: ['Tags and story arcs', 'Revision passes', 'Split and merge scenes'] },
