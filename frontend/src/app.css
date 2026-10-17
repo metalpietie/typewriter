@@ -117,6 +117,8 @@ button:disabled { opacity: .4; cursor: default; }
 .nav .foot button { width: 100%; margin-bottom: .6rem; }
 /* the buttons at the bottom of the menu have an outline, so they look like buttons */
 .nav .foot button { border-color: var(--line); background: var(--panel-2); }
+.nav .foot .ver button.linkish { width: auto; margin: 0; padding: 0; border: 0; background: none; color: var(--accent); font-size: inherit; text-decoration: underline; text-underline-offset: 2px; word-break: normal; }
+.nav .foot .ver button.linkish:hover { color: var(--text); }
 .nav .foot button:hover { border-color: var(--accent); }
 .nav .foot button.danger { border-color: var(--danger); }
 

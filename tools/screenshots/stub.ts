@@ -81,7 +81,7 @@ export const Store = {
   RestoreAuto: async () => ({ restored: true, items: 5, safetyCopy: 'x' }),
   OpenBackupFolder: async () => {},
   DataFolder: async () => ({ path: 'C:/data', default: 'C:/data', isDefault: true, problem: '' }),
-  Version: async () => '1.10.1',
+  Version: async () => '1.11.0',
   ChooseDataFolder: async () => '',
   InspectDataFolder: async (p: string) => ({ path: p, same: false, hasData: false }),
   MoveDataFolder: async () => {},
@@ -90,6 +90,31 @@ export const Store = {
   SwitchProject: async () => {}, NewProject: async () => 'p1', RenameProject: async (id: string, name: string) => { shelfOf(id).name = name; }, RemoveProject: async () => 'C:/x/removed.db',
 };
 export const Exporter = {};
+
+// Updates: a made-up newer version, so the update window can be seen. localStorage '__update' picks the answer.
+export const Updates = {
+  CheckForUpdate: async () => {
+    await new Promise((r) => setTimeout(r, 600));
+    const mode = localStorage.getItem('__update') ?? 'found';
+    if (mode === 'error') throw new Error('could not reach GitHub. Check the internet connection, then try again');
+    if (mode === 'none') return { current: '1.11.0', available: false, version: '', title: '', notes: '', page: '', canInstall: false, why: '' };
+    return {
+      current: '1.11.0', available: true, version: '1.11.0', title: 'Version 1.11.0: updates and an installer', page: 'https://github.com/metalpietie/typewriter/releases/tag/v1.11.0',
+      canInstall: mode !== 'locked', why: mode === 'locked' ? 'Typewriter is in a folder that it may not change (C:\\Program Files\\Typewriter). Download the new version from the release page instead.' : '',
+      notes: [
+        '## Version 1.11.0: updates and an installer', '',
+        '### New',
+        '- **Updates:** Typewriter asks GitHub for a newer version, and updates itself.',
+        '- **An installer** for Windows, with no admin prompt.', '',
+        '### Fixed', '- Small things.', '',
+        '### Notes', '- The installer is not signed, so Windows warns once.',
+      ].join('\n'),
+    };
+  },
+  InstallUpdate: async () => { await new Promise((r) => setTimeout(r, 1500)); },
+  RestartOnClose: async () => {},
+  RestartToUpdate: async () => { await new Promise((r) => setTimeout(r, 800)); },
+};
 
 // The phone sync section, with a made-up computer and one added phone.
 let syncOn = false;

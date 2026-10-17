@@ -11,6 +11,8 @@
   import NameGenerator from './lib/NameGenerator.svelte';
   import Projects from './lib/Projects.svelte';
   import Bookshelf from './lib/Bookshelf.svelte';
+  import UpdateDialog from './lib/UpdateDialog.svelte';
+  import { updates, checkForUpdates, startAutoCheck } from './lib/updates.svelte';
   import DataFolder from './lib/DataFolder.svelte';
   import UndoToast from './lib/UndoToast.svelte';
   import PomodoroTimer from './lib/PomodoroTimer.svelte';
@@ -112,6 +114,7 @@
   onMount(() => Events.On('typewriter:synced', async () => { db.flush(); await db.load(); }));
   onMount(() => Events.On('typewriter:flush', async () => { try { await settle(); } finally { Events.Emit('typewriter:flushed'); } }));
   onMount(() => { db.load().then(migrateChapters).catch((e) => (error = String(e))); });
+  onMount(() => startAutoCheck()); // a newer version on GitHub (only when that choice is on)
 </script>
 
 <svelte:window onbeforeunload={() => db.flush()} onpagehide={() => db.flush()} onkeydown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); nav.searchOpen = !nav.searchOpen; } }} />
@@ -121,6 +124,7 @@
 {#if nav.calendar}<CalendarEditor />{/if}
 {#if nav.names}<NameGenerator />{/if}
 {#if nav.shelf}<Bookshelf />{/if}
+<UpdateDialog />
 {#if nav.projects}<Projects />{/if}
 {#if nav.projectSettings}<ProjectSettings />{/if}
 {#if nav.dataFolder}<DataFolder />{/if}
@@ -145,7 +149,7 @@
       Data file:<br />{db.dataPath}
       {#if db.folderProblem}<div><button class="small danger" title={db.folderProblem} onclick={() => (nav.dataFolder = true)}>⚠ Data folder problem</button></div>{/if}
       <div><button class="small" title="Keep your data in another folder" onclick={() => (nav.dataFolder = true)}>Change folder…</button></div>
-      <div class="ver">Typewriter {db.version}</div></div>
+      <div class="ver">Typewriter {db.version} · <button class="linkish" title="Ask GitHub for a newer version" onclick={() => checkForUpdates()}>{updates.later ? 'Update ready: starts when you close' : 'Check for updates'}</button></div></div>
   </nav>
   <main class="main" bind:this={mainEl}>
     {#if hasSide && !nav.focus && db.ready}

@@ -34,6 +34,11 @@ tasks:
     cmds:
       - task: "{{.GOOS}}:run"
 
+  release:
+    summary: Builds, signs and uploads the release of the version in version.go (see docs/releasing.md). Add -- -no-upload to stop before the upload.
+    cmds:
+      - go run ./tools/release publish {{.CLI_ARGS}}
+
   dev:
     summary: Runs the application in development mode
     cmds:

@@ -11,6 +11,7 @@ import (
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
+	"github.com/wailsapp/wails/v3/pkg/updater"
 )
 
 //go:embed all:frontend/dist
@@ -23,6 +24,10 @@ const (
 )
 
 func main() {
+	// During an update the app starts a copy of itself that only swaps the program file. That copy must not open
+	// the data or start a backup, so it is sent off here, before anything else (it never returns in that case).
+	updater.HandleHelperMode()
+
 	store, err := OpenStore()
 	if err != nil {
 		showStartupError(err)
@@ -30,9 +35,12 @@ func main() {
 	}
 
 	store.StartAutoBackup() // one copy of your data per day
+	noteInstalledVersion()  // Settings > Apps shows the right version after the app updated itself
 
 	phone := NewPhoneSync(store, nil) // notes from phones, over the Wi-Fi. It listens only when it is switched on.
 	defer phone.shutdown()
+
+	updates := &Updates{store: store} // new versions from GitHub (updates.go)
 
 	var win *application.WebviewWindow
 	app := application.New(application.Options{
@@ -42,6 +50,7 @@ func main() {
 			application.NewService(store),
 			application.NewService(&Exporter{store: store}),
 			application.NewService(phone),
+			application.NewService(updates),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),
@@ -63,6 +72,7 @@ func main() {
 
 	phone.emit = func(name string) { app.Event.Emit(name) } // a phone changed notes: the screen reads them again
 	phone.resume()
+	updates.init(app)
 
 	win = app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:            "Typewriter",
@@ -75,8 +85,13 @@ func main() {
 	// Closing the window: first ask the screen to save what is still waiting, then close.
 	// If the screen does not answer within 3 seconds, close anyway.
 	var saved, asking atomic.Bool
+	updates.allowClose = func() { saved.Store(true) }
 	app.Event.On(eventFlushed, func(*application.CustomEvent) {
 		saved.Store(true)
+		// a new version is ready and should start when the window closes: it closes the app itself
+		if updates.wantsRestartOnClose() && updates.RestartToUpdate() == nil {
+			return
+		}
 		win.Close()
 	})
 	win.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) {

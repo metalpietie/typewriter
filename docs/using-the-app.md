@@ -821,6 +821,19 @@ You do not have to press anything. The first time you open the app each day, it 
 - **Open the backup folder** shows the files. You can copy them to a USB drive or the cloud.
 - If the app has no data yet, it makes no copy. An empty copy never replaces a good one.
 
+### Updates
+
+Typewriter can update itself from its releases on GitHub. It only asks GitHub for the newest version number, and downloads the new version when you say so. Nothing of your writing is sent.
+
+- **Check for updates:** the link next to the version at the bottom of the menu, or the button under **Updates** in Export & Backup.
+- **Check when the app starts:** the tick box under **Updates** (on at first). The app then also checks once a day while it stays open. When GitHub cannot be reached, it says nothing. The choice belongs to this computer.
+- **A new version is found:** a window shows what is new, with **Update now**, **Later** and **Skip this version**. A skipped version is not shown again by the check at start (the button still shows it).
+- **Update now:** the new version downloads, then it is checked. It must match its checksum and the signature of the person who releases Typewriter. A file that does not match is thrown away, and nothing changes.
+- **Restart now**, or **When I close the app:** Typewriter saves everything and makes a copy of your data (`before-update-….db` in the backup folder of the project, the last 3 are kept). Then it closes, swaps its program file, and starts again in the new version.
+- **It cannot update itself** when its program file is in a folder that it may not change (for example `Program Files`). Then the window offers the release page, to download the new version by hand. The installer puts Typewriter in a folder of your own, so this does not happen there.
+
+The phone app does not update itself. Install a new `.apk` from the release by hand.
+
 ## Deleting things
 
 Delete buttons ask twice. The first click turns the button red and says "Sure?". Click again within three seconds to confirm.

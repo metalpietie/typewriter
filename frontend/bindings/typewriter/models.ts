@@ -309,3 +309,33 @@ export interface SyncStatus {
      */
     "announced": boolean;
 }
+
+/**
+ * UpdateInfo is what the screen shows about the newest version.
+ */
+export interface UpdateInfo {
+    "current": string;
+    "available": boolean;
+    "version": string;
+    "title": string;
+
+    /**
+     * the release text (Markdown)
+     */
+    "notes": string;
+
+    /**
+     * the release page on GitHub, for a download by hand
+     */
+    "page": string;
+
+    /**
+     * false when the app cannot replace its own file
+     */
+    "canInstall": boolean;
+
+    /**
+     * why it cannot
+     */
+    "why": string;
+}
