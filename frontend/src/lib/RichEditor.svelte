@@ -18,12 +18,15 @@
   import { type LinkKind } from './backlinks';
   import { linkTargets, type Cand } from './linktargets';
   import SelectionMenu from './SelectionMenu.svelte';
+  import PeekCard from './PeekCard.svelte';
   import { pop } from './motion.svelte';
   import { look } from './editorlook.svelte';
   import { lookVars } from './editorlook-core';
 
-  let { value, onchange, placeholder = 'Start writing…', bare = false, source = '', onfind, onbeside, oncomment, onfocuscomment, onopenref }: {
+  let { value, onchange, placeholder = 'Start writing…', bare = false, source = '', onfind, onbeside, oncomment, onfocuscomment, onopenref, autofocus = false }: {
     value: string;
+    /** Put the cursor in the text when the editor opens (the Write and Notes pages), so typing or the Vim keys work at once. */
+    autofocus?: boolean;
     onchange: (html: string) => void;
     placeholder?: string;
     bare?: boolean; // hide the toolbar (focus mode)
@@ -422,6 +425,33 @@
     editor.view.dispatch(tr.setMeta('addToHistory', false));
   }
 
+  // Point at an @ link for a moment: a card shows what it links to (PeekCard). A click still only moves the cursor.
+  const PEEK_WAIT = 400, PEEK_LINGER = 250; // ms before the card shows, and before it goes when the pointer leaves
+  let peek = $state<{ kind: LinkKind; id: number; at: DOMRect } | null>(null);
+  let peekTimer = 0, hideTimer = 0;
+  let peekEl: Element | null = null; // the link the pointer is on
+  let inPeek = false; // the pointer is on the card: it stays (leaving the editor to reach it must not close it)
+  function peekOver(e: MouseEvent) {
+    const el = (e.target as HTMLElement).closest?.('[data-ref]') ?? null;
+    if (el === peekEl) { if (el) clearTimeout(hideTimer); return; }
+    clearTimeout(peekTimer);
+    peekEl = el;
+    if (!el) { hidePeekSoon(); return; }
+    clearTimeout(hideTimer);
+    if (e.buttons) return; // the mouse button is down: the writer is selecting text
+    peekTimer = window.setTimeout(() => {
+      if (!el.isConnected || peekEl !== el) return;
+      const [kind, id] = el.getAttribute('data-ref')!.split(':');
+      peek = { kind: kind as LinkKind, id: +id, at: el.getBoundingClientRect() };
+    }, PEEK_WAIT);
+  }
+  function hidePeekSoon() { clearTimeout(hideTimer); hideTimer = window.setTimeout(() => { if (!inPeek) peek = null; }, PEEK_LINGER); }
+  function hidePeek() { clearTimeout(peekTimer); clearTimeout(hideTimer); peek = null; peekEl = null; inPeek = false; }
+  function fromPeek(fn?: (kind: LinkKind, id: number) => void) {
+    if (!fn) return undefined;
+    return () => { const p = peek; hidePeek(); if (p) fn(p.kind, p.id); };
+  }
+
   let vimOn = false; // does the open editor have the Vim keys?
   let vimWatch: MutationObserver | undefined;
   let vimInfo = $state({ mode: 'normal', keyBuffer: '' }); // what the label shows
@@ -447,6 +477,10 @@
       editorProps: {
         handleKeyDown: (_view, e) => hotkeys(e) || onKeys(e),
         handleDOMEvents: {
+          mouseover: (_view, e) => { peekOver(e); return false; },
+          mouseleave: () => { clearTimeout(peekTimer); peekEl = null; hidePeekSoon(); return false; },
+          mousedown: () => { hidePeek(); return false; },
+          keydown: () => { if (peek) hidePeek(); return false; },
           click: (view, e) => {
             const piece = (e.target as HTMLElement).closest?.('.fn, .cite');
             if (piece) { openPiece(view.posAtDOM(piece, 0)); return true; }
@@ -494,11 +528,22 @@
 
   onMount(() => {
     create(value);
+    if (autofocus) requestAnimationFrame(takeFocus);
     window.addEventListener('scroll', follow, true); // capture: the page scrolls inside a panel
+    window.addEventListener('scroll', hidePeek, true); // the card would stay where the link was
     const onKeyUp = (e: KeyboardEvent) => { if (NAV_KEYS.has(e.key)) keepCentred(); if (vimOn) syncVim(); };
     host.addEventListener('keyup', onKeyUp);
-    return () => { window.removeEventListener('scroll', follow, true); host.removeEventListener('keyup', onKeyUp); vimWatch?.disconnect(); editor?.destroy(); };
+    return () => { window.removeEventListener('scroll', follow, true); window.removeEventListener('scroll', hidePeek, true); hidePeek(); host.removeEventListener('keyup', onKeyUp); vimWatch?.disconnect(); editor?.destroy(); };
   });
+
+  /** The cursor goes into the text, unless the writer is typing somewhere else (a title, the search box) or a window is open. */
+  function takeFocus() {
+    if (!editor || editor.isDestroyed || editor.isFocused) return;
+    const a = document.activeElement as HTMLElement | null;
+    if (a && (a.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))) return;
+    if (document.querySelector('.overlay')) return;
+    editor.commands.focus(null, { scrollIntoView: false });
+  }
 
   /** Read the Vim mode and the keys that wait for more (such as the d of dd) into the label. */
   function syncVim() {
@@ -559,6 +604,8 @@
 
 {#if editor}
   <!-- made again when the editor is made again (the Vim keys switched), so it listens to the new one -->
+  {#if peek}<PeekCard kind={peek.kind} id={peek.id} at={peek.at} onopen={fromPeek(onopenref)} onbeside={fromPeek(onbeside)}
+    onenter={() => { inPeek = true; clearTimeout(hideTimer); }} onleave={() => { inPeek = false; hidePeekSoon(); }} />{/if}
   {#key editor}<SelectionMenu {editor} redraw={tick} {source} vim={look.vim} {onfind} oncomment={oncomment ? addComment : undefined} oncite={addCitation} onfootnote={addFootnote} />{/key}
 {/if}
 

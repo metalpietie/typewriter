@@ -17,7 +17,7 @@ if (!nonfiction) {
   const c2 = add('chapter', { book, order: 2, title: 'Tom’s story', summary: '', goal: 0 });
   const commentId = next + 3; // the id that the comment below will get
   const s1 = add('scene', { chapter: c1, book, order: 1, title: 'Under the clock', status: 'draft', pov: mara, location: shop, characters: [mara], summary: 'Mara finds the letter.', goal: 0, tags: ['opening'],
-    body: `<p>Mara found the letter under <span data-comment="${commentId}" class="cmt">the old clock</span>. The paper was yellow and soft, like cloth. She did not open it yet.</p><p>Outside, the bell of the bakery rang twice. Tom was early today.</p><p>She turned the envelope over. There was no name on it, only a drawing of a small brass key.</p>` });
+    body: `<p>Mara found the letter under <span data-comment="${commentId}" class="cmt">the old clock</span>. The paper was yellow and soft, like cloth. She did not open it yet.</p><p>Outside, the bell of the bakery rang twice. <span data-ref="character:${tom}">Tom</span> was early today.</p><p>She turned the envelope over. There was no name on it, only a drawing of a small brass key.</p>` });
   add('scene', { chapter: c1, book, order: 2, title: 'The shop at night', status: 'idea', pov: mara, location: shop, characters: [mara, tom], summary: 'Tom comes to the door.', goal: 0, body: '<p>The shop was quiet after dark. Every clock ticked a little out of step with the others.</p>' });
   add('scene', { chapter: c2, book, order: 1, title: 'Bread and secrets', status: 'idea', pov: tom, location: null, characters: [tom], summary: '', goal: 0, body: '' });
   const com = add('comment', { scene: s1, quote: 'the old clock', text: 'Who wrote this letter?', resolved: false, at: new Date().toISOString() });

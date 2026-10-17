@@ -37,6 +37,7 @@ const SHOTS = {
     const p = pm().querySelectorAll('p')[1]; const s = d.defaultView.getSelection(); s.selectAllChildren(p); s.collapseToEnd();
     d.execCommand('insertText', false, ' @Ma'); await W(800);
   },
+  'name-card': async () => { await openWrite(); await tab(1, 0); pm().querySelector('[data-ref]').dispatchEvent(new MouseEvent('mouseover', { bubbles: true })); await W(900); },
   'scene-panel': async () => { await openWrite(); await tab(1, 1); },
   'quick-actions': async () => { await openWrite(); await tab(1, 3); select('The paper was yellow'); await W(900); },
   comments: async () => { await openWrite(); await tab(1, 3); },
