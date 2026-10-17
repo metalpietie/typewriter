@@ -1,0 +1,17 @@
+---
+import { marquee } from '../data/content';
+---
+<div class="marquee" aria-label="What Typewriter has">
+  <div class="track">
+    {marquee.map((m) => <span>{m}</span>)}
+    {marquee.map((m) => <span aria-hidden="true">{m}</span>)}
+  </div>
+</div>
+
+<style>
+  .marquee { margin: 100px 0 0; border-block: 1px solid var(--line); overflow: hidden; white-space: nowrap; mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+  .track { display: inline-flex; gap: 48px; padding: 18px 0; animation: scroll 40s linear infinite; font: 500 15px var(--mono); color: var(--muted); }
+  .marquee:hover .track { animation-play-state: paused; }
+  span::before { content: '✦'; color: var(--accent); margin-right: 48px; }
+  @keyframes scroll { to { transform: translateX(-50%); } }
+</style>

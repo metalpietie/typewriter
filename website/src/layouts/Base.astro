@@ -1,0 +1,51 @@
+---
+// The page frame: head, fonts, the glow in the background, and the scripts that every part uses.
+import '@fontsource-variable/inter-tight';
+import '@fontsource/jetbrains-mono/400.css';
+import '@fontsource/jetbrains-mono/500.css';
+import '../styles/global.css';
+
+interface Props { title: string; description: string }
+const { title, description } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+const og = Astro.site ? new URL(base + 'og.png', Astro.site).href : base + 'og.png';
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <meta name="theme-color" content="#08090d" />
+  <link rel="icon" type="image/svg+xml" href={base + 'favicon.svg'} />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={og} />
+  <meta name="twitter:card" content="summary_large_image" />
+  <script is:inline>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+  <div class="aurora" aria-hidden="true"></div>
+  <div class="grid-bg" aria-hidden="true"></div>
+  <slot />
+  <script>
+    import '../scripts/effects';
+    import '../scripts/download';
+  </script>
+</body>
+</html>
+
+<style is:global>
+  /* soft glows made with gradients: a big blur filter would be slow to draw */
+  .aurora { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  .aurora::before, .aurora::after { content: ''; position: absolute; width: 80vw; height: 80vw; border-radius: 50%; opacity: .45; }
+  .aurora::before { background: radial-gradient(closest-side, var(--accent), transparent); left: var(--mx, 20%); top: -20vw; transform: translateX(-50%); transition: left 1.2s ease; }
+  .aurora::after { background: radial-gradient(closest-side, var(--accent-2), transparent); right: -30vw; top: 30vh; opacity: .14; animation: drift 18s ease-in-out infinite alternate; }
+  @keyframes drift { to { transform: translate(-20vw, 20vh); } }
+  .grid-bg { position: absolute; inset: 0 0 auto; height: 900px; z-index: 0; pointer-events: none;
+    background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse at 50% 0%, #000 20%, transparent 70%); }
+  main, footer { position: relative; z-index: 1; }
+</style>

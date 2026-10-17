@@ -1,0 +1,22 @@
+---
+import { readers } from '../data/content';
+---
+<section id="who">
+  <div class="wrap">
+    <div class="kicker reveal">Who it's for</div>
+    <h2 class="reveal">Made for long-form writers.</h2>
+    <div class="who">
+      {readers.map((r) => <div class="reveal"><h3>{r.title}</h3><p>{r.text}</p></div>)}
+    </div>
+  </div>
+</section>
+
+<style>
+  section { padding-top: 0; }
+  .who { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 48px; }
+  .who div { padding: 28px; border-radius: 18px; background: linear-gradient(180deg, rgba(255, 255, 255, .04), transparent); border: 1px solid var(--line); transition: opacity .9s, transform .4s cubic-bezier(.2, .8, .2, 1), border-color .3s; }
+  .who div:hover { transform: translateY(-4px); border-color: rgba(128, 130, 255, .4); }
+  h3 { margin: 0 0 8px; }
+  p { color: var(--muted); margin: 0; }
+  @media (max-width: 900px) { .who { grid-template-columns: 1fr; } }
+</style>

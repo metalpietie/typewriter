@@ -1,0 +1,39 @@
+---
+import { Image } from 'astro:assets';
+import shot from '../assets/screens/write-text.png';
+import { REPO_URL, type Release } from '../data/release';
+interface Props { release: Release }
+const { release } = Astro.props;
+---
+<header class="hero wrap">
+  <a class="badge reveal" data-dl="release" href={release.page}>
+    <b data-version>{release.version ? 'v' + release.version : 'new'}</b>{release.title || 'See what is new'} →
+  </a>
+  <h1 class="reveal">Your story. <span class="grad">Your whole world.</span></h1>
+  <p class="lede reveal">Typewriter is a desktop app for books and series. Write chapters, track characters, draw maps, and check for plot holes. All offline, all yours.</p>
+  <div class="cta reveal">
+    <a class="btn" data-dl="primary" href={release.page}>↓ Download <span data-os-label></span></a>
+    <a class="btn ghost" href={REPO_URL}>★ GitHub</a>
+  </div>
+  <div class="meta reveal">free · no account · windows + linux</div>
+  <div class="stage reveal">
+    <div class="tilt" data-tilt="10">
+      <Image src={shot} alt="The Typewriter editor with a chapter open" widths={[700, 1100, 1400]} sizes="(max-width: 1100px) 100vw, 1080px" loading="eager" fetchpriority="high" />
+      <div class="glare"></div>
+    </div>
+  </div>
+</header>
+
+<style>
+  .hero { text-align: center; padding: 110px 24px 0; }
+  .badge { display: inline-flex; gap: 8px; align-items: center; padding: 6px 14px 6px 8px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255, 255, 255, .03); font-size: 13px; color: var(--muted); transition: border-color .2s, color .2s; max-width: 100%; }
+  .badge:hover { border-color: var(--accent); color: var(--text); }
+  .badge b { background: var(--accent); color: #fff; border-radius: 999px; padding: 2px 8px; font: 500 11px var(--mono); }
+  h1 { font-size: clamp(46px, 8vw, 104px); line-height: .98; letter-spacing: -.045em; font-weight: 800; margin: 26px auto 22px; max-width: 12ch; }
+  .grad { background: linear-gradient(90deg, #fff, var(--accent) 40%, var(--accent-2) 80%, #fff); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shine 6s linear infinite; }
+  @keyframes shine { to { background-position: 200% center; } }
+  .lede { color: var(--muted); font-size: 19px; max-width: 46ch; margin: 0 auto 34px; }
+  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .meta { margin-top: 14px; font: 13px var(--mono); color: var(--muted); }
+  .stage { margin: 80px auto 0; max-width: 1080px; }
+</style>
