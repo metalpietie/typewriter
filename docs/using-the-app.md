@@ -230,7 +230,7 @@ Press **Look** above the editor to change how the text looks. The page changes w
 - **Page width**: Narrow, Medium, or Wide. **Auto** is the old way: the whole page, and a narrow column in focus mode. The exports do not change.
 - **Typewriter mode**: the line you write on stays a little above the middle of the screen, and the page scrolls as you type. The first lines of a scene also sit in the middle.
 - **Focus line**: every paragraph but the one you write in is dimmed.
-- **Vim keys** (new, off at the start): the editor works like Vim. It starts in **Normal** mode: press `i` to type, and **Esc** to go back. In focus mode, an **Esc** that the Vim keys use (to leave the insert or visual mode, or to drop a command) does not leave focus mode. Press **Esc** once more in Normal mode to leave focus mode. A label at the bottom right shows the mode (**NORMAL**, **INSERT**, **VISUAL**) and any keys that wait for more, such as the `d` of `dd`. It works in every place that has the text editor (Write and Draft). Ctrl+K search and the other app shortcuts still work, except that in Normal mode `Ctrl+B` pages up (as in Vim). In Visual mode `Ctrl+B` still makes the selection bold. Outside the insert mode, Enter, Backspace, Delete and Tab do what they do in Vim and never change the text by mistake: Enter goes to the start of the next line, Backspace goes left, Delete deletes the character (or the selection, in Visual mode). Keys that need AltGr (`{ [ ~` on many keyboards) work too. Switching the Vim keys on or off keeps the cursor where it was, but the undo history starts again. It uses a small add-on that is still young, so some Vim keys are missing (see below). Switching it off keeps your text.
+- **Vim keys** (new, off at the start): the editor works like Vim. It starts in **Normal** mode: press `i` to type, and **Esc** to go back. In focus mode, an **Esc** that the Vim keys use (to leave the insert or visual mode, or to drop a command) does not leave focus mode. Press **Esc** once more in Normal mode to leave focus mode. A label at the bottom right shows the mode (**NORMAL**, **INSERT**, **VISUAL**) and any keys that wait for more, such as the `d` of `dd`. It works in every place that has the text editor (Write and Draft). When you open a scene or a notes page, the cursor is already in the text, so the Vim keys work at once. Ctrl+K search and the other app shortcuts still work, except that in Normal mode `Ctrl+B` pages up (as in Vim). In Visual mode `Ctrl+B` still makes the selection bold. Outside the insert mode, Enter, Backspace, Delete and Tab do what they do in Vim and never change the text by mistake: Enter goes to the start of the next line, Backspace goes left, Delete deletes the character (or the selection, in Visual mode). Keys that need AltGr (`{ [ ~` on many keyboards) work too. Switching the Vim keys on or off keeps the cursor where it was, but the undo history starts again. It uses a small add-on that is still young, so some Vim keys are missing (see below). Switching it off keeps your text.
 - **Back to normal** puts all choices back.
 
 **Vim keys that work:** `h j k l`, `w b e` and `W B E`, `0 ^ $`, `f t F T ; ,`, `%`, `{ }`, `gg G`, counts (`3w`, `2dd`), `x r`, `d c y` with a motion, `dd cc yy D C Y s S`, `p P`, `o O`, `i a I A`, `v` and `V`, `u` and `Ctrl+r`.
@@ -343,9 +343,12 @@ Select some text in a scene and press **💬** in the toolbar. The text is marke
 
 ### @ links and backlinks
 
+![The card of a character, shown when you point at an @ link](images/name-card.png)
+
 Type **@** in a scene (or press **@** in the toolbar). A list opens with your characters, places, and lore notes. Keep typing to narrow it. Use the arrow keys and **Enter** (or click) to pick one.
 
 - The name goes into the text as a link, shown in the accent colour with a dotted line. It prints as normal text.
+- **Point at** a link for a moment: a small card shows who or what it is, with a short description. **Open** opens it, **Show beside** shows it in the reference pane. A click only moves the cursor, so writing is not interrupted.
 - **Ctrl+click** a link to open that character, place, or note.
 - The link stays if you rename the item later. The text does not change by itself.
 - A tagged character counts as in the scene for the name check.
