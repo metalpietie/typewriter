@@ -36,3 +36,16 @@ func noteInstalledVersion() {
 		k.SetStringValue("DisplayVersion", Version)
 	}
 }
+
+// removeOldCopy deletes the old program file that an update left next to the new one (typewriter.exe.old.<number>).
+// Wails would only delete it at the next update; by now the old program has closed, so it can go.
+func removeOldCopy() {
+	exe, err := os.Executable()
+	if err != nil {
+		return
+	}
+	old, _ := filepath.Glob(exe + ".old.*")
+	for _, f := range old {
+		os.Remove(f) // a file that is still in use stays until next time
+	}
+}

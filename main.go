@@ -36,6 +36,7 @@ func main() {
 
 	store.StartAutoBackup() // one copy of your data per day
 	noteInstalledVersion()  // Settings > Apps shows the right version after the app updated itself
+	removeOldCopy()         // the old program file that an update left behind
 
 	phone := NewPhoneSync(store, nil) // notes from phones, over the Wi-Fi. It listens only when it is switched on.
 	defer phone.shutdown()
