@@ -1,4 +1,4 @@
-import { Store } from '../../bindings/typewriter';
+import { Store } from '../../bindings/typewriter/internal/app';
 import { wordCount } from './db.svelte';
 
 /** One saved copy of a scene's text. */

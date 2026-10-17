@@ -1,4 +1,4 @@
-import { Store } from '../../bindings/typewriter';
+import { Store } from '../../bindings/typewriter/internal/app';
 import { drawCover } from './cover';
 import { shelfSpec } from './shelf-core';
 

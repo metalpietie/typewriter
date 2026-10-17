@@ -1,6 +1,6 @@
 <script lang="ts">
   import Select from '../lib/Select.svelte';
-  import { Exporter } from '../../bindings/typewriter';
+  import { Exporter } from '../../bindings/typewriter/internal/app';
   import { db } from '../lib/db.svelte';
   import Backup from '../lib/Backup.svelte';
   import PhoneSyncPanel from '../lib/PhoneSyncPanel.svelte';

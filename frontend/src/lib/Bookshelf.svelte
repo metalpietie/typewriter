@@ -8,8 +8,8 @@
   import { onMount, tick } from 'svelte';
   import { flip } from 'svelte/animate';
   import { fade } from 'svelte/transition';
-  import { Store } from '../../bindings/typewriter';
-  import type { Shelf as ApiShelf, ShelfBook } from '../../bindings/typewriter/models.js';
+  import { Store } from '../../bindings/typewriter/internal/app';
+  import type { Shelf as ApiShelf, ShelfBook } from '../../bindings/typewriter/internal/app/models.js';
   import { db } from './db.svelte';
   import { nav, closeShelf, reloadInto, lastWriteKey } from './nav.svelte';
   import { params, veil, dialog } from './motion.svelte';

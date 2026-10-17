@@ -1,4 +1,4 @@
-import { Store } from '../../bindings/typewriter';
+import { Store } from '../../bindings/typewriter/internal/app';
 import { sortCards, nextOrder, cleanText } from './mood-core';
 
 // The mood board cards of one character, place or scene. They are read when needed, and not kept in the big lists,

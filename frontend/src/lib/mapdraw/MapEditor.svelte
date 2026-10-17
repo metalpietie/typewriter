@@ -2,7 +2,7 @@
   import Select from '../Select.svelte';
   import { onMount, onDestroy, tick } from 'svelte';
   import { db, type Item } from '../db.svelte';
-  import { Exporter } from '../../../bindings/typewriter';
+  import { Exporter } from '../../../bindings/typewriter/internal/app';
   import SaveIndicator from '../SaveIndicator.svelte';
   import ConfirmButton from '../ConfirmButton.svelte';
   import {

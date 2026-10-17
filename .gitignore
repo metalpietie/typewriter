@@ -10,6 +10,4 @@ build/ios/xcode/gen/
 build/android/overlay.json
 build/android/gen/
 # Local planning notes
-PROJECT-TYPE-PLAN.md
-MOBILE-SYNC-PLAN.md
-UPDATE-PLAN.md
+plans/

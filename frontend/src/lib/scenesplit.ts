@@ -1,4 +1,4 @@
-import { Store } from '../../bindings/typewriter';
+import { Store } from '../../bindings/typewriter/internal/app';
 import { db, toHtml, type Item } from './db.svelte';
 import { scenesOf } from './scenes';
 import { addVersion } from './versions';

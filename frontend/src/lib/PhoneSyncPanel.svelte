@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { Events } from '@wailsio/runtime';
-  import { PhoneSync } from '../../bindings/typewriter';
-  import type { PairingInfo, SyncStatus } from '../../bindings/typewriter/models.js';
+  import { PhoneSync } from '../../bindings/typewriter/internal/app';
+  import type { PairingInfo, SyncStatus } from '../../bindings/typewriter/internal/app/models.js';
   import ConfirmButton from './ConfirmButton.svelte';
 
   // Notes on your phone, copied both ways over the Wi-Fi. Switched on here, and a phone is added once with a QR code.

@@ -1,10 +1,10 @@
 <script lang="ts">
   import { veil, dialog } from './motion.svelte';
-  import { Store } from '../../bindings/typewriter';
+  import { Store } from '../../bindings/typewriter/internal/app';
   import { onMount } from 'svelte';
   import { db } from './db.svelte';
   import { nav } from './nav.svelte';
-  import type { DataFolderInfo, FolderCheck } from '../../bindings/typewriter/models.js';
+  import type { DataFolderInfo, FolderCheck } from '../../bindings/typewriter/internal/app/models.js';
 
   let info = $state<DataFolderInfo | null>(null);
   let picked = $state<FolderCheck | null>(null); // a folder you chose, waiting for your answer

@@ -1,4 +1,4 @@
-import { Store } from '../../bindings/typewriter';
+import { Store } from '../../bindings/typewriter/internal/app';
 import { db, wordCount } from './db.svelte';
 import { scenesOf } from './scenes';
 import { blockText } from './diff';

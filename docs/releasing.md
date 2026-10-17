@@ -11,7 +11,7 @@ One command builds Typewriter for Windows and Linux, makes the Windows installer
    ```
 3. The signing key. Only one key exists for all releases.
    - On the computer that made it, it is in `%APPDATA%\typewriter-release\signing.key`. Copy that file to the same place on the new computer.
-   - Only when there is no key at all (the very first time): `go run ./tools/release keygen`. It writes the private key there, and the public key into `updatekey.go`. Commit `updatekey.go`.
+   - Only when there is no key at all (the very first time): `go run ./tools/release keygen`. It writes the private key there, and the public key into `internal/app/updatekey.go`. Commit that file.
 
 **Keep a backup of `signing.key`** (a USB stick, a password manager). Never put it in the repository.
 - The app installs an update only when it is signed with this key.
@@ -19,7 +19,7 @@ One command builds Typewriter for Windows and Linux, makes the Windows installer
 
 ## Each release
 
-1. Set the version in `version.go` and in `build/config.yml`, then run `wails3 task common:update:build-assets`.
+1. Set the version in `internal/app/version.go` and in `build/config.yml`, then run `wails3 task common:update:build-assets`.
 2. Write the release text in `release-notes/<version>.md`. The first line that starts with `## ` becomes the title of the release, for example `## Version 1.11.0: updates`.
 3. Commit, make the tag `v<version>`, and push both.
 4. Start Docker Desktop.
@@ -28,7 +28,7 @@ One command builds Typewriter for Windows and Linux, makes the Windows installer
    wails3 task release
    ```
 
-It stops before uploading when something is wrong: changes that are not committed, no tag, no release text, no key, a key that does not match `updatekey.go`, Docker not running, or a build that fails.
+It stops before uploading when something is wrong: changes that are not committed, no tag, no release text, no key, a key that does not match `internal/app/updatekey.go`, Docker not running, or a build that fails.
 
 To build and sign without uploading (the files go to `bin\release\<version>`):
 ```bash

@@ -1,5 +1,5 @@
-import { Store } from '../../bindings/typewriter';
-import type { Doc } from '../../bindings/typewriter/models.js';
+import { Store } from '../../bindings/typewriter/internal/app';
+import type { Doc } from '../../bindings/typewriter/internal/app/models.js';
 
 export type Kind = 'book' | 'chapter' | 'character' | 'relationship' | 'location' | 'map' | 'pathpoint' | 'note' | 'event' | 'mapdoc' | 'scene' | 'comment' | 'faction' | 'membership' | 'factionrel' | 'item' | 'itemlog' | 'plotignore' | 'wordday' | 'setting' | 'todo' | 'region' | 'draft' | 'arc' | 'arcscene' | 'term' | 'pass' | 'source' | 'idea' | 'syncnote';
 export const KINDS: Kind[] = ['book', 'chapter', 'character', 'relationship', 'location', 'map', 'pathpoint', 'note', 'event', 'mapdoc', 'scene', 'comment', 'faction', 'membership', 'factionrel', 'item', 'itemlog', 'plotignore', 'wordday', 'setting', 'todo', 'region', 'draft', 'arc', 'arcscene', 'term', 'pass', 'source', 'idea', 'syncnote'];
