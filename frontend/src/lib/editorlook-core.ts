@@ -8,6 +8,7 @@ export const FONTS: Choice[] = [
   ['book', 'Book', "'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif"],
   ['sans', 'Sans', "system-ui, 'Segoe UI', Roboto, Arial, sans-serif"],
   ['mono', 'Typewriter', "'Courier New', Courier, monospace"],
+  ['code', 'Code', "'JetBrainsMono NF', Consolas, monospace"],
 ];
 export const SIZES: Choice[] = [['small', 'Small', '0.95rem'], ['normal', 'Normal', '1.1rem'], ['large', 'Large', '1.3rem'], ['huge', 'Huge', '1.5rem']];
 export const SPACINGS: Choice[] = [['tight', 'Tight', '1.5'], ['normal', 'Normal', '1.8'], ['loose', 'Loose', '2.1']];

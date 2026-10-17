@@ -24,7 +24,7 @@
     <div class="panel" role="dialog" aria-label="How the page looks">
       {#each groups as g}
         <div class="lbl">{g.label}</div>
-        <div class="seg">
+        <div class="seg" class:fonts={g.key === 'font'}>
           {#each g.list as [id, name, css]}
             <button class:active={look[g.key] === id} style:font-family={g.key === 'font' ? css : null} onclick={() => setLook({ [g.key]: id })}>{name}</button>
           {/each}
@@ -52,6 +52,8 @@
   .lbl { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-top: .2rem; }
   .seg { display: flex; gap: 3px; }
   .seg button { flex: 1 1 0; min-width: 0; padding: .25rem .3rem; font-size: .8rem; }
+  /* the font names have different lengths: each button is as wide as its name, so "Typewriter" fits */
+  .seg.fonts button { flex: 1 1 auto; white-space: nowrap; }
   .chk { display: flex; gap: .5rem; align-items: flex-start; margin: .35rem 0 0; color: var(--text); font-size: .85rem; }
   .chk input { width: auto; margin-top: .2rem; }
   .chk small { display: block; color: var(--muted); font-size: .75rem; }

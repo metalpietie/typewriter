@@ -1,3 +1,9 @@
+/* JetBrains Mono Nerd Font (no ligatures, SIL Open Font License: public/fonts/JetBrainsMono-OFL.txt). For the "Code" font of the editor. */
+@font-face { font-family: 'JetBrainsMono NF'; src: url('/fonts/JetBrainsMonoNLNerdFontMono-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'JetBrainsMono NF'; src: url('/fonts/JetBrainsMonoNLNerdFontMono-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'JetBrainsMono NF'; src: url('/fonts/JetBrainsMonoNLNerdFontMono-Italic.woff2') format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: 'JetBrainsMono NF'; src: url('/fonts/JetBrainsMonoNLNerdFontMono-BoldItalic.woff2') format('woff2'); font-weight: 700; font-style: italic; font-display: swap; }
+
 :root {
   --bg: #0f1014; --panel: #16171d; --panel-2: #1f2029; --line: #262833;
   --text: #e8e9f0; --muted: #8184a0; --accent: #8082ff; --accent-2: #8082ff;

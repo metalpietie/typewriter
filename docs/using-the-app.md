@@ -225,7 +225,7 @@ Two buttons above the text, next to **History**, change how a chapter is cut int
 
 Press **Look** above the editor to change how the text looks. The page changes while you click. The choice belongs to this computer, not to the project, so it is not in your backups.
 
-- **Font**: Serif, Book, Sans, or Typewriter.
+- **Font**: Serif, Book, Sans, Typewriter, or Code. Code is JetBrains Mono Nerd Font. All its letters have the same width, so it is good with Vim keys.
 - **Text size** and **Line spacing**.
 - **Page width**: Narrow, Medium, or Wide. **Auto** is the old way: the whole page, and a narrow column in focus mode. The exports do not change.
 - **Typewriter mode**: the line you write on stays a little above the middle of the screen, and the page scrolls as you type. The first lines of a scene also sit in the middle.
