@@ -75,8 +75,15 @@ func main() {
 	phone.resume()
 	updates.init(app)
 
+	// the window opens maximised when it was maximised at the last close (windowstate.go)
+	stateFile := windowStateFile()
+	start := application.WindowStateNormal
+	if loadWindowState(stateFile).Maximised {
+		start = application.WindowStateMaximised
+	}
 	win = app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:            "Typewriter",
+		StartState:       start,
 		Width:            1280,
 		Height:           800,
 		BackgroundColour: application.NewRGB(17, 22, 29),
@@ -96,6 +103,9 @@ func main() {
 		win.Close()
 	})
 	win.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) {
+		if !win.IsMinimised() { // a minimised window does not tell if it was maximised: keep what was saved
+			saveWindowState(stateFile, windowState{Maximised: win.IsMaximised()})
+		}
 		if saved.Load() {
 			return
 		}
