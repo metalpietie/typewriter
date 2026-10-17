@@ -1,8 +1,8 @@
 // A test against the real Typewriter server (the Go code), so the phone and the computer are tested together.
-// It is skipped unless TYPEWRITER_LIVE is set. See syncdev_test.go in the repository root, which starts the server.
+// It is skipped unless TYPEWRITER_LIVE is set. See internal/app/syncdev_test.go in the repository, which starts the server.
 //
 //   set TYPEWRITER_PHONE_DEV=C:\jtmp\dev.json
-//   go test -run TestDevServerForPhoneApp -timeout 10m .      (in the repository root; leave it running)
+//   go test -run TestDevServerForPhoneApp -timeout 10m ./internal/app      (in the repository root; leave it running)
 //   set TYPEWRITER_LIVE=C:\jtmp\dev.json
 //   flutter test test/live_test.dart
 import 'dart:convert';

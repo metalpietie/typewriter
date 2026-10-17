@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { Store } from '../../bindings/typewriter';
+  import { Store } from '../../bindings/typewriter/internal/app';
   import { onMount } from 'svelte';
   import { db } from './db.svelte';
   import ConfirmButton from './ConfirmButton.svelte';
   import Select from './Select.svelte';
   import { REMIND_CHOICES, agoText, backupNow, daysSince, reminderDays, setReminderDays, settle } from './backupReminder';
-  import type { AutoBackup } from '../../bindings/typewriter/models.js';
+  import type { AutoBackup } from '../../bindings/typewriter/internal/app/models.js';
 
   let busy = $state(false);
   let confirming = $state(false);

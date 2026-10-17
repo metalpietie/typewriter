@@ -1,4 +1,4 @@
-import { Store } from '../../bindings/typewriter';
+import { Store } from '../../bindings/typewriter/internal/app';
 import { COVER_H, COVER_W, coverFit, fitText, scaledSize, textOn, type Spec } from './cover-core';
 
 // The cover of a book. It is kept as a JPEG, one for each book, and read only when needed, because a picture is large.

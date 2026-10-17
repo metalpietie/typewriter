@@ -12,6 +12,6 @@ const { svelte } = need('@sveltejs/vite-plugin-svelte');
 export default defineConfig({
   root: frontend,
   server: { host: '127.0.0.1', port: 5199, strictPort: true, fs: { strict: false } },
-  resolve: { alias: [{ find: /^.*bindings\/typewriter$/, replacement: path.join(here, 'stub.ts') }] },
+  resolve: { alias: [{ find: /^.*bindings\/typewriter\/internal\/app$/, replacement: path.join(here, 'stub.ts') }] },
   plugins: [svelte()],
 });

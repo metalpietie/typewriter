@@ -1,6 +1,6 @@
 # Phone sync protocol
 
-This page is for the phone app. It says exactly how a phone talks to Typewriter. The code is in `syncserver.go` (the server) and `syncnotes.go` (the rules for notes). The tests `syncserver_test.go` and `syncnotes_test.go` are a working example of a phone.
+This page is for the phone app. It says exactly how a phone talks to Typewriter. The code is in `internal/app/syncserver.go` (the server) and `internal/app/syncnotes.go` (the rules for notes). The tests `internal/app/syncserver_test.go` and `internal/app/syncnotes_test.go` are a working example of a phone.
 
 Protocol version: **1**. Everything is JSON over HTTPS.
 

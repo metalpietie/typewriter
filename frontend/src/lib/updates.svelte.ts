@@ -1,6 +1,6 @@
 import { Browser, Events } from '@wailsio/runtime';
-import { Updates } from '../../bindings/typewriter';
-import type { UpdateInfo } from '../../bindings/typewriter/models.js';
+import { Updates } from '../../bindings/typewriter/internal/app';
+import type { UpdateInfo } from '../../bindings/typewriter/internal/app/models.js';
 import { db } from './db.svelte';
 
 // New versions from GitHub: the check, the download, and the restart. The work is done in Go (updates.go).

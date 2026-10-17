@@ -1,4 +1,4 @@
-import { Store } from '../../bindings/typewriter';
+import { Store } from '../../bindings/typewriter/internal/app';
 import { db } from './db.svelte';
 
 // The app reminds you to save a copy of your data outside the app (a USB drive, or a folder you copy by hand).

@@ -37,7 +37,7 @@ In the repository root, in one terminal (leave it running):
 
 ```bash
 set TYPEWRITER_PHONE_DEV=C:\temp\dev.json
-go test -run TestDevServerForPhoneApp -timeout 10m .
+go test -run TestDevServerForPhoneApp -timeout 10m ./internal/app
 ```
 
 In this folder, in another:

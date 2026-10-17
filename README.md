@@ -134,13 +134,20 @@ See [docs/releasing.md](docs/releasing.md). In short: set the version, write `re
 
 | Path | What it holds |
 | --- | --- |
-| `main.go` | App start-up and window |
-| `store.go` | SQLite storage service |
-| `projects.go` | The list of projects, and switching the open data file |
-| `datafolder.go` | Moving the data folder, and the `datadir.json` pointer |
-| `version.go` | The app version shown in the menu |
-| `export.go` | Export: file dialog, Word, and the story bible and manuscript text |
-| `pdf.go`, `epub.go`, `markdown.go`, `pagesize.go` | The PDF, e-book and Markdown writers, and the page sizes |
+| `main.go` | Puts the built screen into the program and starts the app. Nothing else. |
+| `internal/app/` | All the Go code of the app, with its tests (one Go package) |
+| `internal/app/run.go` | App start-up and window |
+| `internal/app/store.go` | SQLite storage service |
+| `internal/app/projects.go` | The list of projects, and switching the open data file |
+| `internal/app/datafolder.go` | Moving the data folder, and the `datadir.json` pointer |
+| `internal/app/version.go` | The app version shown in the menu |
+| `internal/app/export.go` | Export: file dialog, Word, and the story bible and manuscript text |
+| `internal/app/pdf.go`, `epub.go`, `markdown.go`, `pagesize.go` | The PDF, e-book and Markdown writers, and the page sizes |
+| `internal/app/syncserver.go`, `syncnotes.go` | Phone sync |
+| `internal/app/updates.go` | Updates from GitHub |
+| `mobile/` | The Android app (Typewriter Notes, Flutter) |
+| `release-notes/` | The text of each GitHub release |
+| `tools/` | The release tool, the screenshot tool, and the GitHub protection script |
 | `docs/` | The tutorial and the guide to every screen |
 | `frontend/src/views/` | One Svelte file per screen |
 | `frontend/src/lib/` | Shared code: data store, search, theme, calendar (`calendarmath.ts` holds the date maths) |

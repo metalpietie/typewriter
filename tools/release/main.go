@@ -1,13 +1,13 @@
 // Command release builds Typewriter, signs the files and puts them in the GitHub release of the version.
 //
 //	go run ./tools/release keygen               make the signing key, once (see docs/releasing.md)
-//	go run ./tools/release publish              build, sign, and upload to the release of the version in version.go
+//	go run ./tools/release publish              build, sign, and upload to the release of the version in internal/app/version.go
 //	go run ./tools/release publish -no-upload   the same, but stop before the upload (the files are in bin/release/<version>)
 //	go run ./tools/release publish -no-build    sign and upload the files that are already built
 //	go run ./tools/release publish -apk         also upload the phone app (bin/typewriter-notes.apk)
 //	go run ./tools/release verify <file>        check a file against its .sig, with the key in the app
 //
-// The private key stays on this computer (keyPath). The public key is in updatekey.go, in the app, so the app can tell
+// The private key stays on this computer (keyPath). The public key is in internal/app/updatekey.go, in the app, so the app can tell
 // that an update was made with this key and not by someone else.
 package main
 
@@ -68,7 +68,7 @@ func keyPath() (string, error) {
 	return filepath.Join(dir, "typewriter-release", "signing.key"), nil
 }
 
-const keyFile = "updatekey.go"
+const keyFile = "internal/app/updatekey.go"
 
 // keygen makes a new key pair. It refuses when a key exists, so a key is never replaced by mistake.
 func keygen() error {
@@ -99,7 +99,7 @@ func keygen() error {
 }
 
 func writePublicKey(pub ed25519.PublicKey) error {
-	src := `package main
+	src := `package app
 
 // updatePublicKey is the public half of the key that signs the releases (see tools/release and docs/releasing.md).
 // The app installs an update only when its signature matches this key. It is made by "go run ./tools/release keygen".
@@ -126,7 +126,7 @@ func loadPrivateKey() (ed25519.PrivateKey, error) {
 
 var publicKeyRe = regexp.MustCompile(`updatePublicKey = "([A-Za-z0-9+/=]+)"`)
 
-// appPublicKey reads the key that the app checks with, from updatekey.go.
+// appPublicKey reads the key that the app checks with, from internal/app/updatekey.go.
 func appPublicKey() (ed25519.PublicKey, error) {
 	b, err := os.ReadFile(keyFile)
 	if err != nil {
@@ -146,13 +146,13 @@ func appPublicKey() (ed25519.PublicKey, error) {
 var versionRe = regexp.MustCompile(`const Version = "([0-9]+\.[0-9]+\.[0-9]+[^"]*)"`)
 
 func appVersion() (string, error) {
-	b, err := os.ReadFile("version.go")
+	b, err := os.ReadFile("internal/app/version.go")
 	if err != nil {
 		return "", err
 	}
 	m := versionRe.FindSubmatch(b)
 	if m == nil {
-		return "", errors.New("no version in version.go")
+		return "", errors.New("no version in internal/app/version.go")
 	}
 	return string(m[1]), nil
 }
