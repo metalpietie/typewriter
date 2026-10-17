@@ -8,6 +8,7 @@ const name = new URLSearchParams(location.search).get('s');
 localStorage.setItem('typewriter-motion', 'off');
 if (name !== 'bookshelf') sessionStorage.setItem('typewriter.shelfSeen', '1'); // the bookshelf shows first. The other pictures skip it.
 localStorage.setItem('typewriter-theme', 'dark');
+localStorage.setItem('__update', 'none'); // the check at start finds nothing, so no update window covers the picture
 localStorage.setItem('__nf', name === 'sources' ? '1' : '0');
 const W = (ms) => new Promise((r) => setTimeout(r, ms));
 const f = document.getElementById('f');
@@ -29,6 +30,7 @@ const SHOTS = {
   'write-book': async () => { await openWrite(); await tab(1, 0); },
   'write-text': async () => { await openWrite(); await tab(1, 0); },
   characters: async () => { await go('Characters'); d.querySelector('.list .item').click(); await W(500); },
+  maps: async () => { await go('Maps'); const s = d.querySelector('.side select'); s.value = s.options[1].value; s.dispatchEvent(new Event('change', { bubbles: true })); await W(1200); },
   places: async () => { await go('World'); btn('Places').click(); await W(500); d.querySelector('.list .item').click(); await W(500); },
   link: async () => {
     await openWrite(); await tab(1, 1); pm().focus();

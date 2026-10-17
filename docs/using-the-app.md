@@ -499,6 +499,8 @@ You can add links right on the Family tree tab. A family link with no role appea
 
 ## Maps & Paths
 
+![A town map with places, two regions, and the paths of two characters](images/maps.png)
+
 1. Press **+ Image** to load a map picture, **+ Blank** for a plain canvas, or **✎ Draw a map** to draw one in the app (see below).
 2. Use the toolbar above the map:
    - **✋ Move:** drag to pan. Drag pins and steps to move them. Click one to edit it.

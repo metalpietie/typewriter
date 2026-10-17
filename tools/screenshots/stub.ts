@@ -11,7 +11,7 @@ if (!nonfiction) {
   const mara = add('character', { name: 'Mara Finch', role: 'protagonist', aliases: 'Mara', age: '29', description: 'A clockmaker with ink-stained fingers and a habit of humming while she works.', traits: 'curious, stubborn, kind', backstory: 'She took over the shop when her grandmother died.', goals: 'Find out who wrote the letter, and why it was hidden.', notes: '', fields: [], color: '#8082ff' });
   const tom = add('character', { name: 'Old Tom', role: 'supporting', aliases: '', age: '71', description: 'The baker next door. He knows more than he says.', traits: 'gentle, secretive', backstory: '', goals: 'Keep an old promise.', notes: '', fields: [], color: '#e0a458' });
   const shop = add('location', { name: 'The clock shop', type: 'village', description: 'A narrow shop on Mill Street. Every clock in it shows a different time.', parent: null, tags: 'shop, home' });
-  add('location', { name: 'Mill Street', type: 'village', description: 'A cobbled street that smells of bread.', parent: null, tags: '' });
+  const millStreet = add('location', { name: 'Mill Street', type: 'village', description: 'A cobbled street that smells of bread.', parent: null, tags: '' });
   const book = add('book', { title: 'The Last Letter', synopsis: 'A clockmaker finds a letter that was hidden for fifty years.', order: 1, goal: 60000, chapterGoal: 3000 });
   const c1 = add('chapter', { book, order: 1, title: 'The letter', summary: 'Mara finds the letter and meets Tom.', goal: 0 });
   const c2 = add('chapter', { book, order: 2, title: 'Tom’s story', summary: '', goal: 0 });
@@ -26,6 +26,44 @@ if (!nonfiction) {
   add('draft', { title: 'Names for the bakery', body: '<p>Golden Crust. Two Loaves. The Warm Oven.</p>', order: 2 });
   [0, 1, 2, 3, 4, 6, 7].forEach((n, i) => add('wordday', { date: day(n), words: [420, 380, 510, 300, 650, 340, 480][i] }));
   add('setting', { key: 'dailyGoal', value: 400 });
+  // A map of the town for the Maps & Paths picture: places, two regions, and the paths of Mara and Tom.
+  const townSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000">
+<defs><radialGradient id="p" cx=".5" cy=".45" r=".75"><stop offset="0" stop-color="#efe2c4"/><stop offset=".75" stop-color="#e2cfa6"/><stop offset="1" stop-color="#c9b083"/></radialGradient>
+<pattern id="t" width="46" height="40" patternUnits="userSpaceOnUse"><path d="M23 6l11 20H12z" fill="#5f7d4e" opacity=".85"/><path d="M23 14l13 22H10z" fill="#4e6b40" opacity=".9"/></pattern></defs>
+<rect width="1600" height="1000" fill="url(#p)"/>
+<path d="M1600 640C1450 660 1380 720 1330 800S1250 960 1240 1000H1600Z" fill="#9cc1c9"/>
+<path d="M1600 660C1470 680 1400 740 1355 815S1280 960 1272 1000" fill="none" stroke="#7fa8b2" stroke-width="3" stroke-dasharray="10 8"/>
+<path d="M0 260C180 300 300 250 430 330S600 520 760 540 1000 470 1120 560 1260 720 1330 800" fill="none" stroke="#86b0bb" stroke-width="34" stroke-linecap="round"/>
+<path d="M0 260C180 300 300 250 430 330S600 520 760 540 1000 470 1120 560 1260 720 1330 800" fill="none" stroke="#a8cdd4" stroke-width="18" stroke-linecap="round"/>
+<path d="M40 60C200 20 360 70 420 160S360 330 230 360 30 300 20 200Z" fill="url(#t)"/>
+<path d="M1180 60c80-30 200-20 280 40s70 160-10 200-220 20-280-40-70-170 10-200z" fill="url(#t)" opacity=".8"/>
+<g fill="none" stroke="#a3896a" stroke-width="10" stroke-linecap="round"><path d="M250 980C330 820 520 700 700 660S980 600 1060 430 1200 220 1320 160"/><path d="M700 660C760 760 900 820 1060 830S1260 790 1330 800"/><path d="M640 300C700 420 690 560 700 660"/></g>
+<g fill="none" stroke="#e9dcbc" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 10"><path d="M250 980C330 820 520 700 700 660S980 600 1060 430 1200 220 1320 160"/><path d="M700 660C760 760 900 820 1060 830S1260 790 1330 800"/></g>
+<g fill="#b98a5a" stroke="#7a5532" stroke-width="2"><rect x="600" y="600" width="34" height="26"/><rect x="650" y="585" width="40" height="30"/><rect x="720" y="610" width="30" height="24"/><rect x="760" y="640" width="36" height="26"/><rect x="620" y="690" width="32" height="26"/><rect x="580" y="650" width="26" height="22"/><rect x="800" y="590" width="28" height="22"/></g>
+<g fill="#8a6a4a" stroke="#5c4128" stroke-width="2"><path d="M1040 400h40v-40l-20-26-20 26z"/><circle cx="1060" cy="372" r="8" fill="#efe2c4"/></g>
+<g stroke="#7a5532" stroke-width="3" fill="none"><path d="M1028 420v40"/><path d="M1012 440h32"/></g>
+<g fill="#6b5a46"><path d="M420 470l30-50 30 50z"/><path d="M460 480l40-64 40 64z"/><path d="M180 560l34-56 34 56z"/><path d="M230 570l26-44 26 44z"/></g>
+<g font-family="Georgia, serif" fill="#5a4630" text-anchor="middle"><text x="800" y="90" font-size="58" font-style="italic" letter-spacing="6">Brassford</text>
+<text x="1470" y="880" font-size="26" font-style="italic" fill="#3f6a74">Grey Sea</text><text x="900" y="515" font-size="20" font-style="italic" fill="#3f6a74" transform="rotate(-8 900 515)">River Tock</text></g>
+<g transform="translate(1440 160)" fill="none" stroke="#5a4630" stroke-width="2"><circle r="44"/><circle r="36" stroke-dasharray="3 5"/><path d="M0-56L9 0 0 56-9 0Z" fill="#5a4630"/><path d="M-56 0L0 9 56 0 0-9Z" fill="#a3896a"/></g>
+<g transform="translate(120 900)" fill="#5a4630" font-family="Georgia, serif" font-size="16"><rect width="200" height="8" fill="none" stroke="#5a4630" stroke-width="2"/><rect width="50" height="8"/><rect x="100" width="50" height="8"/><text x="100" y="32" text-anchor="middle">1 mile</text></g>
+</svg>`;
+  const town = add('map', { name: 'Brassford', image: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(townSvg), w: 1600, h: 1000, bg: '#2a3a2f', notes: '', scaleDist: 8, scaleUnit: 'mi' });
+  const pinAt = (id: number, x: number, y: number) => { const r = rows.find((q) => q.id === id)!; r.data = JSON.stringify({ ...JSON.parse(r.data), map: town, x, y }); };
+  pinAt(shop, 0.4, 0.61);
+  pinAt(millStreet, 0.5, 0.57);
+  const place = (name: string, type: string, description: string, x: number, y: number) => add('location', { name, type, description, parent: null, tags: '', map: town, x, y });
+  const tower = place('The clock tower', 'landmark', 'It has been ten minutes slow for fifty years.', 0.66, 0.36);
+  const harbour = place('The harbour', 'town', 'Fishing boats, gulls, and the ferry to the islands.', 0.76, 0.71);
+  const mill = place('The old mill', 'ruin', 'Closed since the flood. Tom will not go near it.', 0.4, 0.3);
+  const cottage = place('Grandmother’s cottage', 'village', 'Where Mara grew up. Empty now.', 0.15, 0.42);
+  place('Whisper Wood', 'region', 'Old trees, and a path nobody uses.', 0.14, 0.2);
+  add('region', { map: town, name: 'Old Town', description: 'The oldest streets, inside the old wall.', color: '#e0a458',
+    points: [{ x: 0.35, y: 0.55 }, { x: 0.55, y: 0.54 }, { x: 0.57, y: 0.8 }, { x: 0.45, y: 0.87 }, { x: 0.34, y: 0.8 }] });
+  add('region', { map: town, name: 'Docks', description: '', color: '#2cd5e8', points: [{ x: 0.79, y: 0.75 }, { x: 0.92, y: 0.73 }, { x: 0.94, y: 0.9 }, { x: 0.81, y: 0.93 }] });
+  const step = (character: number, order: number, location: number | null, x: number, y: number) => add('pathpoint', { character, map: town, x, y, order, label: '', chapter: null, location, when: '' });
+  step(mara, 1, shop, 0.4, 0.61); step(mara, 2, tower, 0.66, 0.36); step(mara, 3, harbour, 0.76, 0.71); step(mara, 4, mill, 0.4, 0.3);
+  step(tom, 1, shop, 0.43, 0.58); step(tom, 2, cottage, 0.15, 0.42);
 } else {
   add('setting', { key: 'projectType', value: 'nonfiction' });
   const book = add('book', { title: 'Small Habits', synopsis: 'How tiny changes add up.', order: 1, goal: 50000, chapterGoal: 3000 });

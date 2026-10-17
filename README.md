@@ -148,6 +148,7 @@ See [docs/releasing.md](docs/releasing.md). In short: set the version, write `re
 | `mobile/` | The Android app (Typewriter Notes, Flutter) |
 | `release-notes/` | The text of each GitHub release |
 | `tools/` | The release tool, the screenshot tool, and the GitHub protection script |
+| `website/` | The website (Astro). See [website/README.md](website/README.md). |
 | `docs/` | The tutorial and the guide to every screen |
 | `frontend/src/views/` | One Svelte file per screen |
 | `frontend/src/lib/` | Shared code: data store, search, theme, calendar (`calendarmath.ts` holds the date maths) |
