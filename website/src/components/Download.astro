@@ -1,0 +1,45 @@
+---
+// The download box. The links come from the newest release when the site is built;
+// scripts/download.ts then picks the right one for this computer and checks for a newer release.
+// Without JavaScript all files are listed.
+import type { Release } from '../data/release';
+interface Props { release: Release }
+const { release } = Astro.props;
+---
+<section id="download">
+  <div class="wrap">
+    <div class="dl reveal">
+      <div class="kicker">Download <span data-version>{release.version ? 'v' + release.version : 'latest'}</span></div>
+      <h2>Ready when you are.</h2>
+      <p class="sub">Free, and it updates itself.</p>
+      <a class="btn" data-dl="primary" href={release.page}>↓ Download <span data-os-label></span></a>
+      <div class="alt">
+        <span data-os-only="windows" hidden>No install? <a data-dl="portable" href={release.portable}>Portable .exe</a></span>
+        <span data-os-only="linux" hidden>Windows: <a data-dl="installer" href={release.installer}>installer</a></span>
+        <span data-os-only="other">
+          <a data-dl="installer" href={release.installer}>Windows installer</a>
+          <a data-dl="portable" href={release.portable}>Windows portable</a>
+          <a data-dl="linux" href={release.linux}>Linux</a>
+        </span>
+        <a data-dl="release" href={release.page}>Release notes</a>
+      </div>
+      <p class="note" data-os-only="windows" hidden>Windows may show "Windows protected your PC" the first time. Click <b>More info</b>, then <b>Run anyway</b>. The app is not signed with a paid certificate.</p>
+      <p class="note" data-os-only="linux" hidden>Then make it runnable: <code>chmod +x typewriter-*-linux-x64</code>, and start it.</p>
+      <p class="note" data-os-only="other">Typewriter runs on Windows and Linux (x64).</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  section { padding-top: 0; }
+  .dl { text-align: center; padding: 90px 32px; border-radius: 28px; border: 1px solid var(--line); background: radial-gradient(ellipse at 50% 0%, rgba(128, 130, 255, .25), transparent 60%), var(--panel); }
+  .sub { margin: 0 auto 30px; }
+  .alt { margin-top: 18px; color: var(--muted); font-size: 14px; display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; }
+  .alt span { display: inline-flex; gap: 18px; flex-wrap: wrap; justify-content: center; }
+  .alt a { color: var(--text); border-bottom: 1px dashed var(--muted); transition: border-color .2s, color .2s; }
+  .alt a:hover { color: var(--accent); border-color: var(--accent); }
+  .note { margin: 26px auto 0; max-width: 52ch; font-size: 13px; color: var(--muted); }
+  code { font-family: var(--mono); color: var(--accent-2); }
+  [hidden] { display: none !important; }
+  @media (max-width: 600px) { .dl { padding: 60px 20px; } }
+</style>
