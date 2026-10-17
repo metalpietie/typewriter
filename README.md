@@ -21,7 +21,19 @@ Built with [Wails 3](https://v3.wails.io/) (Go), Svelte, and SQLite.
 - **Share it:** export to Word, PDF, e-book and Markdown, with front and back pages.
 - **Stay safe:** your data is in files on your computer (one for each project), with a backup every day and a backup button for a copy of your own.
 
-## Run it
+## Install it
+
+Download the files from the [releases](https://github.com/metalpietie/typewriter/releases) on GitHub.
+
+- **Windows, installed:** run `typewriter-<version>-windows-x64-installer.exe`. It installs for you only, in `%LOCALAPPDATA%\Programs\Typewriter`, with no admin prompt. You can choose a desktop shortcut. A newer installer updates the app in place.
+- **Windows, portable:** run `typewriter-<version>-windows-x64.exe` from any folder. It is the same program as the installed one.
+- **Linux:** download `typewriter-<version>-linux-x64`, make it runnable (`chmod +x`), and start it.
+
+**Windows warns about the installer.** It is not signed with a bought certificate, so Windows shows "Windows protected your PC". Click **More info**, then **Run anyway**.
+
+The installed and the portable app use the same data folder (see [Your data](#your-data)). Uninstalling (Settings > Apps) removes the program and keeps your writing and your settings.
+
+## Run it from the code
 
 Build once, then start the app:
 
@@ -116,10 +128,7 @@ The app saves as you type. There is no save button.
 
 ## Making a release
 
-1. Change the version in two places: `Version` in `version.go`, and `version` in `build/config.yml`. A test fails if they differ.
-2. Run `wails3 task common:update:build-assets`, so the Windows and Linux files use the new version.
-3. Build: `wails3 build` (Windows) and `wails3 task linux:build` (Linux, needs Docker). Build Windows last, because the Linux build can remove `bin\typewriter.exe`.
-4. Commit, then tag and push: `git tag -a v1.0.1 -m "Typewriter 1.0.1"`, then `git push && git push origin v1.0.1`.
+See [docs/releasing.md](docs/releasing.md). In short: set the version, write `release-notes/<version>.md`, commit, tag and push, then run `wails3 task release`. It builds Windows, Linux and the installer, signs the files, and uploads them to the GitHub release.
 
 ## Project layout
 

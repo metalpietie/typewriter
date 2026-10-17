@@ -4,6 +4,7 @@
   import { db } from '../lib/db.svelte';
   import Backup from '../lib/Backup.svelte';
   import PhoneSyncPanel from '../lib/PhoneSyncPanel.svelte';
+  import UpdatesPanel from '../lib/UpdatesPanel.svelte';
   import CoverEditor from '../lib/CoverEditor.svelte';
   import { getCover } from '../lib/cover';
   import { cleanPages, copyrightStarter, SCENE_BREAKS, CHAPTER_STYLES, CITATION_STYLES } from '../lib/exportpages-core';
@@ -196,4 +197,5 @@
 
   <Backup />
   <PhoneSyncPanel />
+  <UpdatesPanel />
 </div>

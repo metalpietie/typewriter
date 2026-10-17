@@ -4,10 +4,12 @@
 import * as Exporter from "./exporter.js";
 import * as PhoneSync from "./phonesync.js";
 import * as Store from "./store.js";
+import * as Updates from "./updates.js";
 export {
     Exporter,
     PhoneSync,
-    Store
+    Store,
+    Updates
 };
 
 export type {
@@ -23,5 +25,6 @@ export type {
     RestoreResult,
     Shelf,
     ShelfBook,
-    SyncStatus
+    SyncStatus,
+    UpdateInfo
 } from "./models.js";
