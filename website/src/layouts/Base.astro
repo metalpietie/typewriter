@@ -9,6 +9,11 @@ interface Props { title: string; description: string }
 const { title, description } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
 const og = Astro.site ? new URL(base + 'og.png', Astro.site).href : base + 'og.png';
+// Umami (visitor counts, no cookies). Only when both are set at build time, so a local build tracks nothing.
+// data-domains: only count visits on the real site, not on a test copy.
+const umamiSrc = import.meta.env.PUBLIC_UMAMI_SRC;
+const umamiId = import.meta.env.PUBLIC_UMAMI_ID;
+const umamiDomains = Astro.site?.hostname;
 ---
 <!doctype html>
 <html lang="en">
@@ -25,6 +30,7 @@ const og = Astro.site ? new URL(base + 'og.png', Astro.site).href : base + 'og.p
   <meta property="og:image" content={og} />
   <meta name="twitter:card" content="summary_large_image" />
   <script is:inline>document.documentElement.classList.add('js');</script>
+  {umamiSrc && umamiId && <script is:inline defer src={umamiSrc} data-website-id={umamiId} data-domains={umamiDomains}></script>}
 </head>
 <body>
   <div class="aurora" aria-hidden="true"></div>
