@@ -46,6 +46,8 @@ const os = detectOS();
 document.documentElement.dataset.os = os;
 document.querySelectorAll<HTMLElement>('[data-os-only]').forEach((el) => (el.hidden = el.dataset.osOnly !== os));
 document.querySelectorAll<HTMLElement>('[data-os-label]').forEach((el) => (el.textContent = os === 'windows' ? 'for Windows' : os === 'linux' ? 'for Linux' : ''));
+// Umami counts the click on the main button by the file it really gave (see data-umami-event in the components)
+document.querySelectorAll<HTMLElement>('[data-dl="primary"]').forEach((el) => (el.dataset.umamiEventFile = os === 'windows' ? 'installer' : os === 'linux' ? 'linux' : 'release page'));
 
 // first with the links from the build, then with the newest ones
 const built = (kind: string) => document.querySelector<HTMLAnchorElement>(`[data-dl="${kind}"]`)?.href ?? '';

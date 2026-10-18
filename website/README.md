@@ -36,7 +36,11 @@ The `Dockerfile` builds the site and serves it with nginx (`nginx.conf`: caching
 3. **Build type:** Dockerfile. **Build path:** `website`. **Dockerfile path:** `Dockerfile`.
 4. **Watch paths:** `website/**`, so only changes to the site start a new build.
 5. **Domains:** add your domain, set the **container port** to `80`, and switch on HTTPS (Let's Encrypt).
-6. Optional, under **Build-time arguments**: `SITE_URL=https://your-domain`. It gives link previews a full address for the picture.
+6. Optional, under **Build-time arguments** (one per line):
+   - `SITE_URL=https://your-domain`: link previews get a full address for the picture, and Umami counts visits only on this domain.
+   - `PUBLIC_UMAMI_SRC=https://your-umami/script.js` and `PUBLIC_UMAMI_ID=<website id>`: visitor counts with [Umami](https://umami.is). Add the site in Umami first (**Settings > Websites > Add website**), then copy its ID. Without these two the site has no analytics.
+
+   Umami also counts clicks: **Download** (with the file: installer, portable, linux, release page, and where on the page), **GitHub** and **Release notes**. They are under **Events** in Umami.
 7. Press **Deploy**. With **Auto deploy** on, every push to `main` that changes `website/` builds the site again.
 
 A new app release needs no new build: the page reads the newest release from GitHub in the browser.

@@ -12,16 +12,16 @@ const { release } = Astro.props;
       <div class="kicker">Download <span data-version>{release.version ? 'v' + release.version : 'latest'}</span></div>
       <h2>Ready when you are.</h2>
       <p class="sub">Free, and it updates itself.</p>
-      <a class="btn" data-dl="primary" href={release.page}>↓ Download <span data-os-label></span></a>
+      <a class="btn" data-dl="primary" data-umami-event="Download" data-umami-event-file="primary" data-umami-event-place="download box" href={release.page}>↓ Download <span data-os-label></span></a>
       <div class="alt">
-        <span data-os-only="windows" hidden>No install? <a data-dl="portable" href={release.portable}>Portable .exe</a></span>
-        <span data-os-only="linux" hidden>Windows: <a data-dl="installer" href={release.installer}>installer</a></span>
+        <span data-os-only="windows" hidden>No install? <a data-dl="portable" data-umami-event="Download" data-umami-event-file="portable" data-umami-event-place="download box" href={release.portable}>Portable .exe</a></span>
+        <span data-os-only="linux" hidden>Windows: <a data-dl="installer" data-umami-event="Download" data-umami-event-file="installer" data-umami-event-place="download box" href={release.installer}>installer</a></span>
         <span data-os-only="other">
-          <a data-dl="installer" href={release.installer}>Windows installer</a>
-          <a data-dl="portable" href={release.portable}>Windows portable</a>
-          <a data-dl="linux" href={release.linux}>Linux</a>
+          <a data-dl="installer" data-umami-event="Download" data-umami-event-file="installer" data-umami-event-place="download box" href={release.installer}>Windows installer</a>
+          <a data-dl="portable" data-umami-event="Download" data-umami-event-file="portable" data-umami-event-place="download box" href={release.portable}>Windows portable</a>
+          <a data-dl="linux" data-umami-event="Download" data-umami-event-file="linux" data-umami-event-place="download box" href={release.linux}>Linux</a>
         </span>
-        <a data-dl="release" href={release.page}>Release notes</a>
+        <a data-dl="release" data-umami-event="Release notes" data-umami-event-place="download box" href={release.page}>Release notes</a>
       </div>
       <p class="note" data-os-only="windows" hidden>Windows may show "Windows protected your PC" the first time. Click <b>More info</b>, then <b>Run anyway</b>. The app is not signed with a paid certificate.</p>
       <p class="note" data-os-only="linux" hidden>Then make it runnable: <code>chmod +x typewriter-*-linux-x64</code>, and start it.</p>

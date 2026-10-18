@@ -6,14 +6,14 @@ interface Props { release: Release }
 const { release } = Astro.props;
 ---
 <header class="hero wrap">
-  <a class="badge reveal" data-dl="release" href={release.page}>
+  <a class="badge reveal" data-dl="release" data-umami-event="Release notes" data-umami-event-place="top badge" href={release.page}>
     <b data-version>{release.version ? 'v' + release.version : 'new'}</b>{release.title || 'See what is new'} →
   </a>
   <h1 class="reveal">Your story. <span class="grad">Your whole world.</span></h1>
   <p class="lede reveal">Typewriter is a desktop app for books and series. Write chapters, track characters, draw maps, and check for plot holes. All offline, all yours.</p>
   <div class="cta reveal">
-    <a class="btn" data-dl="primary" href={release.page}>↓ Download <span data-os-label></span></a>
-    <a class="btn ghost" href={REPO_URL}>★ GitHub</a>
+    <a class="btn" data-dl="primary" data-umami-event="Download" data-umami-event-file="primary" data-umami-event-place="top" href={release.page}>↓ Download <span data-os-label></span></a>
+    <a class="btn ghost" data-umami-event="GitHub" data-umami-event-place="top" href={REPO_URL}>★ GitHub</a>
   </div>
   <div class="meta reveal">free · no account · windows + linux</div>
   <div class="stage reveal">
