@@ -1,9 +1,9 @@
 // What the card shows when you point at an @ link in the text. No imports, so it can be tested alone.
 
-export type PeekKind = 'character' | 'location' | 'note' | 'faction' | 'item';
+export type PeekKind = 'character' | 'location' | 'note' | 'faction' | 'item' | 'term';
 export type Peek = { title: string; sub: string; text: string; color: string };
 
-const WORD: Record<PeekKind, string> = { character: 'Character', location: 'Place', note: 'Lore', faction: 'Faction', item: 'Item' };
+const WORD: Record<PeekKind, string> = { character: 'Character', location: 'Place', note: 'Lore', faction: 'Faction', item: 'Item', term: 'Glossary' };
 export const MAX_TEXT = 180;
 
 /** Plain text of a bit of HTML (a lore note body), with the spaces made tidy. */
@@ -25,10 +25,10 @@ export function clip(text: string, max = MAX_TEXT): string {
 /** The card of one item. A missing item (deleted) gives null. */
 export function peekOf(kind: PeekKind, it: Record<string, any> | null | undefined): Peek | null {
   if (!it) return null;
-  const title = String((kind === 'note' ? it.title : it.name) ?? '').trim() || 'Untitled';
+  const title = String((kind === 'note' ? it.title : kind === 'term' ? it.word : it.name) ?? '').trim() || 'Untitled';
   const kindWord = String((kind === 'note' ? it.category : kind === 'character' ? it.role : it.type) ?? '').trim();
   const sub = [WORD[kind], kindWord].filter(Boolean).join(' · ');
-  const raw = kind === 'note' ? plain(it.body) : String(it.description ?? '').replace(/\s+/g, ' ').trim();
+  const raw = kind === 'note' ? plain(it.body) : String((kind === 'term' ? it.meaning : it.description) ?? '').replace(/\s+/g, ' ').trim();
   const color = kind === 'character' || kind === 'faction' ? String(it.color ?? '') : '';
   return { title, sub, text: clip(raw), color };
 }

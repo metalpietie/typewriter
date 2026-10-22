@@ -345,10 +345,11 @@ Select some text in a scene and press **💬** in the toolbar. The text is marke
 
 ![The card of a character, shown when you point at an @ link](images/name-card.png)
 
-Type **@** in a scene (or press **@** in the toolbar). A list opens with your characters, places, and lore notes. Keep typing to narrow it. Use the arrow keys and **Enter** (or click) to pick one.
+Type **@** in a scene (or press **@** in the toolbar). A list opens with your characters, places, lore notes, factions, items and glossary words, and your sources (only the tools that are on in this project). Keep typing to narrow it. Use the arrow keys and **Enter** (or click) to pick one.
 
 - The name goes into the text as a link, shown in the accent colour with a dotted line. It prints as normal text.
-- **Point at** a link for a moment: a small card shows who or what it is, with a short description. **Open** opens it, **Show beside** shows it in the reference pane. A click only moves the cursor, so writing is not interrupted.
+- A **source** (marked **cite** in the list) goes in as a citation, the same as the **Cite** button. Click the citation to add a page. This is how @ works in a non-fiction project: glossary words and sources.
+- **Point at** a link for a moment: a small card shows who or what it is, with a short description. **Open** opens it, **Show beside** shows it in the reference pane (for characters, places and lore notes). A click only moves the cursor, so writing is not interrupted.
 - **Ctrl+click** a link to open that character, place, or note.
 - The link stays if you rename the item later. The text does not change by itself.
 - A tagged character counts as in the scene for the name check.

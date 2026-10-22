@@ -2,7 +2,7 @@ import { db, type Item } from './db.svelte';
 import { scenesOf, sceneLabel } from './scenes';
 import { namesOf, pattern } from './mentions';
 
-export type LinkKind = 'character' | 'location' | 'note' | 'faction' | 'item';
+export type LinkKind = 'character' | 'location' | 'note' | 'faction' | 'item' | 'term';
 
 /** What an @ link can point at. */
 export const LINK_KINDS: { kind: LinkKind; word: string }[] = [
@@ -11,10 +11,11 @@ export const LINK_KINDS: { kind: LinkKind; word: string }[] = [
   { kind: 'note', word: 'lore' },
   { kind: 'faction', word: 'faction' },
   { kind: 'item', word: 'item' },
+  { kind: 'term', word: 'glossary' },
 ];
 
 /** The name an item goes by in the text. */
-export const labelOf = (kind: LinkKind, it: Item): string => String((kind === 'note' ? it.title : it.name) ?? '').trim();
+export const labelOf = (kind: LinkKind, it: Item): string => String((kind === 'note' ? it.title : kind === 'term' ? it.word : it.name) ?? '').trim();
 
 export type Back = { scene: Item; label: string; tagged: boolean; named: number };
 
