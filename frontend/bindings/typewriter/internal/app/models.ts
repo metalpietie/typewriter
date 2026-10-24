@@ -230,6 +230,22 @@ export interface PairingInfo {
 }
 
 /**
+ * ProjectDays is the writing days of one project.
+ */
+export interface ProjectDays {
+    "id": string;
+    "name": string;
+    "group": string;
+    "current": boolean;
+
+    /**
+     * set when the data file of this project could not be read
+     */
+    "problem": string;
+    "days": WordDay[] | null;
+}
+
+/**
  * ProjectInfo says which project the notes belong to.
  */
 export interface ProjectInfo {
@@ -367,4 +383,14 @@ export interface UpdateInfo {
      * why it cannot
      */
     "why": string;
+}
+
+/**
+ * WordDay is the count of one day in one project. Books splits it by book (book id → words); days from before the
+ * split was kept have no Books.
+ */
+export interface WordDay {
+    "date": string;
+    "words": number;
+    "books"?: { [_ in string]?: number } | null;
 }

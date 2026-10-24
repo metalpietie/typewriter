@@ -22,12 +22,16 @@ async function todayRow(): Promise<Item> {
   return making;
 }
 
-/** Add to today's count (a negative number when words were cut). Called while you type. */
-export async function addWords(delta: number) {
+/**
+ * Add to today's count (a negative number when words were cut). Called while you type.
+ * book: the book the words are in. The day keeps a count per book too (books: book id → words), for the statistics of one book.
+ */
+export async function addWords(delta: number, book?: number | null) {
   if (!delta) return;
   noteWords(delta); // the Pomodoro round counts it too
   const row = await todayRow();
   row.words = (row.words ?? 0) + delta;
+  if (book) row.books = { ...(row.books ?? {}), [book]: (row.books?.[book] ?? 0) + delta };
   db.queue('wordday', row);
 }
 
@@ -48,11 +52,36 @@ export async function setDailyGoal(n: number) {
   await db.save('setting', { ...(row ?? {}), key: 'dailyGoal', value: Math.max(0, Math.floor(n) || 0) });
 }
 
+/** Words per day ("2026-10-03" → words), never below 0. The statistics screen can count other days than the open project's. */
+export type Days = Map<string, number>;
+
+/** One day row of a project: the words of the whole project, or of one book. */
+export type DayRow = { date?: string; words?: number; books?: Record<string, number> | null };
+
+/** The days of a list of day rows. With a book: only the words of that book (a day from before the count per book was kept counts 0). */
+export function daysOf(rows: DayRow[], book?: number | null): Days {
+  const out: Days = new Map();
+  for (const r of rows) {
+    const w = book == null ? r.words ?? 0 : r.books?.[book] ?? 0;
+    if (r.date) out.set(r.date, (out.get(r.date) ?? 0) + Math.max(0, w));
+  }
+  return out;
+}
+
+/** Adds up the days of several projects. */
+export function addDays(list: Days[]): Days {
+  const out: Days = new Map();
+  for (const days of list) for (const [k, w] of days) out.set(k, (out.get(k) ?? 0) + w);
+  return out;
+}
+
+const ownDays = (): Days => daysOf(db.lists.wordday as DayRow[]);
+
 /** The last `n` days, oldest first. */
-export function lastDays(n: number): { key: string; date: Date; words: number }[] {
+export function lastDays(n: number, days: Days = ownDays()): { key: string; date: Date; words: number }[] {
   return Array.from({ length: n }, (_, i) => {
     const date = daysAgo(n - 1 - i);
-    return { key: dayKey(date), date, words: wordsOn(dayKey(date)) };
+    return { key: dayKey(date), date, words: days.get(dayKey(date)) ?? 0 };
   });
 }
 
@@ -60,13 +89,13 @@ export function lastDays(n: number): { key: string; date: Date; words: number }[
  * Days in a row that reached the goal (with no goal set: days with any writing).
  * Today does not break the streak while it is still going: it counts only once it reaches the goal.
  */
-export function streak(): { current: number; best: number } {
-  const need = dailyGoal() || 1;
-  const hit = (key: string) => wordsOn(key) >= need;
+export function streak(days: Days = ownDays(), goal = dailyGoal()): { current: number; best: number } {
+  const need = goal || 1;
+  const hit = (key: string) => (days.get(key) ?? 0) >= need;
   let current = 0;
   for (let i = hit(dayKey()) ? 0 : 1; hit(dayKey(daysAgo(i))); i++) current++;
 
-  const keys = db.lists.wordday.map((d) => d.date as string).filter(hit).sort();
+  const keys = [...days.keys()].filter(hit).sort();
   let best = 0, run = 0, prev = '';
   for (const k of keys) {
     run = prev && dayKey(new Date(new Date(prev + 'T12:00:00').getTime() + 864e5)) === k ? run + 1 : 1;
