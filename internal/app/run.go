@@ -84,7 +84,7 @@ func Run(assets fs.FS) {
 		StartState:       start,
 		Width:            1280,
 		Height:           800,
-		BackgroundColour: application.NewRGB(17, 22, 29),
+		BackgroundColour: application.NewRGB(12, 17, 24), // --bg of the dark theme, so the window does not flash while it loads
 		URL:              "/",
 	})
 

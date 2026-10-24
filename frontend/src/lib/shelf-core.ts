@@ -80,3 +80,23 @@ export function bookLine(chapters: number, words: number, chapterWord = 'chapter
   const c = `${chapters} ${chapterWord}${chapters === 1 ? '' : 's'}`;
   return `${c} · ${words.toLocaleString('en-US')} words`;
 }
+
+/** One shelf on the screen: a project alone, or a group of projects (each with its own world) shown as one shelf. */
+export type ShelfEntry<T> = { kind: 'one'; shelf: T } | { kind: 'group'; name: string; members: T[] };
+
+/** The shelves as the screen shows them. A group stands where its first project stands; its projects keep their order. */
+export function groupShelves<T extends { group?: string }>(list: T[]): ShelfEntry<T>[] {
+  const out: ShelfEntry<T>[] = [];
+  const groups = new Map<string, { kind: 'group'; name: string; members: T[] }>();
+  for (const s of list) {
+    const name = (s.group ?? '').trim();
+    if (!name) { out.push({ kind: 'one', shelf: s }); continue; }
+    let g = groups.get(name);
+    if (!g) { g = { kind: 'group', name, members: [] }; groups.set(name, g); out.push(g); }
+    g.members.push(s);
+  }
+  return out;
+}
+
+/** The drop target of the add place of a group: a dragged book gets a new world there. */
+export const NEW_WORLD = 'new:';

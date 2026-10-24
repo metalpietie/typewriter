@@ -77,6 +77,7 @@
   }
 
   let showFind = $state(false);
+  let statusH = $state(0); // the word count bar at the bottom: the Vim label sits above it
   let showHistory = $state(false);
   let showSnaps = $state(false);
   let rich = $state<any>(); // the open editor, to point at a comment
@@ -481,7 +482,7 @@
     {/if}
   </aside>
 
-  <section class="pane">
+  <section class="pane" style:--covered-below={statusH && !nav.focus ? `calc(${statusH}px - 1.2rem)` : null}>
     {#if !nav.focus}
       {#if sceneMsg}<div class="chip scenemsg" role="status">{sceneMsg}</div>{/if}
       <div class="tools">
@@ -508,7 +509,7 @@
       {#if nav.focus}
         <div class="focus-hud">{#if miniText()}<span>{miniText()}</span>{/if}{words.toLocaleString()} words · today {wordsToday().toLocaleString()}{dailyGoal() ? ' / ' + dailyGoal().toLocaleString() : ''} <SaveIndicator /> <span>Esc to leave</span></div>
       {:else}
-        <div class="statusbar">
+        <div class="statusbar" bind:offsetHeight={statusH}>
         <GoalBars levels={[{ scope: 'book', words: total, goal: Number(book?.goal) || 0 }, { scope: 'chapter', words: chapWords, goal: chap ? goalOf(chap) : 0 }, { scope: 'scene', words, goal: Number(scene.goal) || 0 }]} />
         <p class="muted">
           {word('Scene')}: {words.toLocaleString()}{Number(scene.goal) ? ' / ' + Number(scene.goal).toLocaleString() : ''} words{pctText(words, Number(scene.goal))}

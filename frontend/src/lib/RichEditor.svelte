@@ -16,6 +16,7 @@
   import SaveIndicator from './SaveIndicator.svelte';
   import { db } from './db.svelte';
   import { type LinkKind } from './backlinks';
+  import { refKindOf } from './reference-core';
   import { linkTargets, type Cand } from './linktargets';
   import SelectionMenu from './SelectionMenu.svelte';
   import PeekCard from './PeekCard.svelte';
@@ -227,7 +228,7 @@
     if (sug && editor) Object.assign(sug, place(editor.state.selection.from, sug.items.length));
   }
 
-  const candidates = (q: string): Cand[] => linkTargets(q);
+  const candidates = (q: string): Cand[] => linkTargets(q, 8, { sources: true });
 
   /** Open, move or close the pop-up, depending on the text before the cursor. */
   function checkSuggest() {
@@ -249,6 +250,11 @@
     if (!editor || !sug) return;
     const { from, to } = sug;
     sug = null;
+    // a source becomes a citation, like the Cite button; click it to add a page
+    if (c.kind === 'source') {
+      editor.chain().focus().insertContentAt({ from, to }, [{ type: 'cite', attrs: { source: c.id, loc: '' } }, { type: 'text', text: ' ' }]).run();
+      return;
+    }
     editor.chain().focus().insertContentAt({ from, to }, [
       { type: 'text', text: c.label, marks: [{ type: 'ref', attrs: { to: c.kind + ':' + c.id } }] },
       { type: 'text', text: ' ' },
@@ -528,7 +534,7 @@
 
   onMount(() => {
     create(value);
-    if (autofocus) requestAnimationFrame(takeFocus);
+    if (autofocus) setTimeout(takeFocus); // after the page is drawn (a timer also runs when the window is in the background)
     window.addEventListener('scroll', follow, true); // capture: the page scrolls inside a panel
     window.addEventListener('scroll', hidePeek, true); // the card would stay where the link was
     const onKeyUp = (e: KeyboardEvent) => { if (NAV_KEYS.has(e.key)) keepCentred(); if (vimOn) syncVim(); };
@@ -604,7 +610,7 @@
 
 {#if editor}
   <!-- made again when the editor is made again (the Vim keys switched), so it listens to the new one -->
-  {#if peek}<PeekCard kind={peek.kind} id={peek.id} at={peek.at} onopen={fromPeek(onopenref)} onbeside={fromPeek(onbeside)}
+  {#if peek}<PeekCard kind={peek.kind} id={peek.id} at={peek.at} onopen={fromPeek(onopenref)} onbeside={refKindOf(peek.kind) ? fromPeek(onbeside) : undefined}
     onenter={() => { inPeek = true; clearTimeout(hideTimer); }} onleave={() => { inPeek = false; hidePeekSoon(); }} />{/if}
   {#key editor}<SelectionMenu {editor} redraw={tick} {source} vim={look.vim} {onfind} oncomment={oncomment ? addComment : undefined} oncite={addCitation} onfootnote={addFootnote} />{/key}
 {/if}
@@ -659,7 +665,7 @@
   .rich-bar[hidden] { display: none; }
   /* Vim keys: the block cursor takes the colours of the app, and a label shows the mode */
   .rich.vim { --vim-cursor-bg: var(--accent); --vim-cursor-fg: var(--on-accent); }
-  .vimmode { position: sticky; bottom: .5rem; margin-left: auto; width: fit-content; z-index: 3; font: .72rem ui-monospace, Consolas, monospace; letter-spacing: .04em; padding: .15rem .55rem; border-radius: 6px; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); pointer-events: none; }
+  .vimmode { position: sticky; bottom: calc(var(--covered-below, 0px) + .5rem); margin-left: auto; width: fit-content; z-index: 3; font: .72rem ui-monospace, Consolas, monospace; letter-spacing: .04em; padding: .15rem .55rem; border-radius: 6px; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); pointer-events: none; }
   .vimmode[data-mode='normal'] { color: var(--accent); border-color: var(--accent); }
   .vimmode[data-mode='visual'], .vimmode[data-mode='visual-line'] { color: var(--danger); border-color: var(--danger); }
   .rich-bar button { padding: .2rem .55rem; min-width: 2rem; }

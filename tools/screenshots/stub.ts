@@ -69,6 +69,7 @@ if (!nonfiction) {
   const book = add('book', { title: 'Small Habits', synopsis: 'How tiny changes add up.', order: 1, goal: 50000, chapterGoal: 3000 });
   const c1 = add('chapter', { book, order: 1, title: 'Why habits matter', summary: 'Habits shape who we become.', goal: 0, takeaways: 'Small changes add up\nSystems beat goals' });
   add('scene', { chapter: c1, book, order: 1, title: 'The power of one percent', status: 'draft', summary: 'Tiny gains compound.', goal: 0, body: '<p>Getting one percent better each day sounds small. Over a year it adds up to nearly thirty-seven times better.</p>' });
+  add('term', { word: 'Compounding', type: 'word', pronunciation: '', meaning: 'Small gains that build on earlier gains, so the total grows faster and faster over time.', accepted: '', notes: '' });
   add('source', { type: 'book', title: 'Atomic Habits', authors: 'Clear, James', year: '2018', container: '', publisher: 'Avery', volume: '', issue: '', pages: '', url: '', accessed: '', edition: '', status: 'read', note: 'The one percent idea is in chapter 1.' });
   add('source', { type: 'article', title: 'How are habits formed', authors: 'Lally, Phillippa\nWardle, Jane', year: '2010', container: 'European Journal of Social Psychology', publisher: '', volume: '40', issue: '6', pages: '998-1009', url: '', accessed: '', edition: '', status: 'to-read', note: '' });
   add('source', { type: 'web', title: 'Sleep and health', authors: 'World Health Organization,', year: '2022', container: 'WHO', publisher: '', volume: '', issue: '', pages: '', url: 'https://who.int/sleep', accessed: '2026-01-02', edition: '', status: 'quoted', note: '' });
@@ -76,7 +77,7 @@ if (!nonfiction) {
 
 // The bookshelf: three shelves (projects) with books. Changes stay in memory, so dragging a book can be tried.
 type FakeBook = { id: number; title: string; order: number; chapters: number; words: number; seed: number; hasCover: boolean; goalKind: string; goal: number; goalWords: number };
-const shelfData: { id: string; name: string; current: boolean; problem: string; books: FakeBook[] }[] = [
+const shelfData: { id: string; name: string; current: boolean; problem: string; group?: string; books: FakeBook[] }[] = [
   { id: 'default', name: nonfiction ? 'Small Habits' : 'The Clockmaker series', current: true, problem: '', books: [
     { id: rows.find((r) => r.kind === 'book')!.id, title: nonfiction ? 'Small Habits' : 'The Last Letter', order: 1, chapters: 2, words: 412, seed: 0, hasCover: false, goalKind: 'book', goal: 60000, goalWords: 412 },
     { id: 901, title: 'Winter Clocks', order: 2, chapters: 14, words: 61250, seed: 0, hasCover: false, goalKind: 'chapter', goal: 70000, goalWords: 61250 },
@@ -87,6 +88,13 @@ const shelfData: { id: string; name: string; current: boolean; problem: string; 
     { id: 12, title: 'Ten Small Doors', order: 2, chapters: 10, words: 33100, seed: 0, hasCover: false, goalKind: '', goal: 0, goalWords: 0 },
   ] },
   { id: 'p3', name: 'Ideas for later', current: false, problem: '', books: [] },
+  // a group: two practice novels on one shelf, each with a world of its own
+  { id: 'p4', name: 'Glass Harbour', group: 'Practice novels', current: false, problem: '', books: [
+    { id: 21, title: 'Glass Harbour', order: 1, chapters: 6, words: 18400, seed: 0, hasCover: false, goalKind: 'book', goal: 50000, goalWords: 18400 },
+  ] },
+  { id: 'p5', name: 'The Quiet Orchard', group: 'Practice novels', current: false, problem: '', books: [
+    { id: 22, title: 'The Quiet Orchard', order: 1, chapters: 2, words: 3900, seed: 0, hasCover: false, goalKind: '', goal: 0, goalWords: 0 },
+  ] },
 ];
 let fakeId = 1000;
 const shelfOf = (id: string) => shelfData.find((s) => s.id === id)!;
@@ -98,6 +106,17 @@ const shelfStub = {
   SetBookOrder: async (p: string, ids: number[]) => { const s = shelfOf(p); s.books = ids.map((id, i) => ({ ...s.books.find((b) => b.id === id)!, order: i + 1 })); },
   AddBook: async (p: string, title: string) => { const id = fakeId++; const s = shelfOf(p); s.books.push({ id, title: title.trim() || 'New book', order: s.books.length + 1, chapters: 0, words: 0, seed: 0, hasCover: false, goalKind: '', goal: 0, goalWords: 0 }); return id; },
   AddProject: async (name: string) => { const id = 'p' + fakeId++; shelfData.push({ id, name, current: false, problem: '', books: [] }); return id; },
+  SetProjectGroup: async (id: string, group: string) => { shelfOf(id).group = group.trim(); },
+  RenameGroup: async (old: string, name: string) => { for (const x of shelfData) if (x.group === old) x.group = name.trim(); },
+  AddWorld: async (group: string, name: string) => { const id = 'p' + fakeId++; shelfData.push({ id, name: name.trim() || 'New book', group, current: false, problem: '', books: [] }); return id; },
+  SplitShelf: async (id: string) => {
+    const x = shelfOf(id); const group = x.group || x.name; x.group = group;
+    const [first, ...rest] = x.books; x.books = first ? [first] : []; if (first) x.name = first.title;
+    for (const b of rest) shelfData.push({ id: 'p' + fakeId++, name: b.title, group, current: false, problem: '', books: [{ ...b, order: 1 }] });
+  },
+  OrderGroup: async (group: string, ids: string[]) => { const at = shelfData.map((x, i) => (x.group === group ? i : -1)).filter((i) => i >= 0); const by = new Map(shelfData.map((x) => [x.id, x])); at.forEach((i, n) => (shelfData[i] = by.get(ids[n])!)); },
+  CopyItems: async (_from: string, _to: string, refs: unknown[]) => ({ items: refs.length, links: 0 }),
+  RemoveProject: async (id: string) => { const i = shelfData.findIndex((x) => x.id === id); if (i >= 0) shelfData.splice(i, 1); return 'C:/x/removed.db'; },
   MoveBook: async (from: string, id: number, to: string) => {
     await new Promise((r) => setTimeout(r, 400));
     const a = shelfOf(from), b = shelfOf(to), i = a.books.findIndex((x) => x.id === id);
@@ -124,8 +143,8 @@ export const Store = {
   InspectDataFolder: async (p: string) => ({ path: p, same: false, hasData: false }),
   MoveDataFolder: async () => {},
   DataPath: async () => 'C:\\Users\\you\\AppData\\Roaming\\typewriter\\typewriter.db',
-  Projects: async () => [{ id: 'default', name: nonfiction ? 'Small Habits' : 'The Last Letter', size: 40960, current: true }],
-  SwitchProject: async () => {}, NewProject: async () => 'p1', RenameProject: async (id: string, name: string) => { shelfOf(id).name = name; }, RemoveProject: async () => 'C:/x/removed.db',
+  Projects: async () => [{ id: 'default', name: nonfiction ? 'Small Habits' : 'The Last Letter', size: 40960, current: true, group: '' }, ...shelfData.filter((x) => x.id !== 'default').map((x) => ({ id: x.id, name: x.name, size: 20480, current: false, group: x.group ?? '' }))],
+  SwitchProject: async () => {}, NewProject: async () => 'p1', RenameProject: async (id: string, name: string) => { shelfOf(id).name = name; },
 };
 export const Exporter = {};
 

@@ -1,12 +1,14 @@
 import { db } from './db.svelte';
 import { LINK_KINDS, labelOf, type LinkKind } from './backlinks';
 import { hasKind } from './projecttype.svelte';
+import { sourceLine } from './cite-core';
 
-/** Something an @ link can point at. */
-export type Cand = { kind: LinkKind; id: number; label: string; word: string; also: string };
+/** Something an @ link can point at. A source is not a link: picking it puts in a citation. */
+export type Cand = { kind: LinkKind | 'source'; id: number; label: string; word: string; also: string };
 
-/** The characters, places, lore, factions and items that match what you typed. The best match is first. */
-export function linkTargets(q: string, limit = 8): Cand[] {
+/** The characters, places, lore, factions, items and glossary words that match what you typed, and with sources: true
+ *  also the sources (the @ list in the text). The best match is first. */
+export function linkTargets(q: string, limit = 8, opts: { sources?: boolean } = {}): Cand[] {
   const query = q.trim().toLowerCase();
   const all: Cand[] = [];
   for (const { kind, word } of LINK_KINDS) {
@@ -15,6 +17,9 @@ export function linkTargets(q: string, limit = 8): Cand[] {
       const label = labelOf(kind, it);
       if (label) all.push({ kind, id: it.id, label, word, also: String(it.aliases ?? '').toLowerCase() });
     }
+  }
+  if (opts.sources && hasKind('source')) {
+    for (const s of db.lists.source) all.push({ kind: 'source', id: s.id, label: sourceLine(s), word: 'cite', also: String(s.title ?? '').toLowerCase() });
   }
   if (!query) return all.slice(0, limit);
   const score = (c: Cand) => {

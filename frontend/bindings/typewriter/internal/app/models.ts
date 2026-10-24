@@ -19,6 +19,21 @@ export interface AutoBackup {
 }
 
 /**
+ * CopyReport says what was copied.
+ */
+export interface CopyReport {
+    /**
+     * the items that were picked
+     */
+    "items": number;
+
+    /**
+     * relationships, members, faction ties and mood board pictures that came along
+     */
+    "links": number;
+}
+
+/**
  * DataFolderInfo is what the screen shows about where your data lives.
  */
 export interface DataFolderInfo {
@@ -189,6 +204,14 @@ export interface FolderCheck {
 }
 
 /**
+ * ItemRef names one item to copy.
+ */
+export interface ItemRef {
+    "kind": string;
+    "id": number;
+}
+
+/**
  * PairingInfo is what the Add a phone window shows.
  */
 export interface PairingInfo {
@@ -226,6 +249,7 @@ export interface ProjectItem {
      */
     "size": number;
     "current": boolean;
+    "group": string;
 }
 
 /**
@@ -255,6 +279,11 @@ export interface Shelf {
     "id": string;
     "name": string;
     "current": boolean;
+
+    /**
+     * projects with the same group show as one shelf (shelfgroups.go)
+     */
+    "group": string;
 
     /**
      * set when the data file of this project could not be read

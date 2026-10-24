@@ -2,6 +2,7 @@
   import { untrack } from 'svelte';
   import Select from '../lib/Select.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
+  import CopyButton from '../lib/CopyButton.svelte';
   import { db, plainText } from '../lib/db.svelte';
   import { nav, openScene } from '../lib/nav.svelte';
   import { orderedScenes, sceneLabel } from '../lib/scenes';
@@ -96,7 +97,7 @@
 
   <section class="pane">
     {#if sel}
-      <div class="head"><h2>{sel.word || 'Untitled word'}</h2><ConfirmButton onconfirm={del} /></div>
+      <div class="head"><h2>{sel.word || 'Untitled word'}</h2><span class="row fit" style="gap:.3rem"><CopyButton kind="term" id={sel.id} /><ConfirmButton onconfirm={del} /></span></div>
       <div class="grid2">
         <div><label for="gword">Word</label><input id="gword" bind:value={sel.word} oninput={save} onchange={recheck} /></div>
         <div><label for="gtype">Type</label>

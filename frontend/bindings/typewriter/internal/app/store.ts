@@ -30,6 +30,14 @@ export function AddProject(name: string): $CancellablePromise<string> {
 }
 
 /**
+ * AddWorld makes a new project in a group, for one book with a world of its own. It takes over the project type,
+ * the tools and the daily goal of the project like (another project of the group). It does not open the new project.
+ */
+export function AddWorld(group: string, name: string, like: string): $CancellablePromise<string> {
+    return $Call.ByID(4053914816, group, name, like);
+}
+
+/**
  * AutoBackups lists the daily copies, newest first.
  */
 export function AutoBackups(): $CancellablePromise<$models.AutoBackup[] | null> {
@@ -56,6 +64,13 @@ export function BookCover(project: string, book: number): $CancellablePromise<st
  */
 export function ChooseDataFolder(): $CancellablePromise<string> {
     return $Call.ByID(811999484);
+}
+
+/**
+ * CopyItems copies items from one project to another. Nothing in the first project changes.
+ */
+export function CopyItems($from: string, to: string, refs: $models.ItemRef[] | null): $CancellablePromise<$models.CopyReport> {
+    return $Call.ByID(850914248, $from, to, refs);
 }
 
 export function DataFolder(): $CancellablePromise<$models.DataFolderInfo> {
@@ -141,6 +156,14 @@ export function OpenBackupFolder(): $CancellablePromise<void> {
 }
 
 /**
+ * OrderGroup puts the projects (worlds) of a group in this order on its shelf. ids must be exactly the projects of the
+ * group. Projects outside the group keep their places.
+ */
+export function OrderGroup(group: string, ids: string[] | null): $CancellablePromise<void> {
+    return $Call.ByID(2028679470, group, ids);
+}
+
+/**
  * Projects lists every project and says which one is open.
  */
 export function Projects(): $CancellablePromise<$models.ProjectItem[] | null> {
@@ -153,6 +176,13 @@ export function Projects(): $CancellablePromise<$models.ProjectItem[] | null> {
  */
 export function RemoveProject(id: string): $CancellablePromise<string> {
     return $Call.ByID(2126351286, id);
+}
+
+/**
+ * RenameGroup gives every project of a group the new group name.
+ */
+export function RenameGroup(old: string, name: string): $CancellablePromise<void> {
+    return $Call.ByID(2170700090, old, name);
 }
 
 /**
@@ -206,10 +236,27 @@ export function SetBookSeed(project: string, book: number, seed: number): $Cance
 }
 
 /**
+ * SetProjectGroup puts a project in a group (a shelf of its own worlds), or takes it out with "".
+ */
+export function SetProjectGroup(id: string, group: string): $CancellablePromise<void> {
+    return $Call.ByID(1145813203, id, group);
+}
+
+/**
  * Shelves lists every project with the books in it.
  */
 export function Shelves(): $CancellablePromise<$models.Shelf[] | null> {
     return $Call.ByID(3692083699);
+}
+
+/**
+ * SplitShelf gives every book of a shelf its own world: the shelf becomes a group, and each book after the first moves
+ * to a new project of that group (as MoveBook does: the text comes along, the world stays with the first book).
+ * The project keeps the first book and is named after it. It stops at the first book that cannot move; the books that
+ * moved before stay moved.
+ */
+export function SplitShelf(id: string): $CancellablePromise<void> {
+    return $Call.ByID(333267637, id);
 }
 
 /**

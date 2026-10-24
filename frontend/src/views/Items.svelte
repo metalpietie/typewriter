@@ -5,6 +5,7 @@
   import { logsOf, nowOf } from '../lib/items';
   import { orderedScenes, sceneLabel } from '../lib/scenes';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
+  import CopyButton from '../lib/CopyButton.svelte';
   import Backlinks from '../lib/Backlinks.svelte';
 
   let selId = $state<number | null>(null);
@@ -75,7 +76,7 @@
 
   <section class="pane">
     {#if sel}
-      <div class="head"><h2>{sel.name}</h2><ConfirmButton onconfirm={del} /></div>
+      <div class="head"><h2>{sel.name}</h2><span class="row fit" style="gap:.3rem"><CopyButton kind="item" id={sel.id} /><ConfirmButton onconfirm={del} /></span></div>
       <div class="grid2">
         <div><label>Name</label><input bind:value={sel.name} oninput={save} /></div>
         <div><label>Type</label>

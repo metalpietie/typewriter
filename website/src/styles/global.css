@@ -1,7 +1,7 @@
 /* Shared look of the site: colours, type, buttons, headings and the scroll-in animation. */
 :root {
-  --bg: #08090d; --panel: #111219; --line: rgba(255, 255, 255, .08); --text: #ecedf5; --muted: #8a8da8;
-  --accent: #8082ff; --accent-2: #2ee6f0;
+  --bg: #070b11; --panel: #0f1620; --line: rgba(255, 255, 255, .08); --text: #e6edf5; --muted: #8796ab;
+  --accent: #3d8bf6; --accent-2: #2ee6f0;
   --sans: 'Inter Tight Variable', system-ui, sans-serif; --mono: 'JetBrains Mono', ui-monospace, monospace;
   color-scheme: dark;
 }
@@ -19,7 +19,7 @@ section { padding: 120px 0; }
 h2 { font-size: clamp(34px, 5vw, 60px); letter-spacing: -.035em; line-height: 1.04; margin: 12px 0 18px; font-weight: 700; }
 .sub { color: var(--muted); max-width: 54ch; font-size: 18px; }
 
-.btn { position: relative; display: inline-flex; align-items: center; gap: 10px; padding: 13px 22px; border-radius: 12px; font-weight: 600; color: #fff; background: linear-gradient(135deg, var(--accent), #5b5dff); box-shadow: 0 0 0 1px rgba(255, 255, 255, .15) inset, 0 10px 30px -10px var(--accent); transition: transform .2s, box-shadow .2s; overflow: hidden; }
+.btn { position: relative; display: inline-flex; align-items: center; gap: 10px; padding: 13px 22px; border-radius: 12px; font-weight: 600; color: #fff; background: linear-gradient(135deg, var(--accent), #1f6fe0); box-shadow: 0 0 0 1px rgba(255, 255, 255, .15) inset, 0 10px 30px -10px var(--accent); transition: transform .2s, box-shadow .2s; overflow: hidden; }
 .btn::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, .35) 50%, transparent 70%); transform: translateX(-100%); transition: transform .7s; }
 .btn:hover { transform: translateY(-2px); box-shadow: 0 0 0 1px rgba(255, 255, 255, .25) inset, 0 16px 40px -10px var(--accent); }
 .btn:hover::after { transform: translateX(100%); }
@@ -27,7 +27,7 @@ h2 { font-size: clamp(34px, 5vw, 60px); letter-spacing: -.035em; line-height: 1.
 .btn.ghost { background: rgba(255, 255, 255, .04); box-shadow: 0 0 0 1px var(--line) inset; }
 
 /* the screenshot that tilts with the mouse (scripts/effects.ts) */
-.tilt { position: relative; border-radius: 16px; border: 1px solid var(--line); overflow: hidden; transition: transform .2s ease-out; box-shadow: 0 50px 120px -30px rgba(128, 130, 255, .45), 0 0 0 1px rgba(255, 255, 255, .04); }
+.tilt { position: relative; border-radius: 16px; border: 1px solid var(--line); overflow: hidden; transition: transform .2s ease-out; box-shadow: 0 50px 120px -30px rgba(61, 139, 246, .45), 0 0 0 1px rgba(255, 255, 255, .04); }
 .tilt img { display: block; width: 100%; }
 .tilt .glare { position: absolute; inset: 0; background: radial-gradient(circle at var(--gx, 50%) var(--gy, 0%), rgba(255, 255, 255, .18), transparent 40%); pointer-events: none; }
 

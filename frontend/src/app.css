@@ -5,10 +5,11 @@
 @font-face { font-family: 'JetBrainsMono NF'; src: url('/fonts/JetBrainsMonoNLNerdFontMono-BoldItalic.woff2') format('woff2'); font-weight: 700; font-style: italic; font-display: swap; }
 
 :root {
-  --bg: #0f1014; --panel: #16171d; --panel-2: #1f2029; --line: #262833;
-  --text: #e8e9f0; --muted: #8184a0; --accent: #8082ff; --accent-2: #8082ff;
+  /* the colours of the icon: a blue that leans to cyan, on a deep navy */
+  --bg: #0c1118; --panel: #121a24; --panel-2: #1a2430; --line: #23303e;
+  --text: #e6edf5; --muted: #7f90a6; --accent: #3d8bf6; --accent-2: #3d8bf6;
   --danger: #e0706a; --ok: #6bbf8a;
-  --stage: #0a0a0e; --on-accent: #ffffff;
+  --stage: #070c12; --on-accent: #ffffff;
   font-family: Inter, "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
   color-scheme: dark;
 }
@@ -114,10 +115,10 @@ button:disabled { opacity: .4; cursor: default; }
 .nav .brand img { width: 28px; height: 28px; }
 
 :root[data-theme="light"] {
-  --bg: #f5f5fa; --panel: #ffffff; --panel-2: #eeeef7; --line: #e4e4ef;
-  --text: #1a1b26; --muted: #767a95; --accent: #5b5bd6; --accent-2: #5b5bd6;
+  --bg: #f3f6fa; --panel: #ffffff; --panel-2: #eaf0f7; --line: #dde5ef;
+  --text: #142030; --muted: #66768c; --accent: #1f6fe0; --accent-2: #1f6fe0;
   --danger: #c9453e; --ok: #1f9a5a;
-  --stage: #ebebf4; --on-accent: #ffffff;
+  --stage: #e6edf5; --on-accent: #ffffff;
   color-scheme: light;
 }
 .nav .foot button { width: 100%; margin-bottom: .6rem; }
@@ -153,7 +154,7 @@ input, select, textarea { transition: border-color var(--m-dur) var(--m-ease), b
 input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
 
 
-/* ---- The look: soft shapes, dense type, an indigo accent. Colours are the variables at the top. ---- */
+/* ---- The look: soft shapes, dense type, a blue accent (the blue of the icon). Colours are the variables at the top. ---- */
 body { font-size: 13px; }
 .app { background: var(--bg); }
 .nav { margin: .5rem 0 .5rem .5rem; height: calc(100% - 1rem); border-radius: 14px; border: 1px solid var(--line); padding: .8rem .45rem; gap: 1px; box-shadow: 0 4px 18px rgba(0, 0, 0, .12); }

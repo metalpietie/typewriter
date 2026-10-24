@@ -16,7 +16,7 @@
   import { bezier } from './motion-core';
   import { generatedCover, savedCover, forgetCovers } from './shelfcover';
   import ProgressBar from './ProgressBar.svelte';
-  import { bookLine, dragStarted, dropIndex, edgeScroll, insertAt, shelfAt } from './shelf-core';
+  import { bookLine, dragStarted, dropIndex, edgeScroll, groupShelves, insertAt, NEW_WORLD, shelfAt } from './shelf-core';
 
   type Shelf = Omit<ApiShelf, 'books'> & { books: ShelfBook[] }; // the list of books is never empty-null here
   let shelves = $state<Shelf[]>([]);
@@ -123,7 +123,12 @@
     const a = adding;
     adding = null;
     if (!a || !a.title.trim()) return;
-    await mutate([a.project], async () => { await Store.AddBook(a.project, a.title); });
+    if (a.project.startsWith(NEW_WORLD)) {
+      // the add place of a group: the book gets a world of its own, set up like the first world of the group
+      const group = a.project.slice(NEW_WORLD.length);
+      const like = shelves.find((x) => x.group === group)?.id ?? '';
+      await mutate([], async () => { const id = await Store.AddWorld(group, a.title, like); await Store.AddBook(id, a.title); });
+    } else await mutate([a.project], async () => { await Store.AddBook(a.project, a.title); });
     await load();
   }
 
@@ -140,10 +145,39 @@
   async function renameShelf() {
     const r = renaming;
     renaming = null;
+    if (r?.id.startsWith(NEW_WORLD)) { // a group
+      const old = r.id.slice(NEW_WORLD.length);
+      if (!r.name.trim() || r.name.trim() === old) return;
+      await mutate([], async () => { await Store.RenameGroup(old, r.name); });
+      await load();
+      return;
+    }
     const s = shelves.find((x) => x.id === r?.id);
     if (!r || !s || !r.name.trim() || r.name.trim() === s.name) return;
     const ok = await mutate([], async () => { await Store.RenameProject(r.id, r.name); });
     if (ok && s.current) db.project = r.name.trim();
+    await load();
+  }
+
+  // ---- groups: books that each have their own world, on one shelf ----
+  /** Every project of the group goes back to a shelf of its own. Nothing else changes. */
+  async function ungroup(name: string) {
+    const members = shelves.filter((x) => x.group === name);
+    await mutate([], async () => { for (const m of members) await Store.SetProjectGroup(m.id, ''); });
+    await load();
+  }
+  /** An empty world of a group (its book moved away) is taken off. Its data file is kept, as with Manage shelves. */
+  async function removeWorld(s: Shelf) {
+    if (s.current || s.books.length) return;
+    await mutate([], async () => { await Store.RemoveProject(s.id); });
+    await load();
+  }
+  let splitAsk = $state<Shelf | null>(null);
+  async function confirmSplit() {
+    const s = splitAsk;
+    splitAsk = null;
+    if (!s) return;
+    await mutate([s.id], async () => { await Store.SplitShelf(s.id); forgetCovers(); saved = {}; });
     await load();
   }
 
@@ -153,6 +187,8 @@
     w: number; h: number; offX: number; offY: number; x: number; y: number; // the size of the card, where it was grabbed, where the pointer is
     left: number; top: number; // where the floating card is drawn
     over: string; index: number; settling: boolean; parked: boolean;
+    home: string; // where it goes back to: its shelf, or its group (a book with a world of its own moves with its world)
+    join: string; // held on top of a book of a group: the project (world) it would join
   };
   let drag = $state<Drag | null>(null);
   let press: { shelf: Shelf; book: ShelfBook; x: number; y: number; el: HTMLElement } | null = null;
@@ -163,6 +199,19 @@
     if (!drag) return s.books.map((book) => ({ book }));
     const list: Slot[] = s.books.filter((b) => b.id !== drag!.book.id || s.id !== drag!.from).map((book) => ({ book }));
     if (s.id === drag.over) list.splice(Math.min(drag.index, list.length), 0, { ph: true });
+    return list;
+  }
+
+  /** Is the book the only one of its world in a group? Then the book and its world move as one, inside the group. */
+  const wholeWorld = (s: Shelf | undefined) => !!s?.group && s.books.length === 1;
+
+  type WorldSlot = { world?: Shelf; ph?: boolean };
+  /** The worlds of a group as they are drawn now: a world that is dragged is lifted out, and a placeholder shows where it lands. */
+  function worldSlots(name: string, members: Shelf[]): WorldSlot[] {
+    if (!drag) return members.map((world) => ({ world }));
+    const from = shelves.find((x) => x.id === drag!.from);
+    const list: WorldSlot[] = members.filter((m) => !(m.id === drag!.from && wholeWorld(from))).map((world) => ({ world }));
+    if (drag.over === NEW_WORLD + name) list.splice(Math.min(drag.index, list.length), 0, { ph: true });
     return list;
   }
 
@@ -188,11 +237,14 @@
       if (!press || !dragStarted(e.clientX - press.x, e.clientY - press.y)) return;
       const r = press.el.getBoundingClientRect();
       const { shelf, book } = press;
-      const origIndex = shelf.books.findIndex((b) => b.id === book.id);
+      // a book with a world of its own in a group goes back to its place among the worlds; other books to theirs on the shelf
+      const group = wholeWorld(shelf) ? shelf.group : '';
+      const home = group ? NEW_WORLD + group : shelf.id;
+      const origIndex = group ? shelves.filter((x) => x.group === group).findIndex((x) => x.id === shelf.id) : shelf.books.findIndex((b) => b.id === book.id);
       drag = {
         book, from: shelf.id, origIndex, src: coverOf(shelf, book), w: r.width, h: r.height,
         offX: press.x - r.left, offY: press.y - r.top, x: e.clientX, y: e.clientY, left: r.left, top: r.top,
-        over: shelf.id, index: origIndex, settling: false, parked: false,
+        over: home, index: origIndex, settling: false, parked: false, home, join: '',
       };
       scrolling();
     }
@@ -205,14 +257,32 @@
   /** Which shelf is the pointer over, and between which books. */
   function retarget() {
     if (!drag || !scroller) return;
-    const els = [...scroller.querySelectorAll<HTMLElement>('.shelf[data-id]')];
+    // the places a book can go: a shelf, or a group (between its worlds)
+    const els = [...scroller.querySelectorAll<HTMLElement>('[data-target]')];
     const at = shelfAt(els.map((el) => { const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; }), drag.x, drag.y);
     if (at < 0) return;
-    const row = els[at].querySelector<HTMLElement>('.row')!;
+    const target = els[at].dataset.target!;
+    const group = target.startsWith(NEW_WORLD);
+    const row = els[at].querySelector<HTMLElement>(group ? '.row.worlds' : '.row')!;
     const rr = row.getBoundingClientRect();
     // the places are measured without the animation that is running, so a book that glides aside does not confuse the choice
-    const boxes = [...row.querySelectorAll<HTMLElement>('.slot[data-book]')].map((s) => ({ x: rr.left + s.offsetLeft, y: rr.top + s.offsetTop, w: s.offsetWidth, h: s.offsetHeight }));
-    drag.over = els[at].dataset.id!;
+    // the lifted book (or its world) is left out: on the first move it is still drawn in its place
+    const lifted = (el: HTMLElement) => (group ? el.dataset.world === drag!.from && wholeWorld(shelves.find((x) => x.id === drag!.from)) : el.dataset.book === String(drag!.book.id) && target === drag!.from);
+    const places = [...row.querySelectorAll<HTMLElement>(group ? ':scope > .wslot[data-world]' : '.slot[data-book]')].filter((el) => !lifted(el));
+    const boxes = places.map((s) => ({ x: rr.left + s.offsetLeft, y: rr.top + s.offsetTop, w: s.offsetWidth, h: s.offsetHeight }));
+    if (group) {
+      // on top of a book (the middle half of it) of another world: the book would join that world. The placeholder stays
+      // where it was, so nothing moves under the pointer.
+      const hit = boxes.findIndex((b) => drag!.x > b.x + b.w * 0.25 && drag!.x < b.x + b.w * 0.75 && drag!.y >= b.y && drag!.y <= b.y + b.h);
+      const id = hit >= 0 ? places[hit].dataset.world! : '';
+      if (id && id !== drag.from) {
+        if (drag.over !== target) drag.index = dropIndex(boxes, drag.x, drag.y);
+        drag.over = target; drag.join = id;
+        return;
+      }
+    }
+    drag.join = '';
+    drag.over = target;
     drag.index = dropIndex(boxes, drag.x, drag.y);
   }
 
@@ -243,23 +313,29 @@
   /** The book goes back to the place where it was picked up. */
   function giveBack() {
     if (!drag) return;
-    drag.over = drag.from; drag.index = drag.origIndex; drag.parked = false;
+    drag.over = drag.home; drag.index = drag.origIndex; drag.parked = false; drag.join = '';
     flyToPlaceholder(() => (drag = null));
   }
 
-  let ask = $state<{ book: ShelfBook; from: Shelf; to: Shelf; index: number } | null>(null);
+  // to: the shelf the book goes to, or null for a new world in the group named in world
+  let ask = $state<{ book: ShelfBook; from: Shelf; to: Shelf | null; world: string; index: number } | null>(null);
 
   function up() {
     endPress();
     if (!drag) return;
     const d = drag;
     if (d.settling) return;
-    const to = shelves.find((s) => s.id === d.over);
     const from = shelves.find((s) => s.id === d.from);
-    if (!to || !from) { giveBack(); return; }
+    // dropped on top of a book of another world in a group: ask to add it to that world
+    const joins = d.join ? shelves.find((s) => s.id === d.join) : undefined;
+    if (joins && from) { d.parked = true; ask = { book: d.book, from, to: joins, world: '', index: joins.books.length }; return; }
+    const world = d.over.startsWith(NEW_WORLD) ? d.over.slice(NEW_WORLD.length) : '';
+    const to = shelves.find((s) => s.id === d.over) ?? null;
+    if ((!to && !world) || !from) { giveBack(); return; }
     flyToPlaceholder(() => {
-      if (to.id === from.id) { drag = null; reorder(from, d.book, d.index); }
-      else { if (drag) drag.parked = true; ask = { book: d.book, from, to, index: d.index }; }
+      if (to && to.id === from.id) { drag = null; reorder(from, d.book, d.index); }
+      else if (world && from.group === world && wholeWorld(from)) { drag = null; reorderWorlds(world, from.id, d.index); }
+      else { if (drag) drag.parked = true; ask = { book: d.book, from, to, world, index: d.index }; }
     });
   }
 
@@ -270,17 +346,40 @@
     await mutate([s.id], async () => { await Store.SetBookOrder(s.id, ids); });
   }
 
+  /** A book with its own world got another place in its group: the worlds change order. */
+  async function reorderWorlds(group: string, id: string, index: number) {
+    const members = shelves.filter((x) => x.group === group).map((x) => x.id);
+    const ids = insertAt(members, id, index);
+    if (ids.every((x, i) => x === members[i])) return;
+    // show the new order at once: the shelves are put in the order of the group
+    const byId = new Map(shelves.map((x) => [x.id, x]));
+    let n = 0;
+    shelves = shelves.map((x) => (x.group === group ? byId.get(ids[n++])! : x));
+    await mutate([], async () => { await Store.OrderGroup(group, ids); });
+  }
+
   async function confirmMove() {
     const a = ask;
     if (!a) return;
     ask = null;
-    await mutate([a.from.id, a.to.id], async () => {
-      const id = await Store.MoveBook(a.from.id, a.book.id, a.to.id);
-      const ids = insertAt([...a.to.books.map((b) => b.id), id], id, a.index);
-      await Store.SetBookOrder(a.to.id, ids);
-      // show the book on its new shelf at once, then read the truth from the data
-      a.from.books = a.from.books.filter((b) => b.id !== a.book.id);
-      a.to.books = ids.map((i) => (i === id ? { ...a.book, id, hasCover: a.book.hasCover } : a.to.books.find((b) => b.id === i)!));
+    await mutate([a.from.id, ...(a.to ? [a.to.id] : [])], async () => {
+      if (!a.to) {
+        // a new world in the group, set up like the shelf the book comes from
+        const world = await Store.AddWorld(a.world, a.book.title || 'Untitled', a.from.id);
+        await Store.MoveBook(a.from.id, a.book.id, world);
+        // the new world stands where the book was dropped among the worlds
+        const members = shelves.filter((x) => x.group === a.world).map((x) => x.id);
+        await Store.OrderGroup(a.world, insertAt([...members, world], world, a.index));
+        a.from.books = a.from.books.filter((b) => b.id !== a.book.id);
+      } else {
+        const to = a.to;
+        const id = await Store.MoveBook(a.from.id, a.book.id, to.id);
+        const ids = insertAt([...to.books.map((b) => b.id), id], id, a.index);
+        await Store.SetBookOrder(to.id, ids);
+        // show the book on its new shelf at once, then read the truth from the data
+        a.from.books = a.from.books.filter((b) => b.id !== a.book.id);
+        to.books = ids.map((i) => (i === id ? { ...a.book, id, hasCover: a.book.hasCover } : to.books.find((b) => b.id === i)!));
+      }
       forgetCovers();
       saved = {};
     });
@@ -297,6 +396,7 @@
     if (e.key !== 'Escape') return;
     if ((e.target as HTMLElement | null)?.closest?.('input, textarea')) return; // Escape in a text box only closes that box
     if (ask) { cancelMove(); return; }
+    if (splitAsk) { splitAsk = null; return; }
     if (drag) { if (!drag.parked && !drag.settling) { endPress(); giveBack(); } return; }
     // a window on top of the shelf closes first (each one listens for Esc itself)
     if (adding || newShelf != null || renaming || nav.projects || nav.projectSettings || nav.searchOpen || nav.dataFolder || nav.calendar || nav.names) return;
@@ -313,6 +413,7 @@
   const flipOpts = () => ({ duration: params().dur * 1.4, easing: ease });
   const current = $derived(shelves.find((s) => s.current));
   const total = $derived(shelves.reduce((n, s) => n + s.books.length, 0));
+  const entries = $derived(groupShelves(shelves));
 </script>
 
 <svelte:window onkeydown={keys} />
@@ -323,7 +424,7 @@
     <header>
       <div>
         <h1>Bookshelf</h1>
-        <p class="muted">{total} {total === 1 ? 'book' : 'books'} on {shelves.length} {shelves.length === 1 ? 'shelf' : 'shelves'}. Each shelf is a project. Click a book to write. Drag a book to another shelf to move it.</p>
+        <p class="muted">{total} {total === 1 ? 'book' : 'books'} on {shelves.length} {shelves.length === 1 ? 'shelf' : 'shelves'}. Each shelf is a project: its books share one world. A group shelf holds books that each have their own world. Click a book to write. Drag a book to another shelf to move it.</p>
       </div>
       <div class="head-actions">
         <button title="Rename, remove and set up the projects" onclick={() => (nav.projects = true)}>Manage shelves…</button>
@@ -334,20 +435,7 @@
     {#if error}<p class="err" role="alert">{error}</p>{/if}
     {#if !loaded && !error}<p class="muted">Loading…</p>{/if}
 
-    {#each shelves as s (s.id)}
-      <section class="shelf" class:over={drag && drag.over === s.id && drag.from !== s.id} data-id={s.id}>
-        <div class="shelf-head">
-          {#if renaming?.id === s.id}
-            <!-- svelte-ignore a11y_autofocus -->
-            <input class="name-edit" autofocus bind:value={renaming.name} onkeydown={(e) => { if (e.key === 'Enter') renameShelf(); else if (e.key === 'Escape') { e.stopPropagation(); renaming = null; } }} onblur={renameShelf} />
-          {:else}
-            <button class="name" title="Rename this shelf" onclick={() => (renaming = { id: s.id, name: s.name })}>{s.name}</button>
-          {/if}
-          <span class="muted count">{s.books.length} {s.books.length === 1 ? 'book' : 'books'}{s.current ? ' · open now' : ''}</span>
-        </div>
-        {#if s.problem}<p class="err">This project could not be read: {s.problem}</p>{/if}
-
-        <div class="row" class:intro>
+    {#snippet books(s: Shelf)}
           {#each slots(s) as slot, i (slot.ph ? 'ph' : slot.book!.id)}
             <div class="slot" data-book={slot.book?.id} style:--i={i} animate:flip={flipOpts()}>
               {#if slot.ph}
@@ -371,24 +459,82 @@
               {/if}
             </div>
           {/each}
+    {/snippet}
 
+    {#snippet addPlace(target: string, tip: string)}
           <div class="slot add-slot">
-            {#if adding?.project === s.id}
+            {#if adding?.project === target}
               <div class="add editing">
                 <!-- svelte-ignore a11y_autofocus -->
                 <input autofocus placeholder="Title" bind:value={adding.title} onkeydown={(e) => { if (e.key === 'Enter') addBook(); else if (e.key === 'Escape') { e.stopPropagation(); adding = null; } }} onblur={addBook} />
                 <small class="muted">Press Enter</small>
               </div>
             {:else}
-              <button class="add" title="Add a book to {s.name}" onclick={() => (adding = { project: s.id, title: '' })}>
+              <button class="add" title={tip} onclick={() => (adding = { project: target, title: '' })}>
                 <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
                 <span>Add</span>
               </button>
             {/if}
           </div>
-        </div>
-        <div class="board" aria-hidden="true"></div>
-      </section>
+    {/snippet}
+
+    {#snippet shelfName(id: string, name: string, tip: string)}
+          {#if renaming?.id === id}
+            <!-- svelte-ignore a11y_autofocus -->
+            <input class="name-edit" autofocus bind:value={renaming.name} onkeydown={(e) => { if (e.key === 'Enter') renameShelf(); else if (e.key === 'Escape') { e.stopPropagation(); renaming = null; } }} onblur={renameShelf} />
+          {:else}
+            <button class="name" title={tip} onclick={() => (renaming = { id, name })}>{name}</button>
+          {/if}
+    {/snippet}
+
+    {#each entries as en (en.kind === 'one' ? en.shelf.id : NEW_WORLD + en.name)}
+      {#if en.kind === 'one'}
+        {@const s = en.shelf}
+        <section class="shelf" class:over={drag && drag.over === s.id && drag.from !== s.id} data-id={s.id} data-target={s.id}>
+          <div class="shelf-head">
+            {@render shelfName(s.id, s.name, 'Rename this shelf')}
+            <span class="muted count">{s.books.length} {s.books.length === 1 ? 'book' : 'books'}{s.current ? ' · open now' : ''}</span>
+            {#if s.books.length > 1}
+              <button class="small shelf-act" title="Make this shelf a group: every book gets characters, places and notes of its own" onclick={() => (splitAsk = s)}>Give each book its own world…</button>
+            {/if}
+          </div>
+          {#if s.problem}<p class="err">This project could not be read: {s.problem}</p>{/if}
+          <div class="row" class:intro>
+            {@render books(s)}
+            {@render addPlace(s.id, `Add a book to ${s.name}`)}
+          </div>
+          <div class="board" aria-hidden="true"></div>
+        </section>
+      {:else}
+        {@const target = NEW_WORLD + en.name}
+        {@const count = en.members.reduce((n, m) => n + m.books.length, 0)}
+        <section class="shelf group" class:over={drag && drag.over === target && drag.home !== target} data-target={target}>
+          <div class="shelf-head">
+            {@render shelfName(target, en.name, 'Rename this group')}
+            <span class="muted count">{count} {count === 1 ? 'book' : 'books'} · each with its own world{en.members.some((m) => m.current) ? ' · one is open now' : ''}</span>
+            <button class="small shelf-act" title="Put every book of this group back on a shelf of its own. Nothing else changes." onclick={() => ungroup(en.name)}>Ungroup</button>
+          </div>
+          <div class="row worlds" class:intro>
+            {#each worldSlots(en.name, en.members) as w (w.ph ? 'ph' : w.world!.id)}
+              <div class={w.ph ? 'slot' : 'wslot world'} class:join={!!w.world && drag?.join === w.world.id} data-world={w.world?.id} animate:flip={flipOpts()}>
+                {#if w.ph}
+                  <div class="ph" class:dim={!!drag?.join}><span>{drag && drag.home === target ? 'Drop here' : 'New world'}</span></div>
+                {:else}
+                  {@const m = w.world!}
+                  <div class="world-name" title="This book's world: its characters, places and notes belong to it alone">
+                    {m.name}{m.current ? ' · open' : ''}
+                    {#if !m.books.length && !m.current}<button class="link" title="Take this empty world off the shelf (its file is kept)" onclick={() => removeWorld(m)}>remove</button>{/if}
+                  </div>
+                  {#if m.problem}<p class="err">This project could not be read: {m.problem}</p>{/if}
+                  <div class="row">{@render books(m)}</div>
+                {/if}
+              </div>
+            {/each}
+            {@render addPlace(target, `Add a book with a world of its own to ${en.name}`)}
+          </div>
+          <div class="board" aria-hidden="true"></div>
+        </section>
+      {/if}
     {/each}
 
     {#if loaded}
@@ -415,12 +561,35 @@
 {#if ask}
   <div class="overlay" transition:veil|global role="presentation">
     <div class="palette ask" transition:dialog|global role="dialog" aria-label="Move book">
-      <h2>Move “{ask.book.title || 'Untitled'}” to “{ask.to.name}”?</h2>
+      {#if ask.to?.group}
+        <h2>Add “{ask.book.title || 'Untitled'}” to the world of “{ask.to.name}”?</h2>
+        <p>The book then shares the characters, places and notes of “{ask.to.name}”.</p>
+      {:else if ask.to}
+        <h2>Move “{ask.book.title || 'Untitled'}” to “{ask.to.name}”?</h2>
+      {:else}
+        <h2>Give “{ask.book.title || 'Untitled'}” its own world in “{ask.world}”?</h2>
+        <p>The book gets a new world: no characters, places or notes yet. The project type, tools and daily goal come along.</p>
+      {/if}
       <p>The chapters, text, comments, snapshots and cover move with the book.</p>
       <p class="muted">Characters, places, sources and arcs stay on “{ask.from.name}”. In the text, @ links to them lose their link (the name stays), and citations become plain text marked “needs a source”.</p>
       <div class="row-btns">
         <button onclick={cancelMove}>Cancel</button>
         <button class="primary" onclick={confirmMove}>Move the book</button>
+      </div>
+    </div>
+  </div>
+{/if}
+
+{#if splitAsk}
+  <div class="overlay" transition:veil|global role="presentation">
+    <div class="palette ask" transition:dialog|global role="dialog" aria-label="Give each book its own world">
+      <h2>Give each book on “{splitAsk.name}” its own world?</h2>
+      <p>The shelf becomes a group called “{splitAsk.group || splitAsk.name}”. The books stay on it together, but each gets its own characters, places, notes, maps and timeline.</p>
+      <p>“{splitAsk.books[0]?.title || 'Untitled'}” keeps everything that is there now. {splitAsk.books.length === 2 ? 'The other book starts with an empty world. Its' : `The other ${splitAsk.books.length - 1} books start with an empty world. Their`} chapters, text, comments, snapshots and covers come along.</p>
+      <p class="muted">In the text of the moved books, @ links lose their link (the name stays), and citations become plain text marked “needs a source”. Copy the characters or sources a book needs into its new world.</p>
+      <div class="row-btns">
+        <button onclick={() => (splitAsk = null)}>Cancel</button>
+        <button class="primary" onclick={confirmSplit}>Give each book its own world</button>
       </div>
     </div>
   </div>
@@ -457,6 +626,16 @@
   .name:hover { border-color: var(--line); background: var(--panel-2); }
   .name-edit { font-size: 1.05rem; font-weight: 600; width: 18rem; max-width: 100%; }
   .count { font-size: .8rem; }
+  .shelf-act { margin-left: auto; }
+
+  /* a group: the books stand together, each in a world of its own */
+  .worlds { gap: 1.2rem 1.6rem; }
+  .world.join { background: color-mix(in srgb, var(--accent) 10%, transparent); box-shadow: 0 0 0 2px var(--accent); }
+  .ph.dim { opacity: .35; animation: none; }
+  .world { flex: none; border-radius: 10px; padding: .1rem .35rem 0; margin: -.1rem -.35rem 0; transition: background-color var(--m-dur) var(--m-ease), box-shadow var(--m-dur) var(--m-ease); }
+  .world-name { font-size: .72rem; color: var(--muted); margin-bottom: .35rem; max-width: var(--bw); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; gap: .4rem; align-items: baseline; }
+  .world .row { min-height: 0; padding-bottom: 0; flex-wrap: nowrap; }
+  .group .add-slot { align-self: flex-end; margin-bottom: var(--meta-h); }
 
   .row { position: relative; display: flex; flex-wrap: wrap; gap: 1.2rem 1.3rem; align-items: flex-start; padding-bottom: 1.1rem; min-height: calc(var(--cover-h) + 1.1rem); }
   .slot { width: var(--bw); flex: none; }

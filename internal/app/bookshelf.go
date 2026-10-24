@@ -35,6 +35,7 @@ type Shelf struct {
 	ID      string      `json:"id"`
 	Name    string      `json:"name"`
 	Current bool        `json:"current"`
+	Group   string      `json:"group"`   // projects with the same group show as one shelf (shelfgroups.go)
 	Problem string      `json:"problem"` // set when the data file of this project could not be read
 	Books   []ShelfBook `json:"books"`
 }
@@ -215,7 +216,7 @@ func (s *Store) Shelves() ([]Shelf, error) {
 	s.mu.RUnlock()
 	out := []Shelf{}
 	for _, p := range reg.Projects {
-		sh := Shelf{ID: p.ID, Name: p.Name, Current: p.ID == reg.Current, Books: []ShelfBook{}}
+		sh := Shelf{ID: p.ID, Name: p.Name, Current: p.ID == reg.Current, Group: p.Group, Books: []ShelfBook{}}
 		err := s.withProject(p.ID, false, func(d *sql.DB) error {
 			books, err := readShelf(d)
 			sh.Books = books

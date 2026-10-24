@@ -62,9 +62,9 @@ If Windows or Linux is set to "reduce motion", the app starts with animations **
 
 ## The bookshelf
 
-The bookshelf is the first screen when you open the app. Each **shelf** is a project. The **books** of the project stand on it, as cards with a cover.
+The bookshelf is the first screen when you open the app. Each **shelf** is a project. The **books** of the project stand on it, as cards with a cover. A **group** shelf holds books that each have their own world (see below).
 
-![The bookshelf, with three shelves](images/bookshelf.png)
+![The bookshelf, with three shelves and a group of practice novels](images/bookshelf.png)
 
 - **Click a book** to write in it. If the book is in another project, that project opens first. The app reloads, and the **Write** screen opens on the book.
 - **Open … →** (top right) goes to the app without choosing a book. **Manage shelves…** opens the Projects window, where you rename, remove and set up projects.
@@ -77,6 +77,28 @@ The bookshelf is the first screen when you open the app. Each **shelf** is a pro
 - **Progress bar:** a book shows one bar under its words. It uses the **Book goal**. If the book has no goal, it uses the **chapter goals** added together (a chapter with no goal of its own uses **Default per chapter**). If no chapter has a goal, it uses the **scene goals** added together. With no goal at all, there is no bar. Point at the bar to see what it counts.
 
 **What moves with a book:** its chapters, scenes, text, versions, comments, snapshots, revision passes and cover. **What stays:** characters, places, factions, items, arcs, sources and the like belong to a project, so they stay on the old shelf. So the links inside the moved text are changed: an `@` link loses its link (the name stays), and a citation becomes plain text such as (Clear, 2018, p. 45), marked **needs a source**, so you can cite it again in the new project. A scene loses its point of view, place and cast. Comments come along with their marks. The old copy is removed only after the new copy is safe. If the old copy cannot be removed, the new copy is taken out again, so the book is never on two shelves.
+
+### Groups: each book its own world
+
+The books on one shelf share one world: the same characters, places, notes, maps and timeline. When books have nothing in common, for example practice novels, put them in a **group**. A group is one shelf on the bookshelf, but each book on it has a world of its own. Behind the scenes each book of a group is a project of its own, with its own data file and backups.
+
+- **Give each book its own world…** (on a shelf with two or more books) makes the shelf a group. The first book keeps everything the shelf has now. The other books move to new, empty worlds, as when you move a book (see below). Typewriter asks first.
+- On a group, the small name above each book is the name of its world. **Add** makes a new book with a new world. A new world takes over the project type, the tools and the daily goal, but not the characters, notes or calendar.
+- **Put the books of a group in order:** drag a book to another place in the group. Its world moves with it, and a dashed **Drop here** place shows where it lands. Nothing else changes.
+- **Drag a book from another shelf into a group**, or a book out of a world with more books, and drop it **between** two books: it gets a new world at that place (a dashed **New world** place shows it). Typewriter asks first.
+- **Drop a book on top of another book of the group** (that book's world lights up) to add it to that world. The two books then share their characters, places and notes. Typewriter asks first.
+- Click the name of a group to rename it. **Ungroup** puts every book of the group back on a shelf of its own. Nothing else changes.
+- A world whose book moved away shows **remove**. It takes the empty world off the shelf. The file is kept, as with **Remove** in Manage shelves.
+- In **Manage shelves…**, the **Group** field of a project puts it in a group, or takes it out when you empty the field.
+
+### Copy to another shelf
+
+A new world starts empty. To bring characters, places and the like along, press **Copy to…** on a character, place, lore note, faction, item, glossary word, source or Notes page. A window opens with that item ticked.
+
+- Pick the shelf to copy to (a group world shows its group in brackets), and tick more items. **Filter by name** narrows the list; **all** and **none** tick a whole list.
+- **Copy** puts copies on the other shelf. The originals stay as they are, so nothing changes in this book. To move something, copy it, then delete the original. A copied Notes page goes at the end of the other shelf's list.
+- Links come along when both ends are copied: relationships, faction members and ties, the place a place lies in, the seat of a faction, and @ links and citations in lore notes. Mood board pictures of copied characters and places come along too.
+- A link to something that is not copied lets go: an @ link keeps its name as plain text, and a citation becomes plain text marked **needs a source**. A place leaves its map. Maps, the timeline and item histories are not copied.
 
 ## Project type: a story or a non-fiction book
 
@@ -345,10 +367,11 @@ Select some text in a scene and press **💬** in the toolbar. The text is marke
 
 ![The card of a character, shown when you point at an @ link](images/name-card.png)
 
-Type **@** in a scene (or press **@** in the toolbar). A list opens with your characters, places, and lore notes. Keep typing to narrow it. Use the arrow keys and **Enter** (or click) to pick one.
+Type **@** in a scene (or press **@** in the toolbar). A list opens with your characters, places, lore notes, factions, items and glossary words, and your sources (only the tools that are on in this project). Keep typing to narrow it. Use the arrow keys and **Enter** (or click) to pick one.
 
 - The name goes into the text as a link, shown in the accent colour with a dotted line. It prints as normal text.
-- **Point at** a link for a moment: a small card shows who or what it is, with a short description. **Open** opens it, **Show beside** shows it in the reference pane. A click only moves the cursor, so writing is not interrupted.
+- A **source** (marked **cite** in the list) goes in as a citation, the same as the **Cite** button. Click the citation to add a page. This is how @ works in a non-fiction project: glossary words and sources.
+- **Point at** a link for a moment: a small card shows who or what it is, with a short description. **Open** opens it, **Show beside** shows it in the reference pane (for characters, places and lore notes). A click only moves the cursor, so writing is not interrupted.
 - **Ctrl+click** a link to open that character, place, or note.
 - The link stays if you rename the item later. The text does not change by itself.
 - A tagged character counts as in the scene for the name check.
