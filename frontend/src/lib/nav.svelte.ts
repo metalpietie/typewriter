@@ -27,7 +27,7 @@ export function reloadInto(tab: Tab) {
 }
 
 /** Shared screen state, so search can jump to an item on another tab. */
-export const nav = $state<{ tab: Tab; shelf: boolean; book: number | null; pending: { kind: Kind; id: number } | null; searchOpen: boolean; focus: boolean; scene: number | null; calendar: boolean; names: '' | 'person' | 'place'; projects: boolean; dataFolder: boolean; projectSettings: boolean; insert: { kind: string; text: string; source: number | null; loc: string } | null }>({
+export const nav = $state<{ tab: Tab; shelf: boolean; book: number | null; pending: { kind: Kind; id: number } | null; searchOpen: boolean; focus: boolean; scene: number | null; calendar: boolean; names: '' | 'person' | 'place'; projects: boolean; dataFolder: boolean; projectSettings: boolean; copy: { kind: string; id: number } | null; insert: { kind: string; text: string; source: number | null; loc: string } | null }>({
   tab: startTab(),
   shelf: fromSession(SEEN) == null, // the bookshelf is on screen
   book: null, // a book the Write tab should open
@@ -40,6 +40,7 @@ export const nav = $state<{ tab: Tab; shelf: boolean; book: number | null; pendi
   projects: false, // the project list is open
   dataFolder: false, // the data folder window is open
   projectSettings: false, // the project settings window (the type of project) is open
+  copy: null, // the window that copies world items to another shelf is open, with this item ticked ({ kind: '', id: 0 } for none)
   insert: null, // an idea or quote that the Write tab should put at the end of the open text
 });
 

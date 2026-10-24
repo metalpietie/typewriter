@@ -14,11 +14,13 @@ export {
 
 export type {
     AutoBackup,
+    CopyReport,
     DataFolderInfo,
     DeviceInfo,
     Doc,
     ExportOptions,
     FolderCheck,
+    ItemRef,
     PairingInfo,
     ProjectInfo,
     ProjectItem,

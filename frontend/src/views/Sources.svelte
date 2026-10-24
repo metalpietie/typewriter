@@ -1,6 +1,7 @@
 <script lang="ts">
   import Select from '../lib/Select.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
+  import CopyButton from '../lib/CopyButton.svelte';
   import { db } from '../lib/db.svelte';
   import { nav, openScene } from '../lib/nav.svelte';
   import { orderedScenes, sceneLabel } from '../lib/scenes';
@@ -95,7 +96,7 @@
 
   <section class="pane">
     {#if sel}
-      <div class="head"><h2>{sel.title || 'Untitled source'}</h2><ConfirmButton onconfirm={askOrDelete} /></div>
+      <div class="head"><h2>{sel.title || 'Untitled source'}</h2><span class="row fit" style="gap:.3rem"><CopyButton kind="source" id={sel.id} /><ConfirmButton onconfirm={askOrDelete} /></span></div>
       {#if asking}
         <div class="card warn">
           <p style="margin-top:0"><b>This source is cited {total} time{total === 1 ? '' : 's'} in {here.length} {here.length === 1 ? word('scene') : word('scenes')}.</b>

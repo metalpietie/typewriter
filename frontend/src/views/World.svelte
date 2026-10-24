@@ -2,6 +2,7 @@
   import Select from '../lib/Select.svelte';
   import { db, NOTE_CATEGORIES, PLACE_TYPES } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
+  import CopyButton from '../lib/CopyButton.svelte';
   import Backlinks from '../lib/Backlinks.svelte';
   import MoodBoard from '../lib/MoodBoard.svelte';
   import Picture from '../lib/Picture.svelte';
@@ -64,7 +65,7 @@
 
   <section class="pane">
     {#if sel && mode === 'note'}
-      <div class="head"><h2>{sel.title}</h2><ConfirmButton onconfirm={del} /></div>
+      <div class="head"><h2>{sel.title}</h2><span class="row fit" style="gap:.3rem"><CopyButton kind="note" id={sel.id} /><ConfirmButton onconfirm={del} /></span></div>
       <div class="grid2">
         <div><label>Title</label><input bind:value={sel.title} oninput={save} /></div>
         <div><label>Category</label>
@@ -76,7 +77,7 @@
       <textarea style="min-height:50vh" bind:value={sel.body} oninput={save}></textarea>
       <Backlinks kind="note" id={sel.id} />
     {:else if sel && mode === 'location'}
-      <div class="head"><h2>{sel.name}</h2><ConfirmButton onconfirm={del} /></div>
+      <div class="head"><h2>{sel.name}</h2><span class="row fit" style="gap:.3rem"><CopyButton kind="location" id={sel.id} /><ConfirmButton onconfirm={del} /></span></div>
       <div class="grid2">
         <div><label>Name</label><input bind:value={sel.name} oninput={save} /></div>
         <div><label>Type</label>

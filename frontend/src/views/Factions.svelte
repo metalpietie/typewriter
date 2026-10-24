@@ -3,6 +3,7 @@
   import { db, FACTION_TYPES, FACTION_REL } from '../lib/db.svelte';
   import { nav, openItem } from '../lib/nav.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
+  import CopyButton from '../lib/CopyButton.svelte';
   import Backlinks from '../lib/Backlinks.svelte';
 
   const PALETTE = ['#d98a5b', '#8f7bf0', '#6bbf8a', '#5aa9d9', '#e0b25f', '#e0689f', '#2cd5e8', '#d9625b', '#b5c95b'];
@@ -81,7 +82,7 @@
 
   <section class="pane">
     {#if sel}
-      <div class="head"><h2>{sel.name}</h2><ConfirmButton onconfirm={del} /></div>
+      <div class="head"><h2>{sel.name}</h2><span class="row fit" style="gap:.3rem"><CopyButton kind="faction" id={sel.id} /><ConfirmButton onconfirm={del} /></span></div>
       <div class="grid2">
         <div><label>Name</label><input bind:value={sel.name} oninput={save} /></div>
         <div><label>Type</label>

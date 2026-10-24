@@ -2,6 +2,7 @@
   import { db, wordCount } from '../lib/db.svelte';
   import { nav } from '../lib/nav.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
+  import CopyButton from '../lib/CopyButton.svelte';
   import RichEditor from '../lib/RichEditor.svelte';
 
   let selId = $state<number | null>(null);
@@ -71,6 +72,7 @@
         <input class="title" placeholder="Page title" bind:value={sel.title} oninput={save} />
         <button class="small" title="Move up in the list" disabled={pages.indexOf(sel) === 0} onclick={() => move(-1)}>↑</button>
         <button class="small" title="Move down in the list" disabled={pages.indexOf(sel) === pages.length - 1} onclick={() => move(1)}>↓</button>
+        <CopyButton kind="draft" id={sel.id} />
         <ConfirmButton onconfirm={del} />
       </div>
       <div class="muted count">{wordCount(sel.body)} words · a page of notes. It is not counted in your book.{origin ? ' · From ' + origin : ''}</div>

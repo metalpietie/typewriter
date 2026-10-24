@@ -665,7 +665,7 @@
   .rich-bar[hidden] { display: none; }
   /* Vim keys: the block cursor takes the colours of the app, and a label shows the mode */
   .rich.vim { --vim-cursor-bg: var(--accent); --vim-cursor-fg: var(--on-accent); }
-  .vimmode { position: sticky; bottom: .5rem; margin-left: auto; width: fit-content; z-index: 3; font: .72rem ui-monospace, Consolas, monospace; letter-spacing: .04em; padding: .15rem .55rem; border-radius: 6px; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); pointer-events: none; }
+  .vimmode { position: sticky; bottom: calc(var(--covered-below, 0px) + .5rem); margin-left: auto; width: fit-content; z-index: 3; font: .72rem ui-monospace, Consolas, monospace; letter-spacing: .04em; padding: .15rem .55rem; border-radius: 6px; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); pointer-events: none; }
   .vimmode[data-mode='normal'] { color: var(--accent); border-color: var(--accent); }
   .vimmode[data-mode='visual'], .vimmode[data-mode='visual-line'] { color: var(--danger); border-color: var(--danger); }
   .rich-bar button { padding: .2rem .55rem; min-width: 2rem; }

@@ -106,7 +106,7 @@ import { books } from '../data/content';
   .t { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-90deg); white-space: nowrap; font-weight: 700; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; }
   .ic { position: absolute; left: 0; right: 0; top: 16px; text-align: center; font-size: 15px; opacity: .85; }
   .book::after { content: ''; position: absolute; left: 10px; right: 10px; bottom: 18px; height: 2px; border-radius: 2px; background: rgba(255, 255, 255, .45); box-shadow: 0 -6px 0 rgba(255, 255, 255, .2); }
-  .tip { position: absolute; bottom: calc(100% + 18px); left: 50%; transform: translate(-50%, 8px); padding: 6px 10px; border-radius: 8px; white-space: nowrap; font: 12px var(--mono); background: rgba(17, 18, 25, .92); border: 1px solid var(--line); color: var(--text); opacity: 0; pointer-events: none; transition: all .2s; }
+  .tip { position: absolute; bottom: calc(100% + 18px); left: 50%; transform: translate(-50%, 8px); padding: 6px 10px; border-radius: 8px; white-space: nowrap; font: 12px var(--mono); background: rgba(15, 22, 32, .92); border: 1px solid var(--line); color: var(--text); opacity: 0; pointer-events: none; transition: all .2s; }
   .book:hover .tip { opacity: 1; transform: translate(-50%, 0); }
   .book.sel .tip { display: none; }
 
@@ -114,8 +114,8 @@ import { books } from '../data/content';
   .waiting:not(.done) .slot { opacity: 0; }
   .slot:hover { border-color: var(--accent); color: var(--accent); }
   .slot small { position: absolute; bottom: -30px; white-space: nowrap; font: 11px var(--mono); }
-  .board { position: relative; z-index: 3; height: 16px; border-radius: 6px; background: linear-gradient(180deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .04)); border: 1px solid rgba(255, 255, 255, .12); backdrop-filter: blur(8px); box-shadow: 0 1px 0 rgba(128, 130, 255, .6) inset, 0 30px 60px -20px rgba(128, 130, 255, .5); }
-  .board::after { content: ''; position: absolute; left: 10%; right: 10%; top: 100%; height: 60px; background: radial-gradient(ellipse at top, rgba(128, 130, 255, .25), transparent 70%); }
+  .board { position: relative; z-index: 3; height: 16px; border-radius: 6px; background: linear-gradient(180deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .04)); border: 1px solid rgba(255, 255, 255, .12); backdrop-filter: blur(8px); box-shadow: 0 1px 0 rgba(61, 139, 246, .6) inset, 0 30px 60px -20px rgba(61, 139, 246, .5); }
+  .board::after { content: ''; position: absolute; left: 10%; right: 10%; top: 100%; height: 60px; background: radial-gradient(ellipse at top, rgba(61, 139, 246, .25), transparent 70%); }
 
   .open { display: grid; grid-template-columns: 1fr 1.35fr; gap: 56px; align-items: center; margin-top: 70px; }
   .panels { display: grid; }
@@ -123,7 +123,7 @@ import { books } from '../data/content';
   .panel.on { opacity: 1; visibility: visible; transform: none; transition: opacity .45s .1s, transform .55s .1s cubic-bezier(.2, .8, .2, 1), visibility 0s; }
   .pager { grid-area: 2 / 1; display: flex; gap: 8px; margin-top: 26px; }
   .pager button { width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255, 255, 255, .03); color: var(--text); cursor: pointer; font-size: 16px; transition: border-color .2s, background .2s; }
-  .pager button:hover { border-color: var(--accent); background: rgba(128, 130, 255, .1); }
+  .pager button:hover { border-color: var(--accent); background: rgba(61, 139, 246, .1); }
   .chip { display: inline-flex; gap: 8px; align-items: center; font: 500 12px var(--mono); color: var(--glow); letter-spacing: .1em; text-transform: uppercase; }
   .chip::before { content: ''; width: 18px; height: 4px; border-radius: 2px; background: var(--glow); box-shadow: 0 0 12px var(--glow); }
   h3 { font-size: clamp(28px, 3.6vw, 44px); letter-spacing: -.03em; line-height: 1.08; margin: 12px 0 14px; }

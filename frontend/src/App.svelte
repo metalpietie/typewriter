@@ -10,6 +10,7 @@
   import CalendarEditor from './lib/CalendarEditor.svelte';
   import NameGenerator from './lib/NameGenerator.svelte';
   import Projects from './lib/Projects.svelte';
+  import CopyWorld from './lib/CopyWorld.svelte';
   import Bookshelf from './lib/Bookshelf.svelte';
   import UpdateDialog from './lib/UpdateDialog.svelte';
   import { updates, checkForUpdates, startAutoCheck } from './lib/updates.svelte';
@@ -126,6 +127,7 @@
 {#if nav.shelf}<Bookshelf />{/if}
 <UpdateDialog />
 {#if nav.projects}<Projects />{/if}
+{#if nav.copy}<CopyWorld />{/if}
 {#if nav.projectSettings}<ProjectSettings />{/if}
 {#if nav.dataFolder}<DataFolder />{/if}
 

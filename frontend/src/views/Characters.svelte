@@ -2,6 +2,7 @@
   import Select from '../lib/Select.svelte';
   import { db, ROLES, REL_TYPES, CHARACTER_COLORS as PALETTE } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
+  import CopyButton from '../lib/CopyButton.svelte';
   import Backlinks from '../lib/Backlinks.svelte';
   import MoodBoard from '../lib/MoodBoard.svelte';
   import Picture from '../lib/Picture.svelte';
@@ -80,7 +81,7 @@
     {#if sel}
       <div class="head">
         <h2>{sel.name}</h2>
-        <ConfirmButton onconfirm={del} />
+        <span class="row fit" style="gap:.3rem"><CopyButton kind="character" id={sel.id} /><ConfirmButton onconfirm={del} /></span>
       </div>
 
       <Picture square label="Portrait" value={sel.portrait} onchange={(v) => { sel.portrait = v; save(); }} />

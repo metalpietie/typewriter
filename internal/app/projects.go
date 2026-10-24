@@ -18,6 +18,8 @@ const defaultProject = "default"
 type Project struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+	// Group puts several projects on one shelf of the bookshelf, under this name. Each keeps its own world.
+	Group string `json:"group,omitempty"`
 }
 
 type registry struct {
@@ -31,6 +33,7 @@ type ProjectItem struct {
 	Name    string `json:"name"`
 	Size    int64  `json:"size"` // bytes on disk
 	Current bool   `json:"current"`
+	Group   string `json:"group"`
 }
 
 func (r registry) find(id string) (Project, bool) {
@@ -102,7 +105,7 @@ func (s *Store) Projects() ([]ProjectItem, error) {
 		if info, err := os.Stat(projectFile(dir, p.ID)); err == nil {
 			size = info.Size()
 		}
-		out = append(out, ProjectItem{ID: p.ID, Name: p.Name, Size: size, Current: p.ID == reg.Current})
+		out = append(out, ProjectItem{ID: p.ID, Name: p.Name, Size: size, Current: p.ID == reg.Current, Group: p.Group})
 	}
 	return out, nil
 }

@@ -6,6 +6,7 @@
   import { nav } from './nav.svelte';
   import ConfirmButton from './ConfirmButton.svelte';
   import Select from './Select.svelte';
+  import GroupPicker from './GroupPicker.svelte';
   import { projectType } from './projecttype.svelte';
   import { TYPES, type ProjectType } from './projecttype-core';
   import type { ProjectItem } from '../../bindings/typewriter/internal/app/models.js';
@@ -57,6 +58,9 @@
     message = kept ? `Removed. The file is kept here: ${kept}` : 'Removed.';
   });
   const close = () => { db.flush(); nav.projects = false; };
+  // a group shows several projects as one shelf of the bookshelf; each keeps its own world
+  const groups = $derived([...new Set(list.map((p) => p.group).filter(Boolean))]);
+  const setGroup = (p: ProjectItem, group: string) => { if (group.trim() !== (p.group ?? '')) run(() => Store.SetProjectGroup(p.id, group)); };
 </script>
 
 <svelte:window onkeydown={(e) => { if (e.key === 'Escape') close(); }} />
@@ -82,6 +86,12 @@
           {#if !p.current}<ConfirmButton label="Remove" onconfirm={() => remove(p)} />{/if}
         {/if}
       </div>
+      <div class="row group-row">
+        <label class="fit muted" for="grp-{p.id}">Group</label>
+        <GroupPicker id="grp-{p.id}" value={p.group ?? ''} {groups} disabled={busy}
+          title="Projects with the same group stand on one shelf of the bookshelf. Each keeps its own world."
+          onchange={(g) => setGroup(p, g)} />
+      </div>
     {/each}
 
     <h3 style="margin-top:1.2rem">New project</h3>
@@ -104,4 +114,5 @@
   .proj { padding: .35rem 0; border-top: 1px solid var(--line); }
   .proj.on { font-weight: 600; }
   .name { flex: 1; }
+  .group-row { gap: .5rem; padding: 0 0 .4rem; font-size: .85rem; }
 </style>
