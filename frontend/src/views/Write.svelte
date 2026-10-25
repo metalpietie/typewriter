@@ -503,7 +503,7 @@
       {/if}
       {#key scene.id + ':' + rev}
         <RichEditor bind:this={rich} autofocus bare={nav.focus} onfind={() => (showFind = true)} onbeside={showBeside} source={[book?.title, sceneLabel(scene)].filter(Boolean).join(', ')} onopenref={(k, id) => { db.flush(); openItem(k, id); }} oncomment={newComment} onfocuscomment={(id) => { if (id) activeComment = id; }} value={toHtml(scene.body ?? '')}
-          onchange={(html) => { const before = scene.body ?? ''; scene.body = html; saveScene(); maybeAutoVersion(scene.id, before); addWords(wordCount(html) - wordCount(before)); }} />
+          onchange={(html) => { const before = scene.body ?? ''; scene.body = html; saveScene(); maybeAutoVersion(scene.id, before); addWords(wordCount(html) - wordCount(before), book?.id); }} />
       {/key}
       {@const words = sceneWords(scene)}
       {#if nav.focus}

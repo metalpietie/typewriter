@@ -22,11 +22,13 @@ export type {
     FolderCheck,
     ItemRef,
     PairingInfo,
+    ProjectDays,
     ProjectInfo,
     ProjectItem,
     RestoreResult,
     Shelf,
     ShelfBook,
     SyncStatus,
-    UpdateInfo
+    UpdateInfo,
+    WordDay
 } from "./models.js";

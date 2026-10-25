@@ -655,7 +655,13 @@ A new length counts from the next part. The part that runs now keeps its end tim
 
 ## Statistics and daily goal
 
-The **Statistics** tab shows your progress.
+The **Statistics** tab shows your progress. The switch at the top picks what the numbers count:
+
+- **This book:** one book of the open project. Pick the book under the switch. Only shows when the project has more than one book. Days from before version 1.16 are not split by book, so they do not count here.
+- **This project:** all books of the open project. This is the start.
+- **All projects:** every project on the bookshelf, also the books in a group. The words per day of all projects are added up, and **Words per book** lists every book by project. The daily goal is the goal of the open project.
+
+The sections:
 
 - **Daily writing goal:** set the words you want to write each day. A bar shows today. The **streak** counts days in a row that reached the goal. Today does not break the streak until the day ends. With no goal, any writing counts.
 - **Words per day:** a bar chart for 14, 30 or 90 days. Green bars reached the goal.

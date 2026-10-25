@@ -24,7 +24,7 @@ if (!nonfiction) {
   if (com !== commentId) throw new Error('comment id');
   add('draft', { title: 'What is in the letter?', body: '<p>Idea 1: a map to something under the shop.</p><p>Idea 2: an apology from Tom to Mara’s grandmother.</p><p>What if the key opens one of the clocks?</p>', order: 1 });
   add('draft', { title: 'Names for the bakery', body: '<p>Golden Crust. Two Loaves. The Warm Oven.</p>', order: 2 });
-  [0, 1, 2, 3, 4, 6, 7].forEach((n, i) => add('wordday', { date: day(n), words: [420, 380, 510, 300, 650, 340, 480][i] }));
+  [0, 1, 2, 3, 4, 6, 7].forEach((n, i) => add('wordday', { date: day(n), words: [420, 380, 510, 300, 650, 340, 480][i], books: { [book]: [420, 380, 510, 300, 650, 340, 480][i] } }));
   add('setting', { key: 'dailyGoal', value: 400 });
   // A map of the town for the Maps & Paths picture: places, two regions, and the paths of Mara and Tom.
   const townSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000">
@@ -101,6 +101,9 @@ const shelfOf = (id: string) => shelfData.find((s) => s.id === id)!;
 const bookOf = (p: string, id: number) => shelfOf(p).books.find((b) => b.id === id)!;
 const shelfStub = {
   Shelves: async () => JSON.parse(JSON.stringify(shelfData)),
+  // the writing days of the other projects, for Statistics > All projects (the open project counts its own rows)
+  WordDays: async () => shelfData.map((s, i) => ({ id: s.id, name: s.name, group: s.group ?? '', current: s.current, problem: '',
+    days: s.current ? [] : [1, 2, 5].map((n) => ({ date: day(n), words: (i * 97 + n * 53) % 300 })) })),
   BookCover: async () => '',
   SetBookSeed: async (p: string, id: number, seed: number) => { bookOf(p, id).seed = seed; },
   SetBookOrder: async (p: string, ids: number[]) => { const s = shelfOf(p); s.books = ids.map((id, i) => ({ ...s.books.find((b) => b.id === id)!, order: i + 1 })); },

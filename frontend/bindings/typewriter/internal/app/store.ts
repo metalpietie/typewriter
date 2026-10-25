@@ -279,3 +279,10 @@ export function SwitchProject(id: string): $CancellablePromise<void> {
 export function Version(): $CancellablePromise<string> {
     return $Call.ByID(2144228903);
 }
+
+/**
+ * WordDays returns the writing days of every project.
+ */
+export function WordDays(): $CancellablePromise<$models.ProjectDays[] | null> {
+    return $Call.ByID(785522434);
+}
