@@ -1,6 +1,6 @@
 <script lang="ts">
   import { look, setLook, resetLook } from './editorlook.svelte';
-  import { FONTS, SIZES, SPACINGS, WIDTHS, isDefaultLook } from './editorlook-core';
+  import { FONTS, SIZES, SPACINGS, SPELLS, WIDTHS, isDefaultLook } from './editorlook-core';
 
   // A "Look" button for the tool row of the Write tab. It opens a small panel. The page changes while you click.
   let open = $state(false);
@@ -11,6 +11,7 @@
     { key: 'size', label: 'Text size', list: SIZES },
     { key: 'spacing', label: 'Line spacing', list: SPACINGS },
     { key: 'width', label: 'Page width', list: WIDTHS },
+    { key: 'spell', label: 'Spell check (your names are known)', list: SPELLS },
   ] as const;
 </script>
 

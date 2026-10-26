@@ -141,6 +141,7 @@ func (s *Store) switchTo(id string) error {
 	old.Close() // this also folds the old file's write log into the file
 	release()
 	s.autoBackupAt(time.Now())
+	s.reopened()
 	return err
 }
 

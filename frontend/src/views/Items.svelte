@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { takeCommand } from '../lib/commands';
+  import CustomFields from '../lib/CustomFields.svelte';
   import Select from '../lib/Select.svelte';
   import { db, ITEM_TYPES } from '../lib/db.svelte';
   import { nav, openItem } from '../lib/nav.svelte';
@@ -55,6 +57,8 @@
     if (l.order === other.order) l.order += dir; // two steps that shared a number
     await db.save('itemlog', l); await db.save('itemlog', other);
   }
+
+  $effect(() => { if (takeCommand('new')) add(); }); // the command menu
 </script>
 
 <div class="split">
@@ -88,6 +92,7 @@
       <textarea bind:value={sel.description} oninput={save}></textarea>
       <label>History and powers</label>
       <textarea bind:value={sel.history} oninput={save} placeholder="Who made it? What can it do? What does it cost?"></textarea>
+      {#key sel.id}<CustomFields kind="item" item={sel} {save} />{/key}
 
       <h3 style="margin-top:1.4rem">Where it is now</h3>
       <div class="card">

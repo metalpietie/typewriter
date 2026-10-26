@@ -299,5 +299,6 @@ func (s *Store) switchDir(dir string) error {
 	s.opMu.Unlock()
 	s.syncMu.Unlock()
 	s.autoBackupAt(time.Now())
+	s.reopened()
 	return nil
 }

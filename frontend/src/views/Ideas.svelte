@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { takeCommand } from '../lib/commands';
   import Select from '../lib/Select.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import { db } from '../lib/db.svelte';
@@ -41,6 +42,8 @@
     nav.insert = { kind: sel.form ?? 'idea', text: String(sel.text).trim(), source: sel.source ?? null, loc: sel.loc ?? '' };
     nav.tab = 'write';
   }
+
+  $effect(() => { if (takeCommand('new')) add(); }); // the command menu
 </script>
 
 <div class="split">

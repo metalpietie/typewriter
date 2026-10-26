@@ -189,3 +189,6 @@ export const PhoneSync = {
   CancelPairing: async () => {},
   RemoveDevice: async (id: string) => { const i = phones.findIndex((p) => p.id === id); if (i >= 0) phones.splice(i, 1); },
 };
+
+// More windows: the demo has one window only.
+export const Windows = { OpenWindow: async () => {} };

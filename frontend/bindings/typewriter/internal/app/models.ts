@@ -175,6 +175,17 @@ export interface ExportOptions {
     "nonfiction": boolean;
 
     /**
+     * A submission (what is "submission", submission.go)
+     * the lines at the top left of the title page: name, address, phone, email
+     */
+    "contact": string;
+
+    /**
+     * the title in the page header; empty takes the first words of the title
+     */
+    "shortTitle": string;
+
+    /**
      * The outline (what is "outline")
      * add the point of view and the place of each scene
      */

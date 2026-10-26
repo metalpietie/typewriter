@@ -44,6 +44,7 @@
     busy = true; message = ''; failed = false;
     try {
       await settle();
+      db.expectReopen();
       await Store.MoveDataFolder(picked.path, mode);
       location.reload(); // show the data of the new folder
     } catch (e: any) {

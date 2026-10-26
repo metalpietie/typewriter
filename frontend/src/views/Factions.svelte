@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { takeCommand } from '../lib/commands';
+  import CustomFields from '../lib/CustomFields.svelte';
   import Select from '../lib/Select.svelte';
   import { db, FACTION_TYPES, FACTION_REL } from '../lib/db.svelte';
   import { nav, openItem } from '../lib/nav.svelte';
@@ -61,6 +63,8 @@
   }
   const saveTie = (r: any) => db.save('factionrel', r);
   const removeTie = (r: any) => db.remove('factionrel', r.id, false);
+
+  $effect(() => { if (takeCommand('new')) add(); }); // the command menu
 </script>
 
 <div class="split">
@@ -100,6 +104,7 @@
       <textarea style="min-height:6rem" bind:value={sel.ranks} oninput={save} placeholder={'King\nLord\nKnight\nSoldier'}></textarea>
       <label>Description</label>
       <textarea bind:value={sel.description} oninput={save}></textarea>
+      {#key sel.id}<CustomFields kind="faction" item={sel} {save} />{/key}
 
       <h3 style="margin-top:1.4rem">Members · {members.length}</h3>
       <div class="card">

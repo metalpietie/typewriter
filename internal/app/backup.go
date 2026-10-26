@@ -58,7 +58,11 @@ func (s *Store) RestoreBackup() (RestoreResult, error) {
 	if err != nil || path == "" {
 		return RestoreResult{}, nil
 	}
-	return s.restoreFrom(path)
+	res, err := s.restoreFrom(path)
+	if err == nil {
+		s.reopened()
+	}
+	return res, err
 }
 
 // restoreFrom replaces all data with the contents of the backup file at path.

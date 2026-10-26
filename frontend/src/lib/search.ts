@@ -76,9 +76,10 @@ function fieldsOf(kind: Kind, it: Item): Field[] {
       f((it.fields ?? []).map((x: any) => `${x.k} ${x.v}`).join(' '), 1),
     ];
   }
-  if (kind === 'location') return [f(it.name, 3), f(it.tags, 2), f(it.type, 1), f(it.description, 1)];
-  if (kind === 'faction') return [f(it.name, 3), f(it.type, 1), f(it.ranks, 1), f(it.description, 1)];
-  if (kind === 'item') return [f(it.name, 3), f(it.tags, 2), f(it.type, 1), f(it.description, 1), f(it.history, 1)];
+  const own = f((it.fields ?? []).map((x: any) => `${x.k} ${x.v}`).join(' '), 1); // your own fields
+  if (kind === 'location') return [f(it.name, 3), f(it.tags, 2), f(it.type, 1), f(it.description, 1), own];
+  if (kind === 'faction') return [f(it.name, 3), f(it.type, 1), f(it.ranks, 1), f(it.description, 1), own];
+  if (kind === 'item') return [f(it.name, 3), f(it.tags, 2), f(it.type, 1), f(it.description, 1), f(it.history, 1), own];
   if (kind === 'scene') return [f(it.title, 3), f(it.summary, 1.5), { text: plain(kind, it).lower, weight: 1 }];
   if (kind === 'draft') return [f(it.title, 3), { text: plain(kind, it).lower, weight: 1 }];
   if (kind === 'term') return [f(it.word, 3), f(it.accepted, 2.5), f(it.pronunciation, 1), f(it.meaning, 1.5), f(it.notes, 1), f(it.type, 1)];

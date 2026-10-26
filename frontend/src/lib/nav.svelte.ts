@@ -1,11 +1,13 @@
 import type { Kind } from './db.svelte';
+import { isSecondWindow, windowTab } from './windows';
 
-export type Tab = 'home' | 'draft' | 'write' | 'board' | 'arcs' | 'characters' | 'relationships' | 'world' | 'glossary' | 'factions' | 'items' | 'family' | 'checks' | 'stats' | 'maps' | 'timeline' | 'export' | 'sources' | 'ideas';
+export type Tab = 'reference' | 'home' | 'draft' | 'write' | 'board' | 'arcs' | 'characters' | 'relationships' | 'world' | 'glossary' | 'factions' | 'items' | 'family' | 'checks' | 'stats' | 'maps' | 'timeline' | 'export' | 'sources' | 'ideas';
 
 // The bookshelf shows when the app starts. After the app reloads itself (a project was opened), it does not show again.
 const SEEN = 'typewriter.shelfSeen', START = 'typewriter.startTab';
 function fromSession(key: string): string | null { try { return sessionStorage.getItem(key); } catch { return null; } }
 function startTab(): Tab {
+  if (isSecondWindow && windowTab) return windowTab as Tab; // a second window opens on the screen it was opened for
   const t = fromSession(START);
   try { sessionStorage.removeItem(START); } catch { /* fine */ }
   return t === 'write' ? 'write' : 'home';
@@ -27,9 +29,9 @@ export function reloadInto(tab: Tab) {
 }
 
 /** Shared screen state, so search can jump to an item on another tab. */
-export const nav = $state<{ tab: Tab; shelf: boolean; book: number | null; pending: { kind: Kind; id: number } | null; searchOpen: boolean; focus: boolean; scene: number | null; calendar: boolean; names: '' | 'person' | 'place'; projects: boolean; dataFolder: boolean; projectSettings: boolean; copy: { kind: string; id: number } | null; insert: { kind: string; text: string; source: number | null; loc: string } | null }>({
+export const nav = $state<{ tab: Tab; shelf: boolean; book: number | null; pending: { kind: Kind; id: number } | null; searchOpen: boolean; focus: boolean; scene: number | null; calendar: boolean; names: '' | 'person' | 'place'; projects: boolean; dataFolder: boolean; projectSettings: boolean; copy: { kind: string; id: number } | null; command: string | null; commands: boolean; insert: { kind: string; text: string; source: number | null; loc: string } | null }>({
   tab: startTab(),
-  shelf: fromSession(SEEN) == null, // the bookshelf is on screen
+  shelf: !isSecondWindow && fromSession(SEEN) == null, // the bookshelf is on screen (when the app starts)
   book: null, // a book the Write tab should open
   pending: null,
   searchOpen: false,
@@ -41,6 +43,8 @@ export const nav = $state<{ tab: Tab; shelf: boolean; book: number | null; pendi
   dataFolder: false, // the data folder window is open
   projectSettings: false, // the project settings window (the type of project) is open
   copy: null, // the window that copies world items to another shelf is open, with this item ticked ({ kind: '', id: 0 } for none)
+  command: null, // a command from the command menu that a screen should do (commands.ts)
+  commands: false, // the search window opens on the commands (Ctrl+Shift+P)
   insert: null, // an idea or quote that the Write tab should put at the end of the open text
 });
 

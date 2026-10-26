@@ -12,7 +12,7 @@
   import { synopsisWords, outlineWords, missingSummaries, pagesOf } from '../lib/summary-core';
   import { has, word, isNonfiction } from '../lib/projecttype.svelte';
 
-  let what = $state<'manuscript' | 'outline' | 'synopsis' | 'bible' | 'sources'>('manuscript');
+  let what = $state<'manuscript' | 'submission' | 'outline' | 'synopsis' | 'bible' | 'sources'>('manuscript');
   let outlineDetails = $state(false);
   let outlineEmpty = $state(false);
   let bookId = $state<number>(0);
@@ -21,6 +21,16 @@
   let print = $state(false);
   let contents = $state(saved('typewriter.contents') !== 'no'); // on, until you turn it off
   let author = $state(saved('typewriter.author'));
+  // a submission: your contact details for its title page (a choice of this computer, like the author name)
+  let contact = $state(saved('typewriter.contact'));
+  let shortTitle = $state('');
+  // a submission is one book, a Word file or a PDF, on Letter or A4
+  $effect(() => {
+    if (what !== 'submission') return;
+    if (format !== 'docx' && format !== 'pdf') format = 'docx';
+    if (pageSize !== 'letter' && pageSize !== 'a4') pageSize = 'letter';
+    if (!bookId && books.length) bookId = books[0].id;
+  });
   // The pages and style of a manuscript are kept with the project, so they are in backups too.
   const row = $derived(db.lists.setting.find((r) => r.key === 'exportPages'));
   let pages = $state(cleanPages(null));
@@ -61,11 +71,12 @@
     try {
       localStorage.setItem('typewriter.author', author.trim());
       localStorage.setItem('typewriter.contents', contents ? 'yes' : 'no');
+      if (what === 'submission') localStorage.setItem('typewriter.contact', contact.trim());
     } catch { /* these are only conveniences */ }
     try {
       await keepPages();
       const cover = what === 'manuscript' && coverBook ? (await getCover(coverBook))?.image ?? '' : '';
-      const path = await Exporter.Export(what, toBook ? bookId : 0, format, { author: author.trim(), pageSize, print: format === 'pdf' && print, contents: contents && (what === 'manuscript' || what === 'bible'), ...pages, outlineDetails: outlineDetails && has('characters'), outlineEmpty, cover, nonfiction: isNonfiction(), sectionHeadings: pages.sceneBreak === 'heading' });
+      const path = await Exporter.Export(what, toBook ? bookId : 0, format, { author: author.trim(), pageSize, print: format === 'pdf' && print, contents: contents && (what === 'manuscript' || what === 'bible'), ...pages, outlineDetails: outlineDetails && has('characters'), outlineEmpty, cover, nonfiction: isNonfiction(), sectionHeadings: pages.sceneBreak === 'heading', contact, shortTitle: shortTitle.trim() });
       message = path ? `Saved: ${path}` : 'Cancelled.';
     } catch (e: any) {
       failed = true; message = e?.message ?? String(e);
@@ -81,6 +92,8 @@
   <h3 style="margin-top:1.2rem">What to export</h3>
   <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={what} value="manuscript" />
     Manuscript — chapter text, with a title page</label>
+  <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={what} value="submission" />
+    Submission — the manuscript as agents and editors ask for it (standard manuscript format)</label>
   <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={what} value="outline" />
     Outline — each chapter and {word('scene')} with its {word('summary')}</label>
   <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={what} value="synopsis" />
@@ -99,7 +112,7 @@
     <input bind:value={author} placeholder="Your name" />
     <label>Which book</label>
     <Select bind:value={bookId}>
-      <option value={0}>All books (whole series)</option>
+      {#if what !== 'submission'}<option value={0}>All books (whole series)</option>{/if}
       {#each books as b}<option value={b.id}>{b.order}. {b.title}</option>{/each}
     </Select>
   {/if}
@@ -140,6 +153,23 @@
     <CoverEditor bookId={coverBook} {author} />
   {/if}
 
+  {#if what === 'submission'}
+    <div class="card" style="margin:1rem 0 0">
+      <label for="sub-contact" style="margin-top:0">Your contact details (top left of the first page)</label>
+      <textarea id="sub-contact" rows="5" bind:value={contact} placeholder={'Your legal name\nStreet and number\nTown and post code\nPhone\nEmail'}></textarea>
+      <label for="sub-short">Short title for the page header <span class="muted">(optional)</span></label>
+      <input id="sub-short" bind:value={shortTitle} placeholder="The first words of the title" />
+      <label for="sub-chap">Chapter headings</label>
+      <Select id="sub-chap" bind:value={pages.chapterStyle} onchange={keepPages}>{#each CHAPTER_STYLES as [key, name]}<option value={key}>{name}</option>{/each}</Select>
+      <p class="muted" style="margin:.7rem 0 0;font-size:.85rem">
+        A title page with your details and the word count (rounded, as agents expect). Then 12 pt Times New Roman, double spaced,
+        1 inch margins, and each paragraph indented. Each page has <i>Surname / TITLE / page</i> at the top right. Each chapter starts
+        on a new page, a third of the way down. A # marks a {word('scene')} break, and THE END follows the last chapter.
+        No cover, contents, or other pages. Always check what each agent asks for.
+      </p>
+    </div>
+  {/if}
+
   {#if what === 'outline' || what === 'synopsis'}
     <div class="card" style="margin:1rem 0 0">
       {#if what === 'outline'}
@@ -165,8 +195,10 @@
   <h3 style="margin-top:1.2rem">File type</h3>
   <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={format} value="docx" />Word (.docx)</label>
   <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={format} value="pdf" />PDF (.pdf)</label>
+  {#if what !== 'submission'}
   <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={format} value="epub" />E-book (.epub): for e-readers and phones</label>
   <label style="display:flex;gap:.5rem;color:var(--text)"><input type="radio" style="width:auto" bind:group={format} value="md" />Markdown (.md): plain text with simple marks</label>
+  {/if}
 
   {#if what === 'manuscript' || what === 'bible'}
   <label style="display:flex;gap:.5rem;color:var(--text);margin-top:1rem"><input type="checkbox" style="width:auto" bind:checked={contents} />
@@ -183,9 +215,9 @@
 
   {#if format === 'docx' || format === 'pdf'}
     <label>Page size</label>
-    <Select bind:value={pageSize}>{#each SIZES as [key, name]}<option value={key}>{name}</option>{/each}</Select>
+    <Select bind:value={pageSize}>{#each SIZES.filter(([k]) => what !== 'submission' || k === 'letter' || k === 'a4') as [key, name]}<option value={key}>{name}</option>{/each}</Select>
   {/if}
-  {#if format === 'pdf'}
+  {#if format === 'pdf' && what !== 'submission'}
     <label style="display:flex;gap:.5rem;color:var(--text);margin-top:.8rem"><input type="checkbox" style="width:auto" bind:checked={print} />
       Print layout: wider inside margin, page numbers in the outer corners, chapters start on a right-hand page</label>
   {/if}

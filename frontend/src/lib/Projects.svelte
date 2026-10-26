@@ -32,6 +32,7 @@
     busy = true; message = ''; failed = false;
     try {
       await settle();
+      if (reload) db.expectReopen();
       await job();
       if (reload) { location.reload(); return; }
       await refresh();

@@ -1,5 +1,7 @@
+import { Events } from '@wailsio/runtime';
 import { Store } from '../../bindings/typewriter/internal/app';
 import type { Doc } from '../../bindings/typewriter/internal/app/models.js';
+import { WINDOW } from './windows';
 
 export type Kind = 'book' | 'chapter' | 'character' | 'relationship' | 'location' | 'map' | 'pathpoint' | 'note' | 'event' | 'mapdoc' | 'scene' | 'comment' | 'faction' | 'membership' | 'factionrel' | 'item' | 'itemlog' | 'plotignore' | 'wordday' | 'setting' | 'todo' | 'region' | 'draft' | 'arc' | 'arcscene' | 'term' | 'pass' | 'source' | 'idea' | 'syncnote';
 export const KINDS: Kind[] = ['book', 'chapter', 'character', 'relationship', 'location', 'map', 'pathpoint', 'note', 'event', 'mapdoc', 'scene', 'comment', 'faction', 'membership', 'factionrel', 'item', 'itemlog', 'plotignore', 'wordday', 'setting', 'todo', 'region', 'draft', 'arc', 'arcscene', 'term', 'pass', 'source', 'idea', 'syncnote'];
@@ -39,7 +41,11 @@ class Db {
     return this.waiting + this.busy > 0 ? 'saving' : 'saved';
   }
 
-  async load() {
+  /**
+   * Read everything again. quiet: this window follows a change of another window, so it does not tell the others.
+   * Otherwise the other windows read everything again too (a delete or an undo can change many items).
+   */
+  async load(quiet = false) {
     await Promise.all(KINDS.map(async (k) => {
       this.lists[k] = ((await Store.List(k)) ?? []).map(parse);
     }));
@@ -51,6 +57,42 @@ class Db {
     this.project = open?.name ?? '';
     this.projectId = open?.id ?? '';
     this.ready = true;
+    if (!quiet) Events.Emit('typewriter:reload', { from: WINDOW }).catch(() => {});
+  }
+
+  /** The time until which this window expects the data to change under it, because it asked for that (see expectReopen). */
+  private expecting = 0;
+  /** This window is about to open another project, another folder or a backup: it reloads itself, and the others follow. */
+  expectReopen() { this.expecting = Date.now() + 60_000; }
+  /** Did this window ask for the change that was just made under the windows? */
+  askedForReopen() { return this.expecting > Date.now(); }
+  private discarded = false;
+  /** Forget the edits that wait, and save nothing more: the data under this window changed (another project). */
+  discard() {
+    this.discarded = true;
+    for (const w of this.timers.values()) clearTimeout(w.timer);
+    this.timers.clear();
+    this.waiting = 0;
+  }
+
+  /** Another window saved an item: take it, unless this window is changing it right now. */
+  private follow(kind: Kind, doc: Doc) {
+    if (!KINDS.includes(kind) || this.timers.has(kind + doc.id)) return;
+    const item = parse(doc);
+    const list = this.lists[kind];
+    const at = list.findIndex((i) => i.id === item.id);
+    if (at >= 0) Object.assign(list[at], item); else list.push(item);
+  }
+  /** Listen to the other windows (windows.ts). Called once, when the app starts. */
+  listen() {
+    Events.On('typewriter:doc', (e: any) => {
+      const p = e?.data ?? e;
+      if (p?.from !== WINDOW && p?.doc) this.follow(p.kind, p.doc);
+    });
+    Events.On('typewriter:reload', (e: any) => {
+      const p = e?.data ?? e;
+      if (p?.from !== WINDOW && this.ready) { this.flush(); this.load(true); }
+    });
   }
 
   get(kind: Kind, id: number | null | undefined): Item | undefined {
@@ -62,13 +104,15 @@ class Db {
     const { id, kind: _k, updatedAt: _u, ...data } = item;
     this.busy++;
     try {
-      const saved = parse(await Store.Save({ id: id ?? 0, kind, data: JSON.stringify(data), updatedAt: '' }));
+      const raw = await Store.Save({ id: id ?? 0, kind, data: JSON.stringify(data), updatedAt: '' });
+      const saved = parse(raw);
       const list = this.lists[kind];
       const at = list.findIndex((i) => i.id === saved.id);
       if (at >= 0) Object.assign(list[at], saved); else list.push(saved);
       this.failed.delete(kind + saved.id);
       if (this.failed.size === 0) this.saveError = '';
       this.lastSaved = new Date();
+      Events.Emit('typewriter:doc', { from: WINDOW, kind, doc: raw }).catch(() => {}); // the other windows take it
       return this.get(kind, saved.id)!;
     } catch (e: any) {
       this.saveError = e?.message ?? String(e);
@@ -86,6 +130,7 @@ class Db {
 
   /** Save every waiting edit now, for example when the window closes. */
   flush() {
+    if (this.discarded) return;
     for (const [key, w] of [...this.timers]) {
       clearTimeout(w.timer);
       this.timers.delete(key);

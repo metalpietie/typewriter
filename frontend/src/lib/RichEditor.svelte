@@ -23,6 +23,9 @@
   import { pop } from './motion.svelte';
   import { look } from './editorlook.svelte';
   import { lookVars } from './editorlook-core';
+  import { addWord, correct, ignoreWord, spell, suggest, useDictionary } from './spell.svelte';
+  import { sameCase, wordsOf } from './spell-core';
+  import type { Node as PMNode } from '@tiptap/pm/model';
 
   let { value, onchange, placeholder = 'Start writing…', bare = false, source = '', onfind, onbeside, oncomment, onfocuscomment, onopenref, autofocus = false }: {
     value: string;
@@ -183,6 +186,107 @@
       })];
     },
   });
+  // Spell check (spell.svelte.ts): a red line under a word that is not in the dictionary and is not one of your names.
+  // @ links are names, so they are not checked. Each paragraph is checked once, until it changes or the words change.
+  let spellMarks = new WeakMap<PMNode, [number, number][]>(); // a paragraph: where its wrong words are, from its start
+  let spellVersion = -1;
+  /** The text of a paragraph, one letter for each place in it, so a letter's place is its place in the editor. */
+  function blockText(node: PMNode): string {
+    let text = '';
+    node.forEach((child) => {
+      if (child.isText) text += child.marks.some((m) => m.type.name === 'ref') ? ' '.repeat(child.text!.length) : child.text!;
+      else text += '\uFFFC'.repeat(child.nodeSize); // a citation, footnote or line break: not a letter
+    });
+    return text;
+  }
+  function wrongWords(node: PMNode): [number, number][] {
+    let found = spellMarks.get(node);
+    if (!found) {
+      const text = blockText(node);
+      found = wordsOf(text).filter((w) => !correct(w.word, text.slice(0, w.start), text.slice(w.end))).map((w) => [w.start, w.end] as [number, number]);
+      spellMarks.set(node, found);
+    }
+    return found;
+  }
+  const SpellCheck = Extension.create({
+    name: 'spellCheck',
+    addProseMirrorPlugins() {
+      return [new Plugin({
+        key: new PluginKey('spellCheck'),
+        props: {
+          decorations(state) {
+            if (!spell.ready || look.spell === 'off') return null;
+            if (spellVersion !== spell.version) { spellMarks = new WeakMap(); spellVersion = spell.version; }
+            const out: Decoration[] = [];
+            state.doc.descendants((node, pos) => {
+              if (!node.isTextblock) return true;
+              for (const [a, b] of wrongWords(node)) out.push(Decoration.inline(pos + 1 + a, pos + 1 + b, { class: 'misspelled' }));
+              return false;
+            });
+            return DecorationSet.create(state.doc, out);
+          },
+        },
+      })];
+    },
+  });
+  // load the dictionary the Look panel says, and mark the words again when it, the names or your words change
+  $effect(() => { useDictionary(look.spell); });
+  $effect(() => { spell.version; look.spell; if (editor && !editor.isDestroyed) editor.view.dispatch(editor.state.tr.setMeta('addToHistory', false)); });
+
+  // Right-click on a marked word: what it may have been meant to be, add it to your dictionary, or ignore it.
+  let spellMenu = $state<{ x: number; y: number; word: string; from: number; to: number; list: string[] } | null>(null);
+  function openSpellMenu(view: any, e: MouseEvent): boolean {
+    const el = (e.target as HTMLElement).closest?.('.misspelled');
+    if (!el || !spellMenuAt(view.posAtDOM(el, 0), e.clientX, e.clientY)) return false;
+    e.preventDefault();
+    return true;
+  }
+  /** Open the spelling menu for the word at a place in the text. x and y: where on the screen (the word itself when left out). */
+  function spellMenuAt(pos: number, x?: number, y?: number): boolean {
+    if (!editor) return false;
+    const rp = editor.state.doc.resolve(pos);
+    const start = rp.start(), text = blockText(rp.parent), at = rp.pos - start;
+    const w = wordsOf(text).find((v) => v.start <= at && at <= v.end);
+    if (!w) return false;
+    if (x === undefined || y === undefined) { const c = editor.view.coordsAtPos(start + w.start); x = c.left; y = c.bottom; }
+    spellMenu = { x, y, word: w.word, from: start + w.start, to: start + w.end, list: suggest(w.word) };
+    nextTick().then(() => (document.querySelector('.spellmenu button') as HTMLElement | null)?.focus());
+    return true;
+  }
+
+  /** Where the marked words of the text are, in order. */
+  function spellingRanges(): [number, number][] {
+    if (!editor || !spell.ready || look.spell === 'off') return [];
+    if (spellVersion !== spell.version) { spellMarks = new WeakMap(); spellVersion = spell.version; }
+    const out: [number, number][] = [];
+    editor.state.doc.descendants((node, pos) => {
+      if (!node.isTextblock) return true;
+      for (const [a, b] of wrongWords(node)) out.push([pos + 1 + a, pos + 1 + b]);
+      return false;
+    });
+    return out;
+  }
+  const spellCount = $derived.by(() => { void tick; void spell.version; return spellingRanges().length; }); // again after each change
+  /** Go to the next (dir 1) or the previous (dir -1) marked word, round to the start or the end. */
+  function jumpSpelling(dir: 1 | -1) {
+    const list = spellingRanges();
+    if (!editor || !list.length) return;
+    const { from, to } = editor.state.selection;
+    // a word that starts at the cursor counts as the next one, unless the Vim keys just put the cursor there
+    const here = !vimOn && from === to;
+    const hit = dir > 0 ? list.find(([a]) => a > from || (here && a === from)) ?? list[0] : [...list].reverse().find(([, b]) => b < to) ?? list[list.length - 1];
+    // with the Vim keys the cursor goes to the start of the word; otherwise the word is selected, so typing replaces it
+    const sel = vimOn ? { from: hit[0], to: hit[0] } : { from: hit[0], to: hit[1] };
+    editor.chain().focus().setTextSelection(sel).scrollIntoView().run();
+  }
+  let spellKey = ''; // ] or [ or z, waiting for the s or = after it (Vim keys)
+  function replaceWord(s: string) {
+    if (!editor || !spellMenu) return;
+    const { from, to, word: w } = spellMenu;
+    spellMenu = null;
+    editor.chain().focus().insertContentAt({ from, to }, sameCase(w, s)).run();
+  }
+
   // draw the dimming again when the choice is switched
   $effect(() => { look.focusLine; if (editor) editor.view.dispatch(editor.state.tr); });
 
@@ -414,6 +518,22 @@
 
   function hotkeys(e: KeyboardEvent): boolean {
     if ((e.ctrlKey || e.metaKey) && e.altKey && e.key.toLowerCase() === 'f') { addFootnote(); e.preventDefault(); return true; }
+    // spelling: F7 goes to the next marked word, Shift+F7 to the one before
+    if (e.key === 'F7' && !e.ctrlKey && !e.altKey) { jumpSpelling(e.shiftKey ? -1 : 1); e.preventDefault(); return true; }
+    // the Vim keys: ]s and [s go to the next and the previous marked word, z= shows what it may have been meant to be
+    if (vimOn && editor && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      const vs = vimPluginKey.getState(editor.state) as { mode?: string; keyBuffer?: string; pendingOperator?: unknown; pendingFind?: unknown } | undefined;
+      if (vs?.mode === 'normal' && !vs.keyBuffer && !vs.pendingOperator && !vs.pendingFind) {
+        const k = e.key, waiting = spellKey;
+        if (waiting) {
+          if (k === 'Shift') return true;
+          spellKey = '';
+          if ((waiting === ']' || waiting === '[') && k === 's') { jumpSpelling(waiting === ']' ? 1 : -1); e.preventDefault(); return true; }
+          if (waiting === 'z' && k === '=') { spellMenuAt(editor.state.selection.from); e.preventDefault(); return true; }
+        }
+        if (k === ']' || k === '[' || k === 'z') { spellKey = k; e.preventDefault(); return true; }
+      }
+    }
     return false;
   }
 
@@ -479,10 +599,13 @@
         IndexTerm,
         NeedsSource,
         FocusLine,
+        SpellCheck,
       ],
       editorProps: {
         handleKeyDown: (_view, e) => hotkeys(e) || onKeys(e),
+        attributes: { spellcheck: 'false' }, // the app checks the spelling itself, so it knows your names
         handleDOMEvents: {
+          contextmenu: (view, e) => openSpellMenu(view, e),
           mouseover: (_view, e) => { peekOver(e); return false; },
           mouseleave: () => { clearTimeout(peekTimer); peekEl = null; hidePeekSoon(); return false; },
           mousedown: () => { hidePeek(); return false; },
@@ -600,6 +723,10 @@
     <span class="sep"></span>
     <button title="Undo (Ctrl+Z)" onclick={() => run().undo().run()}>↶</button>
     <button title="Redo (Ctrl+Y)" onclick={() => run().redo().run()}>↷</button>
+    {#if spell.ready && look.spell !== 'off'}
+      <button class="spellcount" class:clean={!spellCount} title={spellCount ? `${spellCount} word${spellCount === 1 ? '' : 's'} marked by the spell check. Click (or F7) for the next one.` : 'No spelling mistakes in this text'}
+        disabled={!spellCount} onclick={() => jumpSpelling(1)}>{spellCount ? '✗ ' + spellCount : '✓'} spelling</button>
+    {/if}
     <span class="rich-save"><SaveIndicator /></span>
   </div>
   <div class="rich-page" bind:this={host}></div>
@@ -607,6 +734,28 @@
     <div class="vimmode" data-mode={vimInfo.mode} aria-live="off">-- {vimInfo.mode.replace('-', ' ').toUpperCase()} --{vimInfo.keyBuffer ? '  ' + vimInfo.keyBuffer : ''}</div>
   {/if}
 </div>
+
+{#if spellMenu}
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div class="spellveil" onmousedown={() => (spellMenu = null)} oncontextmenu={(e) => { e.preventDefault(); spellMenu = null; }}></div>
+  <div class="spellmenu" role="menu" tabindex="-1" transition:pop style:left="{Math.min(spellMenu.x, innerWidth - 230)}px" style:top="{Math.min(spellMenu.y + 4, innerHeight - 220)}px"
+    onkeydown={(e) => {
+      if (e.key === 'Escape') { spellMenu = null; editor?.commands.focus(); }
+      else if (/^[1-5]$/.test(e.key) && spellMenu?.list[+e.key - 1]) { e.preventDefault(); replaceWord(spellMenu.list[+e.key - 1]); }
+      else if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'j' || e.key === 'k') {
+        e.preventDefault();
+        const items = [...(e.currentTarget as HTMLElement).querySelectorAll('button')];
+        const at = items.indexOf(document.activeElement as HTMLButtonElement);
+        items[(at + (e.key === 'ArrowDown' || e.key === 'j' ? 1 : items.length - 1)) % items.length]?.focus();
+      }
+    }}>
+    {#each spellMenu.list as s, i}<button role="menuitem" class="fix" onclick={() => replaceWord(s)}><span class="n">{i + 1}</span>{sameCase(spellMenu.word, s)}</button>
+    {:else}<div class="none">No suggestions</div>{/each}
+    <hr />
+    <button role="menuitem" onclick={() => { if (spellMenu) addWord(spellMenu.word); spellMenu = null; }}>Add “{spellMenu.word}” to the dictionary</button>
+    <button role="menuitem" onclick={() => { if (spellMenu) ignoreWord(spellMenu.word); spellMenu = null; }}>Ignore it for now</button>
+  </div>
+{/if}
 
 {#if editor}
   <!-- made again when the editor is made again (the Vim keys switched), so it listens to the new one -->
@@ -663,6 +812,17 @@
     padding: .4rem 0; border-bottom: 1px solid var(--line); margin-bottom: .8rem;
   }
   .rich-bar[hidden] { display: none; }
+  /* spell check: a wavy red line under a word that is not in the dictionary */
+  .rich-page :global(.misspelled) { text-decoration: underline wavy var(--danger); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  .spellveil { position: fixed; inset: 0; z-index: 199; }
+  .spellmenu { position: fixed; z-index: 200; min-width: 12rem; max-width: 220px; display: flex; flex-direction: column; padding: .25rem; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 10px 30px rgba(0, 0, 0, .4); font-size: .85rem; }
+  .spellmenu button { text-align: left; background: none; border: 0; box-shadow: none; padding: .3rem .5rem; border-radius: 6px; color: var(--text); }
+  .spellmenu button:hover { background: var(--panel-2); }
+  .spellmenu .fix { font-weight: 600; }
+  .spellmenu .n { display: inline-block; width: 1.1rem; color: var(--muted); font-weight: 400; font-size: .75rem; }
+  .spellmenu button:focus-visible { outline: 1px solid var(--accent); }
+  .spellmenu .none { padding: .3rem .5rem; color: var(--muted); }
+  .spellmenu hr { border: 0; border-top: 1px solid var(--line); margin: .2rem 0; }
   /* Vim keys: the block cursor takes the colours of the app, and a label shows the mode */
   .rich.vim { --vim-cursor-bg: var(--accent); --vim-cursor-fg: var(--on-accent); }
   .vimmode { position: sticky; bottom: calc(var(--covered-below, 0px) + .5rem); margin-left: auto; width: fit-content; z-index: 3; font: .72rem ui-monospace, Consolas, monospace; letter-spacing: .04em; padding: .15rem .55rem; border-radius: 6px; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); pointer-events: none; }
@@ -670,6 +830,9 @@
   .vimmode[data-mode='visual'], .vimmode[data-mode='visual-line'] { color: var(--danger); border-color: var(--danger); }
   .rich-bar button { padding: .2rem .55rem; min-width: 2rem; }
   .rich-save { margin-left: auto; }
+  .rich-bar .spellcount { margin-left: auto; font-size: .75rem; color: var(--danger); }
+  .rich-bar .spellcount.clean { color: var(--muted); }
+  .rich-bar .spellcount + .rich-save { margin-left: .4rem; }
   .sep { width: 1px; height: 1.4rem; background: var(--line); margin: 0 .3rem; }
   .rich-page { flex: 1; width: 100%; max-width: var(--ed-width, none); margin: 0 auto; }
 

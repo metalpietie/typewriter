@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { takeCommand } from '../lib/commands';
+  import CustomFields from '../lib/CustomFields.svelte';
+  import { LORE_TEMPLATES, templateBody } from '../lib/loretemplates-core';
   import Select from '../lib/Select.svelte';
   import { db, NOTE_CATEGORIES, PLACE_TYPES } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
@@ -40,8 +43,23 @@
       : await db.save('location', { name: 'New place', type: filter === 'All' ? 'city' : filter, description: '', parent: null, tags: '' });
     selId = item.id;
   }
+  /** A new lore note from a template (loretemplates-core.ts): the headings and the questions are filled in. */
+  let template = $state(''); // the list goes back to its first line after each use
+  async function fromTemplate(id: string) {
+    const t = LORE_TEMPLATES.find((x) => x.id === id);
+    if (!t) return;
+    if (mode !== 'note') switchMode('note');
+    selId = (await db.save('note', { title: t.title, category: t.category, body: templateBody(t), tags: '' })).id;
+  }
   function save() { if (sel) db.queue(kind, sel); }
   async function del() { if (selId) { await db.remove(kind, selId); selId = null; } }
+
+  // the command menu
+  $effect(() => {
+    if (takeCommand('new-place')) { switchMode('location'); add(); }
+    if (takeCommand('new-note')) { switchMode('note'); add(); }
+    for (const t of LORE_TEMPLATES) if (takeCommand('template-' + t.id)) fromTemplate(t.id);
+  });
 </script>
 
 <div class="split">
@@ -51,6 +69,12 @@
       <button class:active={mode === 'location'} onclick={() => switchMode('location')}>Places</button>
     </div>
     <div class="row"><input placeholder="Search…" bind:value={search} /><button class="primary" onclick={add}>+ New</button></div>
+    {#if mode === 'note'}
+      <Select style="margin-top:.4rem" bind:value={template} title="A new lore note with headings and questions to answer" onchange={() => { const v = template; template = ''; fromTemplate(v); }}>
+        <option value="">New from a template…</option>
+        {#each LORE_TEMPLATES as t}<option value={t.id}>{t.name}</option>{/each}
+      </Select>
+    {/if}
     {#if mode === 'location' && has('names')}<button class="small" style="width:100%;margin-top:.4rem" onclick={() => (nav.names = 'place')}>Name generator…</button>{/if}
     <label>Filter</label>
     <Select bind:value={filter}>{#each cats as c}<option>{c}</option>{/each}</Select>
@@ -97,6 +121,7 @@
       <p class="muted">
         {#if sel.map}Pinned on map “{db.name('map', sel.map)}”.{:else}Not on a map yet. Place it in the Maps tab.{/if}
       </p>
+      {#key sel.id}<CustomFields kind="location" item={sel} {save} />{/key}
       {#key sel.id}<MoodBoard owner={sel.id} />{/key}
       <Backlinks kind="location" id={sel.id} />
     {:else}

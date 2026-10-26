@@ -123,7 +123,11 @@ func (s *Store) RestoreAuto(name string) (RestoreResult, error) {
 	if !autoName.MatchString(name) { // the name comes from the screen: never let it point elsewhere
 		return RestoreResult{}, fmt.Errorf("that is not an automatic backup")
 	}
-	return s.restoreFrom(filepath.Join(s.backupDir(), name))
+	res, err := s.restoreFrom(filepath.Join(s.backupDir(), name))
+	if err == nil {
+		s.reopened()
+	}
+	return res, err
 }
 
 // OpenBackupFolder shows the folder with the daily copies in the file manager.

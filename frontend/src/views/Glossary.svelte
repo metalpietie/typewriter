@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { takeCommand } from '../lib/commands';
   import { untrack } from 'svelte';
   import Select from '../lib/Select.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
@@ -75,6 +76,8 @@
     recheck();
   }
   const snip = (s: string) => s.split(/(⟦[^⟧]*⟧)/).filter(Boolean).map((t) => (t.startsWith('⟦') ? { t: t.slice(1, -1), hit: true } : { t, hit: false }));
+
+  $effect(() => { if (takeCommand('new')) add(); }); // the command menu
 </script>
 
 <div class="split">

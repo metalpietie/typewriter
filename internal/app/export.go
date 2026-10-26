@@ -95,8 +95,18 @@ func (e *Exporter) Export(what string, bookID int64, format string, opts ExportO
 		opts.SectionHeadings = true // the same choice, as it comes from the Export screen
 	}
 	var blocks []block
+	var sub submission
 	name := "Story bible"
 	switch what {
+	case "submission":
+		if format != "pdf" && format != "docx" {
+			return "", fmt.Errorf("a submission is a Word file or a PDF")
+		}
+		var err error
+		if sub, err = e.submission(bookID, opts); err != nil {
+			return "", err
+		}
+		name = sub.title + " - submission"
 	case "manuscript":
 		blocks, name = e.manuscript(bookID, opts)
 		if len(blocks) == 0 {
@@ -130,6 +140,16 @@ func (e *Exporter) Export(what string, bookID int64, format string, opts ExportO
 		path += "." + format
 	}
 
+	if what == "submission" {
+		data, err := sub.docx()
+		if format == "pdf" {
+			data, err = sub.pdf()
+		}
+		if err != nil {
+			return "", err
+		}
+		return path, writeFileAtomic(path, data)
+	}
 	if what == "manuscript" {
 		blocks = withBreakStyle(blocks, opts.SceneBreak)
 		if format != "docx" { // Word has real footnotes. The other formats print the notes at the end of each chapter.
@@ -294,6 +314,20 @@ func (e *Exporter) bible() []block {
 			out = append(out, block{kind: "kv", label: label, text: text})
 		}
 	}
+	// your own fields of a character, place, faction or item; a field with no value is left out
+	own := func(r rec) {
+		fs, _ := r["fields"].([]any)
+		for _, f := range fs {
+			if m, ok := f.(map[string]any); ok {
+				k, _ := m["k"].(string)
+				v, _ := m["v"].(string)
+				if k = strings.TrimSpace(k); k == "" {
+					k = "Field"
+				}
+				kv(k, strings.TrimSpace(v))
+			}
+		}
+	}
 
 	out = append(out, block{kind: "pagebreak"}, block{kind: "h1", text: "Characters"})
 	for _, c := range chars {
@@ -301,13 +335,7 @@ func (e *Exporter) bible() []block {
 		kv("Role", str(c, "role"))
 		kv("Also called", str(c, "aliases"))
 		kv("Age", str(c, "age"))
-		if fs, ok := c["fields"].([]any); ok {
-			for _, f := range fs {
-				if m, ok := f.(map[string]any); ok {
-					kv(fmt.Sprint(m["k"]), strings.TrimSpace(fmt.Sprint(m["v"])))
-				}
-			}
-		}
+		own(c)
 		kv("Description", str(c, "description"))
 		kv("Traits", str(c, "traits"))
 		kv("Backstory", str(c, "backstory"))
@@ -369,6 +397,7 @@ func (e *Exporter) bible() []block {
 		kv("Type", str(f, "type"))
 		kv("Headquarters", nameOf(places, num(f, "hq"), "name"))
 		kv("Ranks", strings.Join(paragraphs(str(f, "ranks")), ", "))
+		own(f)
 		kv("Description", str(f, "description"))
 		var who []string
 		for _, m := range members {
@@ -401,6 +430,7 @@ func (e *Exporter) bible() []block {
 	for _, it := range items {
 		out = append(out, block{kind: "h2", text: str(it, "name")})
 		kv("Type", str(it, "type"))
+		own(it)
 		kv("Description", str(it, "description"))
 		kv("History", str(it, "history"))
 		var trail []string
@@ -431,6 +461,7 @@ func (e *Exporter) bible() []block {
 		out = append(out, block{kind: "h2", text: str(p, "name")})
 		kv("Type", str(p, "type"))
 		kv("Inside", nameOf(places, num(p, "parent"), "name"))
+		own(p)
 		kv("Description", str(p, "description"))
 	}
 

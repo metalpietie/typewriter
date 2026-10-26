@@ -49,6 +49,7 @@ export function placeFields(l: Record<string, any>, parent = ''): Field[] {
   add(out, 'Type', l.type);
   add(out, 'Inside', parent);
   add(out, 'Description', l.description);
+  for (const f of Array.isArray(l.fields) ? l.fields : []) add(out, text(f?.k) || 'Field', f?.v);
   return out;
 }
 

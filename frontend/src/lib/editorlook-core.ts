@@ -1,6 +1,6 @@
 // How the writing page looks. No imports, so it can be tested alone.
 
-export type Look = { font: string; size: string; spacing: string; width: string; typewriter: boolean; focusLine: boolean; vim: boolean };
+export type Look = { font: string; size: string; spacing: string; width: string; typewriter: boolean; focusLine: boolean; vim: boolean; spell: string };
 type Choice = readonly [id: string, label: string, css: string];
 
 export const FONTS: Choice[] = [
@@ -14,8 +14,10 @@ export const SIZES: Choice[] = [['small', 'Small', '0.95rem'], ['normal', 'Norma
 export const SPACINGS: Choice[] = [['tight', 'Tight', '1.5'], ['normal', 'Normal', '1.8'], ['loose', 'Loose', '2.1']];
 // "auto" is how it always was: the whole page, and a narrow column in focus mode
 export const WIDTHS: Choice[] = [['auto', 'Auto', 'none'], ['narrow', 'Narrow', '34rem'], ['medium', 'Medium', '44rem'], ['wide', 'Wide', '56rem']];
+// the spell check: off, or the dictionary to check with (spell.svelte.ts)
+export const SPELLS: Choice[] = [['off', 'Off', ''], ['en-GB', 'English (UK)', ''], ['en-US', 'English (US)', '']];
 
-export const DEFAULT_LOOK: Look = { font: 'serif', size: 'normal', spacing: 'normal', width: 'auto', typewriter: false, focusLine: false, vim: false };
+export const DEFAULT_LOOK: Look = { font: 'serif', size: 'normal', spacing: 'normal', width: 'auto', typewriter: false, focusLine: false, vim: false, spell: 'en-GB' };
 
 const pick = (list: Choice[], id: unknown, fallback: string) => (list.some((c) => c[0] === id) ? String(id) : fallback);
 
@@ -31,6 +33,7 @@ export function cleanLook(raw: unknown): Look {
     typewriter: r.typewriter === true,
     focusLine: r.focusLine === true,
     vim: r.vim === true,
+    spell: pick(SPELLS, r.spell, d.spell),
   };
 }
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { takeCommand } from '../lib/commands';
   import Select from '../lib/Select.svelte';
   import { shortAge, impossible } from '../lib/ages';
   import FinishLine from '../lib/FinishLine.svelte';
@@ -402,6 +403,18 @@
     await db.remove('scene', sceneId);
     sceneId = left[0]?.id ?? null;
   }
+
+  // the command menu
+  $effect(() => {
+    if (takeCommand('new-scene')) { if (chap) newScene(); else say(`Open a chapter first, then make the new ${word('scene')}.`); }
+    if (takeCommand('new-chapter')) { if (bookId) addChapter(); else say('Choose a book first, at the top of the list.'); }
+    if (takeCommand('split')) { if (scene) splitHere(); else say(`Open a ${word('scene')} first.`); }
+    if (takeCommand('merge')) { if (scene) mergeNext(); else say(`Open a ${word('scene')} first.`); }
+    if (takeCommand('find')) showFind = true;
+    if (takeCommand('history') && scene) showHistory = true;
+    if (takeCommand('snapshots') && book) showSnaps = true;
+    if (takeCommand('focus')) setFocus(!nav.focus);
+  });
 </script>
 
 <svelte:window onkeydown={onKey} />

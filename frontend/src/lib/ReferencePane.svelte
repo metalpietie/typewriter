@@ -1,7 +1,8 @@
 <script lang="ts">
   import Select from './Select.svelte';
   import { db, toHtml, type Item } from './db.svelte';
-  import { openItem } from './nav.svelte';
+  import { nav, openItem } from './nav.svelte';
+  import { openWindow } from './windows';
   import { hasKind } from './projecttype.svelte';
   import { orderedScenes, sceneLabel } from './scenes';
   import { REF_KINDS, characterFields, loreFields, placeFields, type RefKind, type RefPick } from './reference-core';
@@ -45,6 +46,7 @@
     <strong>Reference</strong>
     <span class="row fit" style="gap:.3rem">
       {#if item}<button class="small" title="Open it to change it" onclick={() => { db.flush(); openItem(pick.kind, item!.id); }}>Open</button>{/if}
+      {#if nav.tab !== 'reference'}<button class="small" title="Open the reference in its own window, for example on a second screen" onclick={() => { openWindow('reference', 'Reference'); onclose(); }}>⧉</button>{/if}
       <button class="small" aria-label="Close the reference pane" onclick={onclose}>✕</button>
     </span>
   </div>

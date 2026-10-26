@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { takeCommand } from './commands';
   import { Store } from '../../bindings/typewriter/internal/app';
   import { onMount } from 'svelte';
   import { db } from './db.svelte';
@@ -35,6 +36,7 @@
     busy = true; message = ''; failed = false;
     try {
       await settle();
+      db.expectReopen();
       const res = auto ? await Store.RestoreAuto(auto) : await Store.RestoreBackup();
       if (res.restored) {
         await db.load();
@@ -46,6 +48,8 @@
       failed = true; message = e?.message ?? String(e);
     } finally { busy = false; }
   }
+
+  $effect(() => { if (takeCommand('backup')) backup(); }); // the command menu
 </script>
 
 <h2 style="margin-top:2.4rem">Backup</h2>

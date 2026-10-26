@@ -18,11 +18,13 @@
     "@types/d3-force": "^3.0.10",
     "@wailsio/runtime": "latest",
     "d3-force": "^3.0.0",
+    "nspell": "^2.1.5",
     "tiptap-extension-vim": "^0.1.2"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.0.0",
     "@tsconfig/svelte": "^5.0.8",
+    "@types/nspell": "^2.1.6",
     "svelte": "^5.46.4",
     "svelte-check": "^4.4.8",
     "tslib": "^2.6.2",

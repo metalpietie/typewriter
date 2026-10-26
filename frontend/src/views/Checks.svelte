@@ -11,10 +11,14 @@
   import { has, word } from '../lib/projecttype.svelte';
   import { sourceProblems } from '../lib/sourcecheck';
   import { sourceLine } from '../lib/cite-core';
+  import { findSpelling, type SpellIssue } from '../lib/spellcheck-list';
+  import { addWord, ignoreWord, spell, suggest, useDictionary } from '../lib/spell.svelte';
+  import { look } from '../lib/editorlook.svelte';
+  import { sameCase } from '../lib/spell-core';
 
   let showDismissed = $state(false);
   let help = $state(false);
-  let tab = $state<'holes' | 'gaps' | 'names' | 'repeats' | 'style' | 'loose' | 'sources'>(has('characters') ? 'holes' : 'gaps');
+  let tab = $state<'holes' | 'gaps' | 'names' | 'spelling' | 'repeats' | 'style' | 'loose' | 'sources'>(has('characters') ? 'holes' : 'gaps');
   // a tab of a tool that is switched off is not shown, so leave it
   $effect(() => { if (!has('characters') && (tab === 'holes' || tab === 'loose')) tab = 'gaps'; });
   $effect(() => { if (!has('sources') && tab === 'sources') tab = 'gaps'; });
@@ -62,6 +66,25 @@
   };
   /** Split a snippet at its marks: text between ⟦ and ⟧ is shown highlighted. */
   const snip = (s: string) => s.split(/(⟦[^⟧]*⟧)/).filter(Boolean).map((t) => (t.startsWith('⟦') ? { t: t.slice(1, -1), hit: true } : { t, hit: false }));
+
+  // spelling: every word the spell check marks. Only worked out while that tab is open, because it reads the whole book.
+  let sScope = $state<number | 'all'>('all');
+  let showAllSpell = $state(false);
+  $effect(() => { if (tab === 'spelling') useDictionary(look.spell); });
+  const spelling = $derived.by(() => { void spell.version; return tab === 'spelling' && spell.ready && look.spell !== 'off' ? findSpelling(sScope) : []; });
+  let fixTo = $state<Record<string, string>>({}); // the chosen replacement of each word
+  let spellMsg = $state('');
+  async function fixSpelling(w: SpellIssue) {
+    const to = fixTo[w.word] ?? suggest(w.word)[0];
+    if (!to || fixing) return;
+    fixing = true; spellMsg = '';
+    try {
+      const n = await fixEverywhere({ word: w.word, suggest: sameCase(w.word, to), places: w.places } as NameIssue);
+      spellMsg = `Changed “${w.word}” to “${sameCase(w.word, to)}” ${n} time${n === 1 ? '' : 's'}. To undo: open History in that ${word('scene')}.`;
+    } catch (e: any) {
+      spellMsg = 'Could not change it: ' + (e?.message ?? e);
+    } finally { fixing = false; }
+  }
 
   // repeated words. Only worked out while that tab is open, because it reads the whole book.
   let rScope = $state<number | 'all'>('all');
@@ -124,6 +147,7 @@
     {#if has('characters')}<button class:active={tab === 'holes'} onclick={() => (tab = 'holes')}>Plot holes{open.length ? ' · ' + open.length : ''}</button>{/if}
     <button class:active={tab === 'gaps'} onclick={() => (tab = 'gaps')}>Unfinished{openGapList.length ? ' · ' + openGapList.length : ''}</button>
     <button class:active={tab === 'names'} onclick={() => (tab = 'names')}>Names{tab === 'names' && openNames.length ? ' · ' + openNames.length : ''}</button>
+    <button class:active={tab === 'spelling'} onclick={() => (tab = 'spelling')}>Spelling{tab === 'spelling' && spelling.length ? ' · ' + spelling.length : ''}</button>
     <button class:active={tab === 'repeats'} onclick={() => (tab = 'repeats')}>Repeats{tab === 'repeats' && openClose.length + openStarts.length ? ' · ' + (openClose.length + openStarts.length) : ''}</button>
     <button class:active={tab === 'style'} onclick={() => (tab = 'style')}>Style</button>
     {#if has('sources')}<button class:active={tab === 'sources'} onclick={() => (tab = 'sources')}>Sources{srcCount ? ' · ' + srcCount : ''}</button>{/if}
@@ -229,6 +253,56 @@
           {/each}
         </div>
       {/if}
+    {/if}
+  {:else if tab === 'spelling'}
+    <p class="muted">
+      Every word in your {word('scenes')} that the spell check marks, the most used first. Your names are known words.
+      A made-up word that is right: press <b>Add to dictionary</b>. In the editor, <kbd>F7</kbd> goes to the next marked word
+      (<kbd>]s</kbd> and <kbd>[s</kbd> with Vim keys).
+    </p>
+    {#if look.spell === 'off'}
+      <div class="empty">The spell check is off. Switch it on under <b>Look</b> in the Write tab.</div>
+    {:else if !spell.ready}
+      <div class="empty">Loading the dictionary…</div>
+    {:else}
+      <div class="row" style="justify-content:flex-start;margin-bottom:.6rem">
+        <label class="fit" for="sscope" style="margin:0">Look in</label>
+        <Select id="sscope" style="flex:0 1 16rem" bind:value={sScope}>
+          <option value="all">All books</option>
+          {#each [...db.lists.book].sort((a, b) => a.order - b.order) as b}<option value={b.id}>{b.title}</option>{/each}
+        </Select>
+      </div>
+      {#if spellMsg}<p style="color:var(--ok)">{spellMsg}</p>{/if}
+      {#each showAllSpell ? spelling : spelling.slice(0, 60) as w (w.word)}
+        {@const options = suggest(w.word)}
+        <div class="card hole name">
+          <div class="head">
+            <strong>“{w.word}”</strong>
+            <span class="row-btns spellbtns">
+              {#if options.length}
+                <Select style="flex:0 1 9rem" value={fixTo[w.word] ?? options[0]} onchange={(e) => (fixTo[w.word] = e.currentTarget.value)}>
+                  {#each options as o}<option value={o}>{sameCase(w.word, o)}</option>{/each}
+                </Select>
+                <button class="small primary" disabled={fixing} onclick={() => fixSpelling(w)}>Change all</button>
+              {/if}
+              <button class="small" title="It is spelled right: add it to the dictionary on this computer" onclick={() => addWord(w.word)}>Add to dictionary</button>
+              <button class="small" title="Leave it until the app closes" onclick={() => ignoreWord(w.word)}>Ignore</button>
+            </span>
+          </div>
+          <div class="muted">Used {w.count} time{w.count === 1 ? '' : 's'}.</div>
+          {#each w.places.slice(0, 5) as p (p.scene.id)}
+            {@const x = snip(p.snippet)}
+            <button class="row-link" onclick={() => openScene(p.scene.id)} title="Open it">
+              <span class="chip">{p.label}{p.times > 1 ? ' · ' + p.times + '×' : ''}</span>
+              <span class="t">{#each x as q}{#if q.hit}<mark>{q.t}</mark>{:else}{q.t}{/if}{/each}</span>
+            </button>
+          {/each}
+          {#if w.places.length > 5}<div class="muted">And in {w.places.length - 5} more.</div>{/if}
+        </div>
+      {:else}
+        <div class="empty">No spelling mistakes found. Nice.</div>
+      {/each}
+      {#if !showAllSpell && spelling.length > 60}<button class="small" onclick={() => (showAllSpell = true)}>Show all {spelling.length}</button>{/if}
     {/if}
   {:else if tab === 'names'}
     <p class="muted">
@@ -390,4 +464,6 @@
   .gap.done { opacity: .65; padding: .3rem .4rem; }
   .gap.done .t { flex: 1; }
   .row-link .chip { margin: 0; }
+  .spellbtns { flex-wrap: wrap; justify-content: flex-end; align-items: center; }
+  .spellbtns button { white-space: nowrap; }
 </style>

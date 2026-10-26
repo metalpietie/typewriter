@@ -5,11 +5,13 @@ import * as Exporter from "./exporter.js";
 import * as PhoneSync from "./phonesync.js";
 import * as Store from "./store.js";
 import * as Updates from "./updates.js";
+import * as Windows from "./windows.js";
 export {
     Exporter,
     PhoneSync,
     Store,
-    Updates
+    Updates,
+    Windows
 };
 
 export type {

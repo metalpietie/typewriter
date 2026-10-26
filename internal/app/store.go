@@ -34,6 +34,15 @@ type Store struct {
 	// opMu is held while the open data file is used for longer than one call (the bookshelf, the daily copy)
 	// and while it is switched, so the file is never closed under a job that still uses it.
 	opMu sync.Mutex
+	// onReopen is told when the open data changed under the screens: another project, another folder, a backup put back.
+	// Every window then reads it again (run.go), so no window saves old data into it.
+	onReopen func()
+}
+
+func (s *Store) reopened() {
+	if s.onReopen != nil {
+		s.onReopen()
+	}
 }
 
 var kinds = map[string]bool{

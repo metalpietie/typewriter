@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { takeCommand } from '../lib/commands';
   import Select from '../lib/Select.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import { db } from '../lib/db.svelte';
@@ -52,6 +53,8 @@
     other.order = a;
     await db.save('arc', sel); await db.save('arc', other);
   }
+
+  $effect(() => { if (takeCommand('new')) add(); }); // the command menu
 </script>
 
 <div class="split">

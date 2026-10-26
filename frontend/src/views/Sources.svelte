@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { takeCommand } from '../lib/commands';
   import Select from '../lib/Select.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
   import CopyButton from '../lib/CopyButton.svelte';
@@ -70,6 +71,8 @@
 
   const isWeb = $derived(sel?.type === 'web');
   const isArticle = $derived(sel?.type === 'article');
+
+  $effect(() => { if (takeCommand('new')) add(); }); // the command menu
 </script>
 
 <div class="split">

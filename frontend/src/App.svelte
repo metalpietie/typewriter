@@ -36,6 +36,9 @@
   import Statistics from './views/Statistics.svelte';
   import { findConflicts, openConflicts } from './lib/plotholes';
   import { has, menu as projectMenu, tabOn } from './lib/projecttype.svelte';
+  import { takeCommand } from './lib/commands';
+  import { isSecondWindow, openWindow } from './lib/windows';
+  import RefWindow from './views/RefWindow.svelte';
   import ProjectSettings from './lib/ProjectSettings.svelte';
   import Maps from './views/Maps.svelte';
   import Timeline from './views/Timeline.svelte';
@@ -46,7 +49,7 @@
   // The menu comes from the type of the project: first a tab with no heading, then groups. Each group has a heading.
   const menu = $derived(projectMenu());
   // a tab of a tool that was switched off is not opened (for example after the type changed)
-  $effect(() => { if (db.ready && !tabOn(nav.tab)) nav.tab = 'home'; });
+  $effect(() => { if (db.ready && nav.tab !== 'reference' && !tabOn(nav.tab)) nav.tab = 'home'; });
 
   // the number of open plot holes shows next to the Checks tab
   const holes = $derived(db.ready && has('characters') ? openConflicts(findConflicts().conflicts).length : 0);
@@ -60,7 +63,7 @@
     document.documentElement.style.setProperty('--side-w', sideW + 'px');
     try { localStorage.setItem(SIDE_KEY, String(sideW)); } catch { /* storage may be blocked */ }
   });
-  const hasSide = $derived(!['home', 'board', 'checks', 'stats', 'export'].includes(nav.tab));
+  const hasSide = $derived(!['home', 'board', 'checks', 'stats', 'export', 'reference'].includes(nav.tab));
   let dragging = $state(false);
   function startResize(e: PointerEvent) {
     const bar = e.currentTarget as HTMLElement;
@@ -109,23 +112,43 @@
   let error = $state('');
   let theme = $state<Theme>(currentTheme());
   function toggleTheme() { theme = theme === 'dark' ? 'light' : 'dark'; setTheme(theme); }
+  $effect(() => { if (takeCommand('theme', 'app')) toggleTheme(); if (takeCommand('motion', 'app')) cycleLevel(); });
+
+  function keys(e: KeyboardEvent) {
+    // the command menu: F1, or Ctrl+Shift+P (on some computers another program takes that one first)
+    if (e.key === 'F1' && !e.ctrlKey && !e.altKey && !e.metaKey) { e.preventDefault(); nav.commands = true; nav.searchOpen = true; return; }
+    if (!(e.ctrlKey || e.metaKey)) return;
+    const k = e.code === 'KeyP' ? 'p' : e.code === 'KeyK' ? 'k' : e.key.toLowerCase(); // by the place of the key, so the keyboard layout does not matter
+    if (k === 'k' && !e.shiftKey) { e.preventDefault(); nav.searchOpen = !nav.searchOpen; }
+    else if (k === 'p' && e.shiftKey) { e.preventDefault(); nav.commands = true; nav.searchOpen = true; } // the command menu
+  }
 
   // The window is closing: save what is waiting, then tell the app that it may close.
   // a phone changed some notes: read them again, after saving what is waiting
-  onMount(() => Events.On('typewriter:synced', async () => { db.flush(); await db.load(); }));
+  onMount(() => Events.On('typewriter:synced', async () => { db.flush(); await db.load(true); })); // every window hears this
+  // another window opened another project, another folder or a backup: start again, without saving old data into it
+  onMount(() => Events.On('typewriter:reopened', () => { if (db.askedForReopen()) return; db.discard(); location.reload(); }));
+  onMount(() => db.listen()); // what the other windows save (windows.ts)
+
+  /** Open the screen that is on now in a new window, for a second screen. */
+  function newWindow(tab: string = nav.tab) {
+    const label = tab === 'reference' ? 'Reference' : menu.flatMap((g) => g.items).find(([id]) => id === tab)?.[1] ?? tab;
+    openWindow(tab, label).catch((e) => (error = String(e)));
+  }
+  $effect(() => { if (takeCommand('window', 'app')) newWindow(); if (takeCommand('window-ref', 'app')) newWindow('reference'); });
   onMount(() => Events.On('typewriter:flush', async () => { try { await settle(); } finally { Events.Emit('typewriter:flushed'); } }));
-  onMount(() => { db.load().then(migrateChapters).catch((e) => (error = String(e))); });
-  onMount(() => startAutoCheck()); // a newer version on GitHub (only when that choice is on)
+  onMount(() => { db.load(true).then(migrateChapters).catch((e) => (error = String(e))); });
+  onMount(() => { if (!isSecondWindow) startAutoCheck(); }); // a newer version on GitHub (only when that choice is on)
 </script>
 
-<svelte:window onbeforeunload={() => db.flush()} onpagehide={() => db.flush()} onkeydown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); nav.searchOpen = !nav.searchOpen; } }} />
+<svelte:window onbeforeunload={() => db.flush()} onpagehide={() => db.flush()} onkeydown={keys} />
 <Search />
 <UndoToast />
 <PomodoroAlert />
 {#if nav.calendar}<CalendarEditor />{/if}
 {#if nav.names}<NameGenerator />{/if}
 {#if nav.shelf}<Bookshelf />{/if}
-<UpdateDialog />
+{#if !isSecondWindow}<UpdateDialog />{/if}
 {#if nav.projects}<Projects />{/if}
 {#if nav.copy}<CopyWorld />{/if}
 {#if nav.projectSettings}<ProjectSettings />{/if}
@@ -138,7 +161,7 @@
     <button class="project-btn" title="Switch or add a project (a book or series)" onclick={() => (nav.projects = true)}>▾ {db.project || 'Projects'}</button>
     <button class="shelf-btn" title="Show all projects and books on the bookshelf" onclick={() => (nav.shelf = true)}>▤ Bookshelf</button>
     <PomodoroTimer />
-    <button class="search-btn" onclick={() => (nav.searchOpen = true)}>Search <kbd>Ctrl+K</kbd></button>
+    <button class="search-btn" title="Search everything. Type > (or press F1) for the command menu." onclick={() => (nav.searchOpen = true)}>Search <kbd>Ctrl+K</kbd></button>
     {#each menu as group}
       {#if 'title' in group}<div class="group">{group.title}</div>{/if}
       {#each group.items as [id, label]}
@@ -148,6 +171,7 @@
     <div class="foot">
       <button onclick={toggleTheme}>{theme === 'dark' ? '☀ Light theme' : '☾ Dark theme'}</button>
       <button class="small" title="How much the screen moves: Off, Calm, Smooth or Lively. Click to change." onclick={cycleLevel}>Animations: {LABEL[motion.level]}</button>
+      <button class="small" title="Open this screen in its own window, for example on a second screen. The windows keep each other up to date." onclick={() => newWindow()}>⧉ This screen in a new window</button>
       Data file:<br />{db.dataPath}
       {#if db.folderProblem}<div><button class="small danger" title={db.folderProblem} onclick={() => (nav.dataFolder = true)}>⚠ Data folder problem</button></div>{/if}
       <div><button class="small" title="Keep your data in another folder" onclick={() => (nav.dataFolder = true)}>Change folder…</button></div>
@@ -164,6 +188,7 @@
       <div class="pane">Could not open the database: {error}</div>
     {:else if !db.ready}
       <div class="pane muted">Loading…</div>
+    {:else if nav.tab === 'reference'}<RefWindow />
     {:else if nav.tab === 'home'}<Dashboard />
     {:else if nav.tab === 'draft'}<Draft />
     {:else if nav.tab === 'write'}<Write />

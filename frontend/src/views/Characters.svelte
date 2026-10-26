@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { takeCommand } from '../lib/commands';
+  import CustomFields from '../lib/CustomFields.svelte';
   import Select from '../lib/Select.svelte';
   import { db, ROLES, REL_TYPES, CHARACTER_COLORS as PALETTE } from '../lib/db.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
@@ -54,9 +56,9 @@
   }
 
   function save() { if (sel) db.queue('character', sel); }
-  function addField() { if (sel) { sel.fields = [...(sel.fields ?? []), { k: '', v: '' }]; save(); } }
-  function dropField(i: number) { if (sel) { sel.fields = sel.fields.filter((_: any, n: number) => n !== i); save(); } }
   async function del() { if (selId) { await db.remove('character', selId); selId = null; } }
+
+  $effect(() => { if (takeCommand('new')) add(); }); // the command menu
 </script>
 
 <div class="split">
@@ -132,15 +134,7 @@
       <label>Notes</label>
       <textarea bind:value={sel.notes} oninput={save}></textarea>
 
-      <h3 style="margin-top:1.2rem">Custom fields</h3>
-      {#each sel.fields ?? [] as f, i}
-        <div class="row" style="margin-bottom:.3rem">
-          <input placeholder="Field (e.g. Eye colour)" bind:value={f.k} oninput={save} />
-          <input placeholder="Value" bind:value={f.v} oninput={save} />
-          <button class="small" onclick={() => dropField(i)}>✕</button>
-        </div>
-      {/each}
-      <button class="small" onclick={addField}>+ Add field</button>
+      {#key sel.id}<CustomFields kind="character" item={sel} {save} />{/key}
 
       <h3 style="margin-top:1.4rem">Connections</h3>
       <div class="card">

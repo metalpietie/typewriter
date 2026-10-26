@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { takeCommand } from '../lib/commands';
   import { db, wordCount } from '../lib/db.svelte';
   import { nav } from '../lib/nav.svelte';
   import ConfirmButton from '../lib/ConfirmButton.svelte';
@@ -47,6 +48,8 @@
     const t = new DOMParser().parseFromString((body || '').replace(/<\/(p|h[1-6]|li)>/g, ' '), 'text/html').body.textContent?.trim() ?? '';
     return t.length > 60 ? t.slice(0, 60) + '…' : t;
   };
+
+  $effect(() => { if (takeCommand('new')) add(); }); // the command menu
 </script>
 
 <div class="split">

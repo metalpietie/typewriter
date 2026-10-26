@@ -43,6 +43,27 @@ Most screens have a list on the left. Drag its right edge to make it wider or na
 
 Where your data is kept, and how to use more than one project, are explained in the [README](../README.md#your-data).
 
+### Command menu
+
+Press **F1** or **Ctrl+Shift+P**, or type **>** in the search box (Ctrl+K). Type a few letters of what you want to do and press **Enter**. For example:
+
+- **New**: a new scene, chapter, Notes page, character, place, lore note (also from a template), faction, item, glossary word, story arc, source, idea or timeline event. It opens at once.
+- **Write**: split or merge the scene, find and replace, history, snapshots, focus mode, Vim keys, typewriter mode, focus line, the Pomodoro timer.
+- **Go to**: every screen of the menu, and the bookshelf.
+- **App**: name generator, calendar, shelves, project type, theme, animations, back up now, check for updates, and a new window.
+
+Every word you type must be in the command, so "new char" finds "New character". A command for the Write tab that needs an open scene says so when none is open.
+
+### A second window
+
+**⧉ This screen in a new window** at the bottom of the menu opens the screen you are on in its own window, for example the map on a second screen while you write. The **⧉** button of the reference pane (in the Write tab) moves the reference into its own window. The command menu has both too.
+
+- Each window is the whole app. You can go to any screen in it.
+- The windows keep each other up to date: what you save in one window shows in the others. An item you are typing in at that moment keeps your text.
+- A text that is open in the editor of the other window shows the change when you open it again.
+- When you open another project, another data folder or a backup in one window, the other windows start again with the new data.
+- Closing the main window saves every window and closes them all. A second window closes on its own with its ✕.
+
 ### Animations
 
 The app moves a little when you use it, so it feels alive. Press **Animations: …** at the bottom of the menu to change how much. Each press goes to the next choice: **Off**, **Calm**, **Smooth** (the start), **Lively**.
@@ -252,6 +273,7 @@ Press **Look** above the editor to change how the text looks. The page changes w
 - **Page width**: Narrow, Medium, or Wide. **Auto** is the old way: the whole page, and a narrow column in focus mode. The exports do not change.
 - **Typewriter mode**: the line you write on stays a little above the middle of the screen, and the page scrolls as you type. The first lines of a scene also sit in the middle.
 - **Focus line**: every paragraph but the one you write in is dimmed.
+- **Spell check**: **English (UK)** (the start), **English (US)**, or **Off**. A wavy red line marks a word that is not in the dictionary. The names of your project are known words: characters and what they are also called, places, factions, items, lore notes, glossary words and book titles. @ links are never marked. Right-click a marked word for what it may have been meant to be (two letters the wrong way round come first), **Add to the dictionary** (on this computer), or **Ignore it for now** (until the app closes). The dictionaries are the open Hunspell lists that LibreOffice uses, so it works offline. Numbers, words in capitals (NASA) and words of one letter are not checked. The toolbar shows how many words are marked in the text (**✗ 3 spelling**); click it, or press **F7**, to go to the next one, and **Shift+F7** for the one before. With Vim keys, **]s** and **[s** go to the next and the previous one, and **z=** opens the list of suggestions for the word under the cursor (press **1** to **5** to pick one). **Checks → Spelling** lists every marked word of the whole book, the most used first, with where it is: change it everywhere, add it to the dictionary, or ignore it.
 - **Vim keys** (new, off at the start): the editor works like Vim. It starts in **Normal** mode: press `i` to type, and **Esc** to go back. In focus mode, an **Esc** that the Vim keys use (to leave the insert or visual mode, or to drop a command) does not leave focus mode. Press **Esc** once more in Normal mode to leave focus mode. A label at the bottom right shows the mode (**NORMAL**, **INSERT**, **VISUAL**) and any keys that wait for more, such as the `d` of `dd`. It works in every place that has the text editor (Write and Draft). When you open a scene or a notes page, the cursor is already in the text, so the Vim keys work at once. Ctrl+K search and the other app shortcuts still work, except that in Normal mode `Ctrl+B` pages up (as in Vim). In Visual mode `Ctrl+B` still makes the selection bold. Outside the insert mode, Enter, Backspace, Delete and Tab do what they do in Vim and never change the text by mistake: Enter goes to the start of the next line, Backspace goes left, Delete deletes the character (or the selection, in Visual mode). Keys that need AltGr (`{ [ ~` on many keyboards) work too. Switching the Vim keys on or off keeps the cursor where it was, but the undo history starts again. It uses a small add-on that is still young, so some Vim keys are missing (see below). Switching it off keeps your text.
 - **Back to normal** puts all choices back.
 
@@ -416,6 +438,14 @@ A story arc is one plot thread, such as "The crown" or "Ana and Bram". The **Sto
 
 Press **+ New** to add a character. Fill in the role, looks, traits, backstory, goals, and notes. Add your own fields, such as "Eye colour". Pick a colour. The same colour is used on the graph and the maps.
 
+### Your own fields
+
+Characters, places, factions and items have **Your own fields**: press **+ Add field**, name it ("Magic affinity", "Rank", "Religion") and fill in the value.
+
+- **☆** next to a field gives every character (or every place, faction or item) that field. It then shows on all of them, with its own value on each. Its name has a dashed box, and its star is filled (**★**).
+- Click **★** to stop that. The items that have a value keep it as their own field.
+- Your fields are found by search (Ctrl+K), show in the reference pane, and are in the story bible export. A field with no value is left out of the export.
+
 Press **Add portrait** to give a character a picture. The app cuts the middle square out of your picture and shrinks it to 480 px, so the data file stays small. The portrait shows in the character list. Use **Remove** to take it away.
 
 **Born** and **Died** are dates, picked with your own calendar if you set one up (or plain year numbers if not). They are the same timeline numbers that scenes and events use. With a birth date the app can tell how old a character is on any day:
@@ -480,6 +510,8 @@ Two lists live here:
 
 - **Lore notes:** history, magic, culture, religion, politics, and more. Filter by category and tags.
 - **Places:** cities, ruins, regions, and so on. A place can sit inside another place. Press **Add picture** to give a place a picture. It is shrunk to 480 px on the long side.
+
+**Lore templates:** under **+ New** on the Lore notes list, **New from a template…** makes a lore note with headings and the questions worth answering. There are templates for a magic system, a religion, a culture or people, a government or kingdom, a historical event or era, a creature or species, a technology or invention, a language, and economy and trade. Write your answers under the questions, and delete the questions you do not need. The command menu has them too.
 
 ## Glossary
 
@@ -673,7 +705,7 @@ Words are counted while you type in the Write tab. Each day keeps one tally. Cut
 
 ## Checks
 
-The **Checks** tab has six lists: **Plot holes**, **Unfinished**, **Names**, **Repeats**, **Style** and **Loose characters**. A red number next to the tab name shows how many plot holes are open.
+The **Checks** tab has seven lists: **Plot holes**, **Unfinished**, **Names**, **Spelling**, **Repeats**, **Style** and **Loose characters**. A red number next to the tab name shows how many plot holes are open.
 
 **Unfinished** lists things that look incomplete: characters with no age (a birth date counts), description, backstory, relationships or scene; places on no map or with no description; scenes with no point of view, place, timeline number, summary or text; a scene or event dated before someone in it was born or after they died; factions with no members or headquarters; items with no description or journey; events with no number or place; empty lore notes. Click a row to open it. Press **Skip** if it is fine as it is. Skipped rows go to a list where you can bring them back.
 
@@ -736,7 +768,7 @@ How to read it:
 
 ## Search
 
-Press **Ctrl+K**. Type a few letters. Typos are fine: "aldrik" finds "Aldric". It searches everything:
+Press **Ctrl+K**. Type a few letters. Typos are fine: "aldrik" finds "Aldric". Type **>** first for the [command menu](#command-menu) (or press **F1**). It searches everything:
 
 - the text and summaries of your **scenes** (a hit opens that scene in the Write tab),
 - your **Notes** pages,
@@ -785,6 +817,18 @@ PDF uses standard fonts. Letters outside Western languages may show as `?`. Use 
 - **Word:** each line is a link to the chapter. Word does not tell the app which page a chapter lands on, so the lines have no page numbers.
 - **E-book:** a Contents page with a link for each chapter.
 - **Markdown:** a list of links to the chapter headings.
+
+### Submission
+
+**Submission** on the Export screen makes the manuscript of one book in the form agents and editors ask for (standard manuscript format), as a Word file or a PDF, on Letter or A4:
+
+- A title page: your contact details at the top left (type them in the box: name, address, phone, email), the word count at the top right ("about 85,000 words", rounded to the nearest 1,000 for a novel and to the nearest 100 for a shorter text), and the title and your name in the middle.
+- 12 pt Times New Roman, double spaced, 1 inch margins, each paragraph indented half an inch, no space between paragraphs.
+- At the top right of every page after the first: *Surname / TITLE / page number*. The surname is the last word of the author name. The short title is the first words of the title, or what you type.
+- Each chapter starts on a new page, a third of the way down. A # marks a scene break. THE END follows the last chapter.
+- No cover, contents, copyright page or other pages.
+
+Always check what each agent asks for: some want a different font, or the first chapters only.
 
 ### Outline and synopsis
 

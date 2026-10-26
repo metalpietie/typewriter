@@ -28,6 +28,10 @@ type ExportOptions struct {
 	ExerciseList    bool   `json:"exerciseList"`    // print all the exercise boxes together, after the last chapter
 	Nonfiction      bool   `json:"nonfiction"`      // the project is a non-fiction book: a scene is called a section
 
+	// A submission (what is "submission", submission.go)
+	Contact    string `json:"contact"`    // the lines at the top left of the title page: name, address, phone, email
+	ShortTitle string `json:"shortTitle"` // the title in the page header; empty takes the first words of the title
+
 	// The outline (what is "outline")
 	OutlineDetails bool `json:"outlineDetails"` // add the point of view and the place of each scene
 	OutlineEmpty   bool `json:"outlineEmpty"`   // list scenes that have no summary yet

@@ -108,6 +108,7 @@
     busy = true; error = '';
     try {
       await settle();
+      db.expectReopen();
       await Store.SwitchProject(s.id); // the app reloads, and opens on the Write tab
       reloadInto('write');
       location.reload();

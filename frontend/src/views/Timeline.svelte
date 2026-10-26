@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { takeCommand } from '../lib/commands';
   import Select from '../lib/Select.svelte';
   import { db } from '../lib/db.svelte';
   import { scenesOf, chapterCast, chapterHasPov } from '../lib/scenes';
@@ -90,6 +91,8 @@
     const steps = db.lists.pathpoint.filter((p) => p.character === c.id && p.chapter === ch.id).length;
     return { pov: chapterHasPov(ch, c.id), present: chapterCast(ch).includes(c.id), steps };
   }
+
+  $effect(() => { if (takeCommand('new')) add(); }); // the command menu
 </script>
 
 <div class="split">

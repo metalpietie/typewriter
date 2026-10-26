@@ -34,7 +34,7 @@ export function glossaryTerms(): TermInput[] {
 }
 
 /** Scenes in reading order. */
-function allScenes(): Item[] {
+export function allScenes(): Item[] {
   const out: Item[] = [];
   for (const b of [...db.lists.book].sort((a, b2) => a.order - b2.order)) {
     for (const c of db.lists.chapter.filter((c) => c.book === b.id).sort((a, b2) => a.order - b2.order)) out.push(...scenesOf(c.id));

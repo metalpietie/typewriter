@@ -40,6 +40,7 @@ func Run(assets fs.FS) {
 	defer phone.shutdown()
 
 	updates := &Updates{store: store} // new versions from GitHub (updates.go)
+	windows := &Windows{}             // more windows, for a second screen (windows.go)
 
 	var win *application.WebviewWindow
 	app := application.New(application.Options{
@@ -50,6 +51,7 @@ func Run(assets fs.FS) {
 			application.NewService(&Exporter{store: store}),
 			application.NewService(phone),
 			application.NewService(updates),
+			application.NewService(windows),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),
@@ -72,6 +74,8 @@ func Run(assets fs.FS) {
 	phone.emit = func(name string) { app.Event.Emit(name) } // a phone changed notes: the screen reads them again
 	phone.resume()
 	updates.init(app)
+	windows.app = app
+	store.onReopen = func() { app.Event.Emit("typewriter:reopened") } // every window reads the data again
 
 	// the window opens maximised when it was maximised at the last close (windowstate.go)
 	stateFile := windowStateFile()
@@ -88,12 +92,17 @@ func Run(assets fs.FS) {
 		URL:              "/",
 	})
 
-	// Closing the window: first ask the screen to save what is still waiting, then close.
-	// If the screen does not answer within 3 seconds, close anyway.
+	// Closing the window: first ask every window to save what is still waiting, then close them all.
+	// If they do not answer within 3 seconds, close anyway.
 	var saved, asking atomic.Bool
+	var answered, windowsOpen atomic.Int32
 	updates.allowClose = func() { saved.Store(true) }
 	app.Event.On(eventFlushed, func(*application.CustomEvent) {
+		if answered.Add(1) < windowsOpen.Load() {
+			return // another window is still saving
+		}
 		saved.Store(true)
+		windows.closeAll()
 		// a new version is ready and should start when the window closes: it closes the app itself
 		if updates.wantsRestartOnClose() && updates.RestartToUpdate() == nil {
 			return
@@ -111,10 +120,12 @@ func Run(assets fs.FS) {
 		if !asking.CompareAndSwap(false, true) {
 			return
 		}
-		win.EmitEvent(eventFlush)
+		windowsOpen.Store(int32(1 + windows.count()))
+		app.Event.Emit(eventFlush) // to every window
 		go func() {
 			time.Sleep(3 * time.Second)
 			saved.Store(true)
+			windows.closeAll()
 			win.Close()
 		}()
 	})
