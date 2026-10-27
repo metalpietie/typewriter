@@ -201,7 +201,7 @@
   .grid td.last::before { right: 50%; }
   .grid td.first.last::before { display: none; }
   .dots { position: relative; display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; align-items: center; padding: .2rem; min-height: 2.6rem; }
-  .pt { width: 14px; height: 14px; min-width: 0; padding: 0; border-radius: 50%; border: 0; background: var(--c); color: var(--on-accent); font-size: .55rem; font-weight: 800; line-height: 14px; }
+  .pt { width: 14px; height: 14px; min-width: 14px; flex: 0 0 auto; aspect-ratio: 1; padding: 0; border-radius: 50%; border: 0; background: var(--c); color: var(--on-accent); font-size: .55rem; font-weight: 800; line-height: 14px; }
   .pt.big { width: 20px; height: 20px; line-height: 20px; font-size: .65rem; box-shadow: 0 0 0 2px var(--panel), 0 0 0 3px var(--c); }
   .pt:hover { transform: scale(1.25); border: 0; }
   .legend { font-size: .8rem; margin: .5rem 0 0; }

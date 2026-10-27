@@ -15,7 +15,7 @@
 
 <style>
   .save { display: inline-flex; align-items: center; gap: .4rem; font-size: .8rem; color: var(--muted); white-space: nowrap; }
-  .dot { width: .55rem; height: .55rem; border-radius: 50%; background: var(--ok); }
+  .dot { width: 8px; height: 8px; min-width: 8px; min-height: 8px; display: inline-block; aspect-ratio: 1; border-radius: 50%; flex: 0 0 auto; vertical-align: middle; background: var(--ok); }
   .saving .dot { background: var(--accent); animation: pulse 1s ease-in-out infinite; }
   .error { color: var(--danger); }
   .error .dot { background: var(--danger); }

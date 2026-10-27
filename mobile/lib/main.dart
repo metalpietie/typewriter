@@ -14,21 +14,22 @@ class TypewriterNotes extends StatelessWidget {
   const TypewriterNotes({super.key, required this.app});
   final AppServices app;
 
-  // the same indigo as Typewriter
-  static const accent = Color(0xFF8082FF);
+  // the same blue as Typewriter and its icon (frontend/src/app.css): brighter on dark, deeper on light so white text stays easy to read
+  static const accent = Color(0xFF3D8BF6);
+  static const accentLight = Color(0xFF1F6FE0);
 
   ThemeData _theme(Brightness b) {
     final dark = b == Brightness.dark;
     final scheme = ColorScheme.fromSeed(seedColor: accent, brightness: b).copyWith(
-      surface: dark ? const Color(0xFF0F1014) : const Color(0xFFF5F5FA),
-      primary: dark ? accent : const Color(0xFF5B5BD6),
+      surface: dark ? const Color(0xFF0C1118) : const Color(0xFFF3F6FA),
+      primary: dark ? accent : accentLight,
     );
     return ThemeData(
       colorScheme: scheme,
       useMaterial3: true,
       scaffoldBackgroundColor: scheme.surface,
       appBarTheme: AppBarTheme(backgroundColor: scheme.surface, surfaceTintColor: Colors.transparent),
-      cardTheme: CardThemeData(color: dark ? const Color(0xFF16171D) : Colors.white, elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: dark ? const Color(0xFF262833) : const Color(0xFFE4E4EF)))),
+      cardTheme: CardThemeData(color: dark ? const Color(0xFF121A24) : Colors.white, elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: dark ? const Color(0xFF23303E) : const Color(0xFFDDE5EF)))),
       inputDecorationTheme: InputDecorationTheme(border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
     );
   }

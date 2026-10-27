@@ -56,7 +56,7 @@ Every word you type must be in the command, so "new char" finds "New character".
 
 ### A second window
 
-**⧉ This screen in a new window** at the bottom of the menu opens the screen you are on in its own window, for example the map on a second screen while you write. The **⧉** button of the reference pane (in the Write tab) moves the reference into its own window. The command menu has both too.
+**⧉ New window** at the bottom of the menu opens the screen you are on in its own window, for example the map on a second screen while you write. The **⧉** button of the reference pane (in the Write tab) moves the reference into its own window. The command menu has both too.
 
 - Each window is the whole app. You can go to any screen in it.
 - The windows keep each other up to date: what you save in one window shows in the others. An item you are typing in at that moment keeps your text.

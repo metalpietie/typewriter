@@ -44,7 +44,7 @@
     padding: .65rem .75rem; box-shadow: 0 12px 32px rgba(0, 0, 0, .4); font-size: .85rem; line-height: 1.45; color: var(--text);
   }
   .pk-head { display: flex; align-items: center; gap: .45rem; font-size: .95rem; }
-  .dot { width: .65rem; height: .65rem; border-radius: 50%; flex: none; box-shadow: 0 0 0 2px var(--panel-2); }
+  .dot { width: 10px; height: 10px; min-width: 10px; display: inline-block; aspect-ratio: 1; border-radius: 50%; flex: 0 0 auto; vertical-align: middle; box-shadow: 0 0 0 2px var(--panel-2); }
   .pk-sub { color: var(--muted); font-size: .75rem; margin-top: .1rem; text-transform: capitalize; }
   p { margin: .45rem 0 0; color: var(--text); }
   .empty { color: var(--muted); font-style: italic; }

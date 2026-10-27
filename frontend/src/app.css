@@ -100,7 +100,12 @@ button:disabled { opacity: .4; cursor: default; }
 .list .item.on { background: var(--panel-2); border-color: var(--line); }
 .list .item small { color: var(--muted); margin-left: auto; }
 .thumb { width: 1.5rem; height: 1.5rem; border-radius: 50%; object-fit: cover; border: 2px solid var(--line); flex: 0 0 auto; }
-.dot { width: .7rem; height: .7rem; border-radius: 50%; flex: 0 0 auto; }
+/* a colour dot: round in a flex row and in text alike (it never shrinks, and its width counts in text too).
+   Its size is whole pixels: an edge between two pixels is smoothed unevenly, and a small dot then looks flat on one side. */
+.dot { width: 12px; height: 12px; min-width: 12px; min-height: 12px; display: inline-block; aspect-ratio: 1; border-radius: 50%; flex: 0 0 auto; vertical-align: middle; }
+/* a pill with a person or a group and their colour dot: the dot is as far from the left edge as from the top and the bottom */
+.chip.who { display: inline-flex; align-items: center; gap: .4rem; padding: .25rem .65rem .25rem .25rem; line-height: 1; }
+.chip.who .dot { width: 12px; height: 12px; min-width: 12px; min-height: 12px; }
 .empty { color: var(--muted); padding: 2rem 0; }
 .chip { display: inline-block; background: var(--panel-2); border: 1px solid var(--line); border-radius: 99px; padding: .1rem .6rem; font-size: .75rem; margin: 0 .3rem .3rem 0; }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: .8rem 1rem; margin: .8rem 0; }
@@ -121,7 +126,7 @@ button:disabled { opacity: .4; cursor: default; }
   --stage: #e6edf5; --on-accent: #ffffff;
   color-scheme: light;
 }
-.nav .foot button { width: 100%; margin-bottom: .6rem; }
+.nav .foot button { width: 100%; margin-bottom: .6rem; word-break: normal; } /* the data path may break anywhere, a button label only between words */
 /* the buttons at the bottom of the menu have an outline, so they look like buttons */
 .nav .foot button { border-color: var(--line); background: var(--panel-2); }
 .nav .foot .ver button.linkish { width: auto; margin: 0; padding: 0; border: 0; background: none; color: var(--accent); font-size: inherit; text-decoration: underline; text-underline-offset: 2px; word-break: normal; }

@@ -25,7 +25,7 @@
     <div class="blank" class:square>No picture</div>
   {/if}
   <div class="btns">
-    <label class="small btn">{value ? 'Change' : 'Add'} {label.toLowerCase()}
+    <label class="btn">{value ? 'Change' : 'Add'} {label.toLowerCase()}
       <input type="file" accept="image/*" onchange={pick} style="display:none" /></label>
     {#if value}<ConfirmButton onconfirm={() => onchange('')} />{/if}
     {#if error}<span class="muted">{error}</span>{/if}
@@ -33,10 +33,13 @@
 </div>
 
 <style>
-  .pic { display: flex; gap: .8rem; align-items: flex-end; margin: .4rem 0 .8rem; }
+  .pic { display: inline-flex; flex-direction: column; gap: .5rem; align-items: center; margin: .4rem 0 .8rem; }
   img { max-width: 220px; max-height: 220px; border-radius: 8px; border: 1px solid var(--line); display: block; }
   img.square { width: 140px; height: 140px; object-fit: cover; }
   .blank { width: 140px; height: 140px; border: 1px dashed var(--line); border-radius: 8px; display: grid; place-items: center; color: var(--muted); font-size: .8rem; }
-  .btns { display: flex; flex-direction: column; gap: .3rem; align-items: flex-start; }
-  .btn { cursor: pointer; display: inline-block; }
+  .btns { display: flex; flex-wrap: wrap; justify-content: center; gap: .3rem; align-items: center; max-width: 220px; }
+  .btns .muted { flex-basis: 100%; text-align: center; font-size: .8rem; }
+  /* the file picker looks like the other buttons */
+  .btn { cursor: pointer; display: inline-block; margin: 0; padding: .2rem .7rem; font-size: .8rem; color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; transition: border-color .15s; }
+  .btn:hover { border-color: var(--accent); }
 </style>

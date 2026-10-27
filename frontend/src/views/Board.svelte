@@ -291,7 +291,7 @@
   .passdone { opacity: .55; }
   .passdone:hover { opacity: 1; }
   .hash { color: var(--accent); }
-  .adot { width: .6rem; height: .6rem; border-radius: 50%; flex: 0 0 auto; }
+  .adot { width: 10px; height: 10px; min-width: 10px; display: inline-block; aspect-ratio: 1; border-radius: 50%; flex: 0 0 auto; vertical-align: middle; }
   .addscene { align-self: flex-start; }
   .card.idx { transition: transform var(--m-dur) var(--m-ease), border-color var(--m-dur) var(--m-ease), opacity var(--m-dur) var(--m-ease); }
   .card.idx:hover { transform: translateY(-2px); }

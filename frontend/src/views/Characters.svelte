@@ -151,7 +151,7 @@
         <div class="card">
           {#if inFactions.length}
             <div><strong>Factions</strong>
-              {#each inFactions as m}<button class="chip" onclick={() => openItem('faction', m.faction.id)}><span class="dot" style="display:inline-block;background:{m.faction.color}"></span> {m.faction.name}{m.rank ? ' · ' + m.rank : ''}</button>{/each}
+              {#each inFactions as m}<button class="chip who" onclick={() => openItem('faction', m.faction.id)}><span class="dot" style:background={m.faction.color || 'var(--muted)'}></span>{m.faction.name}{m.rank ? ' · ' + m.rank : ''}</button>{/each}
             </div>
           {/if}
           {#if held.length}

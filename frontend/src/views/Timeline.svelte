@@ -161,7 +161,7 @@
             <div class="head" style="margin:0"><strong>{r.title}</strong><span class="chip" style="margin:0">{r.label ?? (r.type === 'step' ? 'path step' : r.type)}</span></div>
             {#if r.sub}<div class="muted" style="margin-top:.3rem">{r.sub}</div>{/if}
             <div style="margin-top:.4rem">
-              {#each r.chars as id}<span class="chip"><span class="dot" style="display:inline-block;background:{db.get('character', id)?.color}"></span> {db.name('character', id)}</span>{/each}
+              {#each r.chars as id}<span class="chip who"><span class="dot" style:background={db.get('character', id)?.color || 'var(--muted)'}></span>{db.name('character', id)}</span>{/each}
             </div>
           </div>
         {/each}
@@ -195,7 +195,7 @@
               {#each db.lists.character as c (c.id)}
                 <tr>
                   <td style="position:sticky;left:0;background:var(--bg);padding:.4rem .6rem;white-space:nowrap">
-                    <span class="dot" style:background={c.color} style="display:inline-block;margin-right:.4rem"></span>{c.name}
+                    <span class="dot" style:background={c.color} style="margin-right:.4rem"></span>{c.name}
                   </td>
                   {#each chapters as ch}
                     {@const x = cell(c, ch)}

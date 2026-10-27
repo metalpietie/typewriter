@@ -171,7 +171,7 @@
     <div class="foot">
       <button onclick={toggleTheme}>{theme === 'dark' ? '☀ Light theme' : '☾ Dark theme'}</button>
       <button class="small" title="How much the screen moves: Off, Calm, Smooth or Lively. Click to change." onclick={cycleLevel}>Animations: {LABEL[motion.level]}</button>
-      <button class="small" title="Open this screen in its own window, for example on a second screen. The windows keep each other up to date." onclick={() => newWindow()}>⧉ This screen in a new window</button>
+      <button class="small" title="Open this screen in its own window, for example on a second screen. The windows keep each other up to date." onclick={() => newWindow()}>⧉ New window</button>
       Data file:<br />{db.dataPath}
       {#if db.folderProblem}<div><button class="small danger" title={db.folderProblem} onclick={() => (nav.dataFolder = true)}>⚠ Data folder problem</button></div>{/if}
       <div><button class="small" title="Keep your data in another folder" onclick={() => (nav.dataFolder = true)}>Change folder…</button></div>

@@ -1,10 +1,10 @@
 {
 	"fixed": {
-		"file_version": "1.17.0"
+		"file_version": "1.17.1"
 	},
 	"info": {
 		"0000": {
-			"ProductVersion": "1.17.0",
+			"ProductVersion": "1.17.1",
 			"CompanyName": "MetalPietie",
 			"FileDescription": "Write books. Track worlds, people and paths.",
 			"LegalCopyright": "(c) 2026, MetalPietie",

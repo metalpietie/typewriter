@@ -129,7 +129,7 @@
   .mmsg { margin: .1rem 0; font-size: .8rem; color: var(--text); }
   .mctl { display: flex; gap: .3rem; }
   .mctl button { flex: 1 1 0; min-width: 0; padding: .25rem .4rem; font-size: .8rem; }
-  .dotp { width: .5rem; height: .5rem; border-radius: 50%; background: var(--accent); flex: 0 0 auto; }
+  .dotp { width: 8px; height: 8px; min-width: 8px; display: inline-block; aspect-ratio: 1; border-radius: 50%; flex: 0 0 auto; vertical-align: middle; background: var(--accent); }
   .rest .dotp { background: var(--ok); }
   .run .dotp { animation: blink 1.6s ease-in-out infinite; }
   /* a part ended: the card flashes until you answer it */

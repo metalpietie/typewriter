@@ -658,7 +658,7 @@
       {#if has('characters')}
       <label>In this chapter</label>
       <div>
-        {#each chapterCast(chap) as id}<span class="chip"><span class="dot" style="display:inline-block;background:{db.get('character', id)?.color}"></span> {db.name('character', id)}</span>
+        {#each chapterCast(chap) as id}<span class="chip who"><span class="dot" style:background={db.get('character', id)?.color || 'var(--muted)'}></span>{db.name('character', id)}</span>
         {:else}<span class="muted">No one yet. Tick people in a scene.</span>{/each}
       </div>
       {/if}
@@ -704,7 +704,7 @@
   .scene .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .scene small { color: var(--muted); }
   .scenes > button.small { align-self: flex-start; margin-top: .2rem; }
-  .status { width: .55rem; height: .55rem; border-radius: 50%; flex: 0 0 auto; background: var(--muted); }
+  .status { width: 8px; height: 8px; min-width: 8px; display: inline-block; aspect-ratio: 1; border-radius: 50%; flex: 0 0 auto; vertical-align: middle; background: var(--muted); }
   .status.draft { background: var(--accent); }
   /* the counts stay at the bottom of the pane while you scroll or type */
   .statusbar { position: sticky; bottom: -1.2rem; z-index: 5; margin: 0 -1.6rem -1.2rem; padding: .1rem 1.6rem .5rem; background: var(--bg); border-top: 1px solid var(--line); }
