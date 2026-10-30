@@ -80,7 +80,7 @@
       </div>
       <div class="muted count">{wordCount(sel.body)} words · a page of notes. It is not counted in your book.{origin ? ' · From ' + origin : ''}</div>
       {#key sel.id}
-        <RichEditor autofocus value={sel.body} onchange={change} placeholder="Write anything. Who is it about? What goes wrong? How does it end?" />
+        <RichEditor autofocus textId={'draft:' + sel.id} value={sel.body} onchange={change} placeholder="Write anything. Who is it about? What goes wrong? How does it end?" />
       {/key}
     {:else}
       <div class="empty">Pick a page, or press “+ New”.</div>

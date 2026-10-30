@@ -15,6 +15,7 @@
   import DateField from '../lib/DateField.svelte';
   import GoalBars from '../lib/GoalBars.svelte';
   import { addWords, dailyGoal, wordsToday } from '../lib/progress';
+  import { rememberCursor } from '../lib/cursor-memory';
   import { missingCast } from '../lib/mentions';
   import Comments from '../lib/Comments.svelte';
   import RichEditor from '../lib/RichEditor.svelte';
@@ -354,7 +355,8 @@
     const made = await splitScene(scene, parts.before, parts.after);
     if (typeof made === 'string') { say(made); return; }
     say(`Split. The text after the cursor is now the next ${word('scene')}. The old text is saved in History.`);
-    sceneId = made.id; // the editor opens the new scene, with the cursor at its start
+    rememberCursor('scene:' + made.id, 1); // the editor opens the new scene, with the cursor at its start
+    sceneId = made.id;
   }
   async function mergeNext() {
     if (!scene) return;
@@ -515,7 +517,7 @@
         <input class="scenetitle" bind:value={scene.title} oninput={saveScene} placeholder={isNonfiction() ? 'Section title (printed as a heading)' : 'Scene title (only you see this)'} />
       {/if}
       {#key scene.id + ':' + rev}
-        <RichEditor bind:this={rich} autofocus bare={nav.focus} onfind={() => (showFind = true)} onbeside={showBeside} source={[book?.title, sceneLabel(scene)].filter(Boolean).join(', ')} onopenref={(k, id) => { db.flush(); openItem(k, id); }} oncomment={newComment} onfocuscomment={(id) => { if (id) activeComment = id; }} value={toHtml(scene.body ?? '')}
+        <RichEditor bind:this={rich} autofocus textId={'scene:' + scene.id} bare={nav.focus} onfind={() => (showFind = true)} onbeside={showBeside} source={[book?.title, sceneLabel(scene)].filter(Boolean).join(', ')} onopenref={(k, id) => { db.flush(); openItem(k, id); }} oncomment={newComment} onfocuscomment={(id) => { if (id) activeComment = id; }} value={toHtml(scene.body ?? '')}
           onchange={(html) => { const before = scene.body ?? ''; scene.body = html; saveScene(); maybeAutoVersion(scene.id, before); addWords(wordCount(html) - wordCount(before), book?.id); }} />
       {/key}
       {@const words = sceneWords(scene)}

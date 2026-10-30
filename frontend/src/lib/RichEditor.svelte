@@ -5,7 +5,7 @@
   import Select from './Select.svelte';
   import { citeLabel, cleanSource, sourceLine } from './cite-core';
   import { BOXES, CAPTIONS } from './boxes-core';
-  import { Plugin, PluginKey } from '@tiptap/pm/state';
+  import { Plugin, PluginKey, TextSelection } from '@tiptap/pm/state';
   import { Decoration, DecorationSet } from '@tiptap/pm/view';
   import { DOMSerializer } from '@tiptap/pm/model';
   import StarterKit from '@tiptap/starter-kit';
@@ -23,11 +23,14 @@
   import { pop } from './motion.svelte';
   import { look } from './editorlook.svelte';
   import { lookVars } from './editorlook-core';
+  import { rememberCursor, savedCursor } from './cursor-memory';
   import { addWord, correct, ignoreWord, spell, suggest, useDictionary } from './spell.svelte';
   import { sameCase, wordsOf } from './spell-core';
   import type { Node as PMNode } from '@tiptap/pm/model';
 
-  let { value, onchange, placeholder = 'Start writing…', bare = false, source = '', onfind, onbeside, oncomment, onfocuscomment, onopenref, autofocus = false }: {
+  let { value, onchange, placeholder = 'Start writing…', bare = false, source = '', onfind, onbeside, oncomment, onfocuscomment, onopenref, autofocus = false, textId = '' }: {
+    /** Which text this is, such as "scene:12". The cursor goes back to where it was the last time, or to the end of the text. */
+    textId?: string;
     value: string;
     /** Put the cursor in the text when the editor opens (the Write and Notes pages), so typing or the Vim keys work at once. */
     autofocus?: boolean;
@@ -625,7 +628,7 @@
       },
             onTransaction: () => { if (vimOn) queueMicrotask(syncVim); },
       onUpdate: ({ editor }) => { tick++; onchange(editor.isEmpty ? '' : editor.getHTML()); checkSuggest(); keepCentred(); },
-      onSelectionUpdate: ({ editor }) => { tick++; if (vimOn) syncVim(); onfocuscomment?.(editor.getAttributes('comment').id ?? null); checkSuggest(); },
+      onSelectionUpdate: ({ editor }) => { keepCursor(); tick++; if (vimOn) syncVim(); onfocuscomment?.(editor.getAttributes('comment').id ?? null); checkSuggest(); },
       onBlur: () => setTimeout(() => (sug = null), 150),
     });
     dropEmptyCaptions();
@@ -657,13 +660,36 @@
 
   onMount(() => {
     create(value);
-    if (autofocus) setTimeout(takeFocus); // after the page is drawn (a timer also runs when the window is in the background)
+    if (autofocus || textId) setTimeout(() => { if (textId) putCursorBack(); if (autofocus) takeFocus(); }); // after the page is drawn (a timer also runs when the window is in the background)
     window.addEventListener('scroll', follow, true); // capture: the page scrolls inside a panel
     window.addEventListener('scroll', hidePeek, true); // the card would stay where the link was
     const onKeyUp = (e: KeyboardEvent) => { if (NAV_KEYS.has(e.key)) keepCentred(); if (vimOn) syncVim(); };
     host.addEventListener('keyup', onKeyUp);
-    return () => { window.removeEventListener('scroll', follow, true); window.removeEventListener('scroll', hidePeek, true); hidePeek(); host.removeEventListener('keyup', onKeyUp); vimWatch?.disconnect(); editor?.destroy(); };
+    return () => { if (textId && editor && !editor.isDestroyed) { clearTimeout(cursorTimer); rememberCursor(textId, editor.state.selection.head); } window.removeEventListener('scroll', follow, true); window.removeEventListener('scroll', hidePeek, true); hidePeek(); host.removeEventListener('keyup', onKeyUp); vimWatch?.disconnect(); editor?.destroy(); };
   });
+
+  // The cursor of each text is remembered (cursor-memory.ts), so the text opens where you were and you can type at once.
+  let cursorTimer = 0;
+  function keepCursor() {
+    if (!textId || !editor) return;
+    clearTimeout(cursorTimer);
+    const pos = editor.state.selection.head;
+    cursorTimer = window.setTimeout(() => rememberCursor(textId, pos), 300);
+  }
+  /** Put the cursor where it was the last time (or at the end of the text), with that line a little above the middle. */
+  function putCursorBack() {
+    if (!editor || editor.isDestroyed) return;
+    const { doc } = editor.state;
+    const saved = savedCursor(textId);
+    const pos = Math.min(Math.max(saved ?? doc.content.size, 0), doc.content.size);
+    editor.view.dispatch(editor.state.tr.setSelection(TextSelection.near(doc.resolve(pos), -1)).setMeta('addToHistory', false));
+    const box = scroller(host);
+    const at = editor.view.coordsAtPos(editor.state.selection.head);
+    if (box) {
+      const r = box.getBoundingClientRect();
+      box.scrollTop += at.top - (r.top + r.height * 0.4);
+    } else window.scrollBy(0, at.top - window.innerHeight * 0.4);
+  }
 
   /** The cursor goes into the text, unless the writer is typing somewhere else (a title, the search box) or a window is open. */
   function takeFocus() {
